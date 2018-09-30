@@ -1,2 +1,2 @@
 # xenon
-Create backups of your discord server
+This is the beta version of xenon. Not finished at all and probably not even working
