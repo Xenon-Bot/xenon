@@ -3,7 +3,7 @@ from discord import *
 from aiohttp import web
 import random
 
-from cogs.utils.backup_handler import Backup
+from discord_backups import Backup
 
 
 class BackupConv(Converter):
@@ -36,6 +36,7 @@ class Backups:
     def __init__(self, bot):
         self.bot = bot
         self.webserver = WebServer()
+        self.temp_backup = None
 
     async def on_ready(self):
         await self.webserver.setup()
@@ -49,14 +50,13 @@ class Backups:
     @guild_only()
     @has_permissions(administrator=True)
     @bot_has_permissions(administrator=True)
-    @cooldown(1, 1 * 60, BucketType.guild)
+    #@cooldown(1, 1 * 60, BucketType.guild)
     async def create(self, ctx):
         "Create a backup of your server"
         status_message = await ctx.send("Creating backup, thais could take a while.")
 
-        handler = await Backup.from_guild(self.bot, ctx.guild, ctx.author)
-        print("Finished")
-        await handler.load()
+        backup = await Backup.from_guild(self.bot, ctx.guild, ctx.author)
+        self.temp_backup = backup
 
         try:
             await ctx.author.send()
@@ -70,10 +70,11 @@ class Backups:
     @guild_only()
     @has_permissions(administrator=True)
     @bot_has_permissions(administrator=True)
-    @cooldown(1, 5 * 60, BucketType.guild)
-    async def load(self, ctx, backup: BackupConv):
-        if str(ctx.author.id) != str(backup["creator"]):
-            pass
+    #@cooldown(1, 5 * 60, BucketType.guild)
+    async def load(self, ctx, backup):
+        await ctx.send("Loading")
+        await self.temp_backup.load(ctx.guild)
+        await ctx.send("Finished")
 
 
 def setup(bot):
