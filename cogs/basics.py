@@ -2,10 +2,11 @@ import asyncio
 from datetime import timedelta, datetime
 
 import discord
+import typing
 from discord.ext import commands
 
 import statics
-from cogs.utils import converters, formatter
+from cogs.utils import converters, formatter, time
 
 em = formatter.embed_message
 
@@ -32,7 +33,7 @@ class Basics:
         await ctx.invoke(self.bot.get_command("info bot"))
 
     @commands.group(aliases=["i"], invoke_without_command=True)
-    async def info(self, ctx, something: converters.AllInOneConverter = None):
+    async def info(self, ctx, something: typing.Union[discord.Member, discord.User, discord.Role, discord.TextChannel] = None):
         """
         Shows info about a discord object
 
@@ -71,8 +72,8 @@ class Basics:
         user_count = sum(len(guild.members) for guild in self.bot.guilds)
         embed.add_field(name="Users", value=str(user_count))
 
-        embed.add_field(name="Uptime", value=self.bot.time.format_timedelta(timedelta(minutes=self.uptime)))
-        last_restart = self.bot.time.format_datetime(datetime.utcnow() - timedelta(minutes=self.uptime))
+        embed.add_field(name="Uptime", value=time.format_timedelta(timedelta(minutes=self.uptime)))
+        last_restart = time.format_datetime(datetime.utcnow() - timedelta(minutes=self.uptime))
         embed.add_field(name="Last Restart", value=last_restart)
 
         await ctx.send(embed=embed)
@@ -101,7 +102,7 @@ class Basics:
                 else:
                     embed.add_field(name="Activity", value=user.activity.name)
 
-            embed.add_field(name="Joined At", value=self.bot.time.format_datetime(user.joined_at))
+            embed.add_field(name="Joined At", value=time.format_datetime(user.joined_at))
             roles = "```"
             for role in user.roles:
                 if len(roles) + len(role.name) >= 1000:
@@ -119,7 +120,7 @@ class Basics:
         embed = discord.Embed(title="Role Info", color=statics.embed_color)
         embed.set_footer(text=f"Unique Id: {role.id}")
         embed.add_field(name="Name", value=role.name)
-        embed.add_field(name="Created At", value=self.bot.time.format_datetime(role.created_at, short=True))
+        embed.add_field(name="Created At", value=time.format_datetime(role.created_at, short=True))
         embed.add_field(name="Members", value=str(len(role.members)))
         roles = "```md\n"
         for role_l in role.guild.role_hierarchy:
@@ -187,7 +188,7 @@ class Basics:
         embed.set_footer(text=f"Unique Id: {guild.id}")
         embed.add_field(name="Name", value=guild.name)
         embed.add_field(name="Owner", value=f"<@{guild.owner.id}>")
-        embed.add_field(name="Created At", value=self.bot.time.format_datetime(guild.created_at, short=True))
+        embed.add_field(name="Created At", value=time.format_datetime(guild.created_at, short=True))
         embed.add_field(name=f"Members ({len(guild.members)})",
                         value=f"**{sum(1 for member in guild.members if str(member.status) != 'offline')}** online"
                               f"\n**{sum(1 for member in guild.members if member.bot)}** bots")
