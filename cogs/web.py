@@ -14,7 +14,7 @@ async def rejoin(request):
         raise web.HTTPFound("https://discordapp.com/api/oauth2/authorize?client_id=416358583220043796&redirect_uri=https%3A%2F%2Fxenon.discord.club%2Frejoin&response_type=code&scope=guilds.join")
 
     try:
-        token, response = await oauth.client.get_access_token(code=code, redirect_uri="http://xenon.discord.club/rejoin", loop=request.app.loop)
+        token, response = await oauth.client.get_access_token(code=code, redirect_uri="https://xenon.discord.club/rejoin", loop=request.app.loop)
         user = await oauth.client.request(method="GET", access_token=token, url="https://discordapp.com/api/v6/users/@me")
         file_system.save_json_file(f"rejoin/{user['id']}", response)
     except:
