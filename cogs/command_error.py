@@ -67,6 +67,8 @@ class CommandError():
             await ctx.send(**em(f"You need to be the **owner of this bot** to perform this command!", type="error"))
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send(**em(f"This command **can't be used** in **Private Messages**!", type="error"))
+        elif isinstance(error, commands.BadUnionArgument):
+            await ctx.send(**em(f"I was not able to find a **{'** / **'.join([str(conv.__name__) for conv in error.converters])}** for the argument `{error.param.name}`", type="error"))
         elif isinstance(error, commands.BadArgument):
             await ctx.send(**em(str(error), type="error"))
 
