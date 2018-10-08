@@ -11,7 +11,6 @@ em = formatter.embed_message
 class Templates:
     def __init__(self, bot):
         self.bot = bot
-        self.handler = backups.BackupHandler(self.bot)
 
     @commands.command()
     async def templates(self, ctx):
@@ -81,7 +80,8 @@ class Templates:
 
         list_channel = self.bot.get_channel(464837510632046593)
 
-        await list_channel.send(embed=self.handler.get_backup_info(data))
+        handler = backups.BackupHandler(self.bot)
+        await list_channel.send(embed=handler.get_backup_info(data))
 
         await ctx.send(**em(
             f"Successfully **created template**! You can find a list of templates on the [support discord]({statics.support_invite})!",
@@ -106,7 +106,8 @@ class Templates:
             ctx.command.reset_cooldown(ctx)
             raise commands.BadArgument(f"Sorry, I was **unable to find** this **template**.")
 
-        await self.handler.load_command(ctx, data, options_input, 9999)
+        handler = backups.BackupHandler(self.bot)
+        await handler.load_command(ctx, data, options_input, 9999)
 
     @template.command()
     async def list(self, ctx):
@@ -124,7 +125,8 @@ class Templates:
         if data is None:
             raise commands.BadArgument(f"Sorry, I was **unable to find** this **backup**.")
 
-        await ctx.send(embed=self.handler.get_backup_info(data))
+        handler = backups.BackupHandler(self.bot)
+        await ctx.send(embed=handler.get_backup_info(data))
 
     @template.command(aliases=["f"])
     @commands.check(checks.is_bot_admin)
@@ -139,7 +141,8 @@ class Templates:
             raise commands.BadArgument(f"Sorry, I was **unable to find** this **template**.")
 
         channel = self.bot.get_channel(464837529267601408)
-        await channel.send(embed=self.handler.get_backup_info(data))
+        handler = backups.BackupHandler(self.bot)
+        await channel.send(embed=handler.get_backup_info(data))
 
         await ctx.send(embed=self.bot.embeds.success(f"Successfully **featured the template** `{template_name}`!"))
 
