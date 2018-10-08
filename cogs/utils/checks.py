@@ -1,13 +1,49 @@
 from discord.ext import commands
-import discord
+
+import statics
+from cogs.utils import file_system
 
 
-def has_support_role(id: int):
-    async def predicate(ctx):
-        role = discord.utils.get(ctx.get_guild(ctx.bot.support_guild).roles, id=id)
-        if role in ctx.author.roles:
-            return True
+class InputTimeout(commands.CommandError):
+    pass
 
-        raise commands.BadArgument("You are **missing a required role** on the support server to use this command")
 
-    return commands.check(predicate)
+class NotGuildOwner(commands.CheckFailure):
+    pass
+
+def is_guild_owner(ctx):
+    if ctx.guild.owner.id != ctx.author.id:
+        raise NotGuildOwner
+    return True
+
+
+class HasNotTopRole(commands.CheckFailure):
+    pass
+
+def has_top_role(ctx):
+    if ctx.guild.role_hierarchy[0].id not in [role.id for role in ctx.guild.me.roles]:
+        raise HasNotTopRole
+    return True
+
+
+class NotBotAdmin(commands.MissingPermissions):
+    def __init__(self):
+        self.missing_perms = ["BotAdmin"]
+
+def is_bot_admin(ctx):
+    guild = ctx.bot.get_guild(statics.support_guild)
+    if guild is None:
+        raise NotBotAdmin
+
+    member = guild.get_member(ctx.author.id)
+    if member is None:
+        raise  NotBotAdmin
+
+    if not statics.admin_role in [role.id for role in member.roles]:
+        raise NotBotAdmin
+
+    return True
+
+
+class Blacklisted(commands.CommandError):
+    pass

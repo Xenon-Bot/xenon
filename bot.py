@@ -1,30 +1,58 @@
 from discord.ext import commands
 import traceback
+import sys
+import dbl
+import logging
 
-from cogs.utils import database
+import statics
+
+
+description = ""
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+
+
+def prefix(bot, msg):
+    return statics.prefix
 
 
 class Xenon(commands.AutoShardedBot):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.__dict__.update(kwargs)
+    def __init__(self, token):
+        super().__init__(command_prefix=prefix, description=description)
+        self.dblpy = dbl.Client(self, statics.dbl_token, loop=self.loop)
 
-        self.db = database.Database()
-
-        cogs = [
+        self.initial_extensions = (
+            "cogs.help",
+            "cogs.basics",
             "cogs.backups",
-            "cogs.templates"
-        ]
-        for cog in cogs:
+            "cogs.templates",
+            "cogs.admin",
+            "cogs.dynamic_cogs",
+            "cogs.blacklist",
+
+            "cogs.command_error",
+            #"cogs.stats"
+        )
+
+        for cog in self.initial_extensions:
             try:
                 self.load_extension(cog)
             except Exception as e:
+                print(f'Failed to load cog {cog}.', file=sys.stderr)
                 traceback.print_exc()
 
+        self.run(statics.token)
+
     async def on_ready(self):
-        print(f"Successfully connected to {str(self.user)} on {len(self.guilds)} guilds with {self.shard_count} shards.")
+        print(f"Connected to {str(self.user)} on {len(self.guilds)} guild(s) with {self.shard_count} shard(s).")
 
     async def on_message(self, msg):
         if msg.author.bot:
             return
         await self.process_commands(msg)
+
+bot = Xenon(statics.token)

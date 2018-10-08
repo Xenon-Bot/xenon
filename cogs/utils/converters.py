@@ -1,14 +1,34 @@
 from discord.ext import commands
+import discord
 
 
-class Options(commands.Converter):
-    async def convert(self, ctx, args):
-        options = {}
-        for arg in args:
-            if arg.startswith("--"):
-                options[arg[2:]] = True
+class AllInOneConverter(commands.Converter):
+    async def convert(self, ctx, argument):
+        converters = [commands.MemberConverter(), commands.TextChannelConverter(), commands.RoleConverter(), commands.UserConverter()]
+        if argument == "everyone":
+            argument = "@everyone"
 
-            elif arg.startswith("-!"):
-                options[arg[2:]] = False
+        for converter in converters:
+            try:
+                result = await converter.convert(ctx, argument)
+                return result
+            except:
+                pass
 
-        return options
+        raise commands.BadArgument(message="Nothing Found")
+
+
+class MemberUserConvert(commands.Converter):
+    async def convert(self, ctx, argument):
+        converters = [commands.MemberConverter(), commands.UserConverter()]
+        if argument == "everyone":
+            argument = "@everyone"
+
+        for converter in converters:
+            try:
+                result = await converter.convert(ctx, argument)
+                return result
+            except:
+                pass
+
+        raise commands.BadArgument
