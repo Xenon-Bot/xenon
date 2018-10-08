@@ -1,6 +1,6 @@
 # Project Specific
 storage/*
-*statics*
+*statics.py
 *secrets*
 
 # Byte-compiled / optimized / DLL files
