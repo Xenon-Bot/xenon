@@ -1,6 +1,7 @@
 # Project Specific
 storage/*
 *statics*
+*secrets*
 
 # Byte-compiled / optimized / DLL files
 .idea/
