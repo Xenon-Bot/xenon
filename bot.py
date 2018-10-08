@@ -3,11 +3,14 @@ import traceback
 import sys
 import dbl
 import logging
+import sentry_sdk
 
 import statics
 
 
 description = ""
+
+sentry_sdk.init(statics.sentry_key)
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
@@ -18,7 +21,6 @@ logger.addHandler(handler)
 
 def prefix(bot, msg):
     return statics.prefix
-
 
 class Xenon(commands.AutoShardedBot):
     def __init__(self, token):

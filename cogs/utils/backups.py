@@ -59,7 +59,7 @@ class BackupHandler:
 
                 await self.info_channel.send(embed=embed)
             except:
-                traceback.print_exc()
+                pass
 
     async def _rejoin(self):
         pass
@@ -98,7 +98,7 @@ class BackupHandler:
                     )
                     self.id_translator[role["id"]] = created_role.id
             except:
-                traceback.print_exc()
+                pass
 
     async def _load_channels(self):
         for category_dict in self.data["categories"]:
@@ -160,12 +160,12 @@ class BackupHandler:
                                                                                  embed in
                                                                                  message["embeds"]])
                                             except:
-                                                traceback.print_exc()
+                                                pass
                                     except IndexError:
-                                        traceback.print_exc()
+                                        pass
                                     await webh.delete()
                                 except:
-                                    traceback.print_exc()
+                                    pass
                         elif channel["type"] == "voice":
                             voice_channel = await self.guild.create_voice_channel(
                                 name=channel["name"],
@@ -185,9 +185,9 @@ class BackupHandler:
                                                                                 overwrite=discord.PermissionOverwrite(
                                                                                     **overwrite))
                     except:
-                        traceback.print_exc()
+                        pass
             except:
-                traceback.print_exc()
+                pass
 
     async def _load_bans(self):
         for user_id, reason in self.data["bans"].items():
@@ -225,7 +225,7 @@ class BackupHandler:
                 await member.add_roles(*roles, reason="Loaded Backup")
                 await member.edit(nick=raw_member.get("nick"), reason="Loaded Backup")
             except:
-                traceback.print_exc()
+                pass
 
     async def _clear(self):
         for channel in self.guild.channels:
@@ -309,48 +309,48 @@ class BackupHandler:
             try:
                 await self._clear()
             except:
-                traceback.print_exc()
+                pass
 
         if options.get("info"):
             try:
                 await self._load_info()
             except:
-                traceback.print_exc()
+                pass
 
         if options.get("settings"):
             try:
                 await self._load_settings()
             except:
-                traceback.print_exc()
+                pass
 
         if options.get("roles"):
             try:
                 await self._load_roles()
             except:
-                traceback.print_exc()
+                pass
 
         if options.get("channels"):
             try:
                 await self._load_channels()
             except:
-                traceback.print_exc()
+                pass
 
         if options.get("bans"):
             try:
                 await self._load_bans()
             except:
-                traceback.print_exc()
+                pass
 
         if options.get("rejoin"):
             try:
                 await self._rejoin()
             except:
-                traceback.print_exc()
+                pass
 
         try:
             await self._load_members()
         except:
-            traceback.print_exc()
+            pass
 
         if options.get("info"):
             invite = await guild.channels[-1].create_invite(reason="Loaded Backup")
