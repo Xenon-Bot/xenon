@@ -6,9 +6,10 @@ import aiohttp
 import discord
 
 import statics
-from cogs.utils import checks, time
+from cogs.utils import checks, time, file_system, oauth, formatter
 
 cache = {}
+em = formatter.embed_message
 
 
 class FakeSnowflake():
@@ -62,8 +63,18 @@ class BackupHandler:
                 pass
 
     async def _rejoin(self):
-        pass
+        for member in self.data["members"]:
+            data = file_system.get_json_file(f"rejoin/{member['id']}")
+            print("rejoin", data)
+            if data is None:
+                continue
 
+            try:
+                await oauth.client.request("PUT",
+                                           f"https://discordapp.com/api/v6/guilds/{self.guild.id}/members/{member['id']}",
+                                           access_token=data["access_token"])
+            except:
+                traceback.print_exc()
 
     async def _load_settings(self):
         await self.guild.edit(
@@ -73,7 +84,7 @@ class BackupHandler:
         )
 
     async def _load_roles(self):
-        for role in self.data["roles"]:
+        for role in reversed(self.data["roles"]):
             try:
                 permission = discord.Permissions(role["permissions"])
                 if role["default"]:
@@ -262,8 +273,8 @@ class BackupHandler:
         if chatlog is None:
             chatlog = 0
             if options.get("channels"):
-                await ctx.send(embed=self.bot.embeds.input(
-                    f"Please **input** the **amount of messages** you want to load: (`0-{statics.max_chatlog}`)"))
+                await ctx.send(**em(
+                    f"Please **input** the **amount of messages** you want to load: (`0-{statics.max_chatlog}`)", type="wait_for"))
                 try:
                     valid_answers = [str(x) for x in range(0, statics.max_chatlog + 1)]
                     chatlog_msg = await self.bot.wait_for("message",
@@ -276,7 +287,7 @@ class BackupHandler:
                     raise checks.InputTimeout
 
         if options.get("delete"):
-            delete_sended = await ctx.send(embed=self.bot.embeds.warning(f"Are you sure you want to load this backup? **All channels and roles will get replaced**!\n"))
+            delete_sended = await ctx.send(**em(f"Are you sure you want to load this backup? **All channels and roles will get replaced**!\n", type="warning"))
             await delete_sended.add_reaction("✅")
             await delete_sended.add_reaction("❌")
             try:
@@ -293,7 +304,7 @@ class BackupHandler:
                 pass
             else:
                 ctx.command.reset_cooldown(ctx)
-                await ctx.send(embed=self.bot.embeds.success("Successfully **canceled** loading backup."))
+                await ctx.send(**em("Successfully **canceled** loading backup.", type="success"))
                 return
 
         await self.load(ctx.guild, data, chatlog, **options)
@@ -345,7 +356,7 @@ class BackupHandler:
             try:
                 await self._rejoin()
             except:
-                pass
+                traceback.print_exc()
 
         try:
             await self._load_members()
@@ -354,8 +365,8 @@ class BackupHandler:
 
         if options.get("info"):
             invite = await guild.channels[-1].create_invite(reason="Loaded Backup")
-            await self.info_channel.send(embed=self.bot.embeds.success(f"Successfully **loaded {data['name']}**!\n"
-                                                                       f"Invite old members: {invite.url}"))
+            await self.info_channel.send(**em(f"Successfully **loaded {data['name']}**!\n"
+                                              f"Invite old members: {invite.url}", type="success"))
 
     async def save(self, guild: discord.Guild, creator: (discord.Member, discord.User), chatlog: int=20):
         rtn_data = {
@@ -376,7 +387,7 @@ class BackupHandler:
                 "mentionable": role.mentionable,
                 "default": role.is_default(),
                 "permissions": role.permissions.value
-            } for role in guild.role_hierarchy if not role.managed],
+            } for role in guild.roles if not role.managed],
 
             "members": [{
                 "id": str(member.id),

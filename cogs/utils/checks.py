@@ -21,7 +21,7 @@ class HasNotTopRole(commands.CheckFailure):
     pass
 
 def has_top_role(ctx):
-    if ctx.guild.role_hierarchy[0].id not in [role.id for role in ctx.guild.me.roles]:
+    if ctx.guild.roles[-1].id not in [role.id for role in ctx.guild.me.roles]:
         raise HasNotTopRole
     return True
 

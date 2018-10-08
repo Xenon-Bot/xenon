@@ -15,7 +15,7 @@ class AllInOneConverter(commands.Converter):
             except:
                 pass
 
-        raise commands.BadArgument(message="Nothing Found")
+        raise commands.BadArgument("Nothing Found")
 
 
 class MemberUserConvert(commands.Converter):

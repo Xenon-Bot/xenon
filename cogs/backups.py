@@ -86,7 +86,7 @@ class Backups:
         Load a backup
 
         **backup_id**: the id of the backup
-        **options**: info (on), settings (on), roles (on), channels (on), bans (on), delete (on)
+        **options**: info (on), settings (on), roles (on), channels (on), bans (on), delete (on), rejoin (off)
         <option> turn an option on; !<option> turn an option off
         """
         data = file_system.get_json_file(f"backups/{backup_id}")
