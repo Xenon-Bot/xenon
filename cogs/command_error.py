@@ -43,6 +43,9 @@ class CommandError():
 
         if isinstance(error, commands.CommandNotFound):
             pass
+
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(**em(f"Please **define** the required **argument** `{error.param.name}`.", type="error"))
         elif isinstance(error, checks.Blacklisted):
             await ctx.send(**em(f"You are not allowed to use this bot anymore. [Support](https://discord.club/discord)", type="error"))
         elif isinstance(error, checks.NotGuildOwner):
