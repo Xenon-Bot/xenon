@@ -35,6 +35,7 @@ class Xenon(commands.AutoShardedBot):
             "cogs.blacklist",
 
             "cogs.command_error",
+            "cogs.web",
             #"cogs.stats"
         )
 

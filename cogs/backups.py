@@ -9,7 +9,6 @@ from discord.ext import commands
 import statics
 from cogs.utils import checks, backups, formatter, file_system
 
-
 em = formatter.embed_message
 
 
@@ -26,11 +25,18 @@ class Backups:
         await ctx.invoke(self.bot.get_command("help"), "backup")
 
 
+    @backup.command()
+    async def rejoin(self, ctx):
+        """Authorize this bot to add your members back."""
+        await ctx.send(
+            **em("By clicking the link below you **authorize Xenon** to **add you back** to backed up guilds you were in.\n"
+                 "https://xenon.discord.club/rejoin", type="info"))
+
     @backup.command(aliases=["c"])
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    @commands.cooldown(1, 1*60, commands.BucketType.guild)
+    @commands.cooldown(1, 1 * 60, commands.BucketType.guild)
     async def create(self, ctx, chatlog: int = statics.max_chatlog):
         """
         Create a backup
@@ -39,7 +45,8 @@ class Backups:
         """
         if chatlog < 0 or chatlog > statics.max_chatlog:
             ctx.command.reset_cooldown(ctx)
-            raise commands.BadArgument(f"Please **specify how many messages** you want to be backed up between **0** and **{statics.max_chatlog}**.")
+            raise commands.BadArgument(
+                f"Please **specify how many messages** you want to be backed up between **0** and **{statics.max_chatlog}**.")
 
         id = ""
         for i in range(16):
@@ -61,17 +68,19 @@ class Backups:
                                                 f"```{statics.prefix}backup info {id}```")
             await dm_channel.send(embed=embed)
         except discord.Forbidden:
-            await sended.edit(**em("I was **unable to send you the backup-id**. Please enable private messages on this server!", type="error"))
+            await sended.edit(
+                **em("I was **unable to send you the backup-id**. Please enable private messages on this server!",
+                     type="error"))
 
-        await sended.edit(**em("Successfully **created backup**. Please **check your dm's** to see the backup-id.", type="success"))
-
+        await sended.edit(
+            **em("Successfully **created backup**. Please **check your dm's** to see the backup-id.", type="success"))
 
     @backup.command(aliases=["l"])
     @commands.guild_only()
     @commands.check(checks.has_top_role)
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
-    @commands.cooldown(1, 5*60, commands.BucketType.guild)
+    @commands.cooldown(1, 5 * 60, commands.BucketType.guild)
     async def load(self, ctx, backup_id, *options_input):
         """
         Load a backup
@@ -88,18 +97,20 @@ class Backups:
         if str(data["creator"]) == str(self.bot.user.id):
             guild = self.bot.get_guild(int(data["guild_id"]))
             if guild is None:
-                raise commands.BadArgument(f"Sorry, **you can't load this backup** because you are **not the creator** of it. After a discussion with discord this was the only way **to protect this bot** against abusers. [More details](https://cdn.discordapp.com/attachments/442447986052562956/480486412446072857/unknown.png)")
+                raise commands.BadArgument(
+                    f"Sorry, **you can't load this backup** because you are **not the creator** of it. After a discussion with discord this was the only way **to protect this bot** against abusers. [More details](https://cdn.discordapp.com/attachments/442447986052562956/480486412446072857/unknown.png)")
 
             owner = guild.owner
             if owner.id != ctx.author.id:
-                raise commands.BadArgument(f"Sorry, **you can't load this backup** because you are **not the creator** of it. After a discussion with discord this was the only way **to protect this bot** against abusers. [More details](https://cdn.discordapp.com/attachments/442447986052562956/480486412446072857/unknown.png)")
+                raise commands.BadArgument(
+                    f"Sorry, **you can't load this backup** because you are **not the creator** of it. After a discussion with discord this was the only way **to protect this bot** against abusers. [More details](https://cdn.discordapp.com/attachments/442447986052562956/480486412446072857/unknown.png)")
 
         elif str(ctx.author.id) != str(data["creator"]):
-            raise commands.BadArgument(f"Sorry, **you can't load this backup** because you are **not the creator** of it. After a discussion with discord this was the only way **to protect this bot** against abusers. [More details](https://cdn.discordapp.com/attachments/442447986052562956/480486412446072857/unknown.png)")
+            raise commands.BadArgument(
+                f"Sorry, **you can't load this backup** because you are **not the creator** of it. After a discussion with discord this was the only way **to protect this bot** against abusers. [More details](https://cdn.discordapp.com/attachments/442447986052562956/480486412446072857/unknown.png)")
 
         handler = backups.BackupHandler(self.bot)
         await handler.load_command(ctx, data, options_input)
-
 
     @backup.command(aliases=["i"])
     async def info(self, ctx, backup_id):
@@ -114,7 +125,6 @@ class Backups:
 
         handler = backups.BackupHandler(self.bot)
         await ctx.send(embed=handler.get_backup_info(data))
-
 
     @backup.command(aliases=["iv"])
     @commands.guild_only()
@@ -138,10 +148,12 @@ class Backups:
                 return
 
             embed = discord.Embed(color=statics.embed_color)
-            embed.set_author(name="Current Interval", icon_url="http://icons.iconarchive.com/icons/graphicloads/colorful-long-shadow/256/Clock-icon.png")
+            embed.set_author(name="Current Interval",
+                             icon_url="http://icons.iconarchive.com/icons/graphicloads/colorful-long-shadow/256/Clock-icon.png")
             embed.add_field(name="Interval", value=self.bot.time.format_timedelta(timedelta(minutes=interval[0])))
             embed.add_field(name="Time Remaining", value=self.bot.time.format_timedelta(timedelta(minutes=interval[1])))
-            embed.add_field(name="Next Backup", value=self.bot.time.format_datetime(datetime.utcnow() + timedelta(minutes=interval[1])))
+            embed.add_field(name="Next Backup",
+                            value=self.bot.time.format_datetime(datetime.utcnow() + timedelta(minutes=interval[1])))
             await ctx.send(embed=embed)
             return
 
@@ -157,11 +169,12 @@ class Backups:
             return
 
         try:
-            interval_sum = sum([int(interval_part[:-1]) * statics.time_units[interval_part[-1]] for interval_part in interval])
+            interval_sum = sum(
+                [int(interval_part[:-1]) * statics.time_units[interval_part[-1]] for interval_part in interval])
         except:
             raise commands.BadArgument(f"Please specify a valid **interval between 1h and 2w**, e.g. `8h 15m`.")
 
-        if interval_sum < 60 or interval_sum > 60*24*7*2:
+        if interval_sum < 60 or interval_sum > 60 * 24 * 7 * 2:
             raise commands.BadArgument(f"Please specify a valid **interval between 1h and 2w**, e.g. `8h 15m`.")
 
         intervals = file_system.get_json_file("intervals")
@@ -171,8 +184,9 @@ class Backups:
         intervals[str(ctx.guild.id)] = [interval_sum, interval_sum]
         file_system.save_json_file("intervals", intervals)
 
-        await ctx.send(**em(f"Successfully **set backup interval** to `{self.bot.time.format_timedelta(timedelta(minutes=interval_sum))}`"), type="success")
-
+        await ctx.send(**em(
+            f"Successfully **set backup interval** to `{self.bot.time.format_timedelta(timedelta(minutes=interval_sum))}`"),
+                       type="success")
 
     async def _run_backups(self):
         while True:
@@ -203,7 +217,7 @@ class Backups:
 
     async def _interval_loop(self):
         while True:
-            await asyncio.sleep(1*60)
+            await asyncio.sleep(1 * 60)
 
             try:
                 intervals = file_system.get_json_file("intervals")
@@ -227,7 +241,6 @@ class Backups:
 
             except:
                 traceback.print_exc()
-
 
     async def on_ready(self):
         if self.interval_task is None:

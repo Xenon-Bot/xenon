@@ -29,7 +29,6 @@ class BackupHandler:
         await self.info_channel.send(embed=self.get_backup_info(self.data))
 
         await self._load_bot_invites()
-        #await self._load_member_list()
 
     async def _load_bot_invites(self):
         if self.info_channel is None:
@@ -62,19 +61,8 @@ class BackupHandler:
             except:
                 traceback.print_exc()
 
-    async def _load_member_list(self):
-        if self.info_channel is None:
-            return
-
-        members = ""
-        x = 0
-        for i, member in enumerate(self.data["members"]):
-            members += f"{member['tag']} \n"
-
-            if len(members) > 1800 or i >= len(self.data["members"])-1:
-                x += 1
-                await self.info_channel.send(embed=discord.Embed(title=f"Member List {x}", color=statics.embed_color, description=members))
-                members = ""
+    async def _rejoin(self):
+        pass
 
 
     async def _load_settings(self):
@@ -350,6 +338,12 @@ class BackupHandler:
         if options.get("bans"):
             try:
                 await self._load_bans()
+            except:
+                traceback.print_exc()
+
+        if options.get("rejoin"):
+            try:
+                await self._rejoin()
             except:
                 traceback.print_exc()
 
