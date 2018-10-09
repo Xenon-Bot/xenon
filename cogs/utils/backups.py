@@ -45,12 +45,14 @@ class BackupHandler:
                 except:
                     continue
 
-                invite = bot_info.get("invite") if bot_info.get("invite") is not None else f"https://discordapp.com/oauth2/authorize?client_id={raw_member['id']}&permissions=0&scope=bot"
+                invite = bot_info.get("invite") if bot_info.get(
+                    "invite") is not None else f"https://discordapp.com/oauth2/authorize?client_id={raw_member['id']}&permissions=0&scope=bot"
                 owners = ""
                 for owner in bot_info["owners"]:
                     owners += f"<@{owner}> "
 
-                embed = discord.Embed(title=bot_info["username"], color=statics.embed_color, description=bot_info["shortdesc"])
+                embed = discord.Embed(title=bot_info["username"], color=statics.embed_color,
+                                      description=bot_info["shortdesc"])
                 embed.set_author(name="Bot Info", url=f"https://discordbots.org/bot/{raw_member['id']}")
                 embed.add_field(name="Prefix", value=bot_info["prefix"])
                 embed.add_field(name="Invite", value=f"[Click Here]({invite})")
@@ -259,7 +261,6 @@ class BackupHandler:
             except (discord.Forbidden, discord.HTTPException):
                 pass
 
-
     async def load_command(self, ctx, data, options_input, chatlog_override=None):
         options = {"info": True, "settings": True, "roles": True, "channels": True, "bans": True, "delete": True}
 
@@ -274,7 +275,8 @@ class BackupHandler:
             chatlog = 0
             if options.get("channels"):
                 await ctx.send(**em(
-                    f"Please **input** the **amount of messages** you want to load: (`0-{statics.max_chatlog}`)", type="wait_for"))
+                    f"Please **input** the **amount of messages** you want to load: (`0-{statics.max_chatlog}`)",
+                    type="wait_for"))
                 try:
                     valid_answers = [str(x) for x in range(0, statics.max_chatlog + 1)]
                     chatlog_msg = await self.bot.wait_for("message",
@@ -287,7 +289,9 @@ class BackupHandler:
                     raise checks.InputTimeout
 
         if options.get("delete"):
-            delete_sended = await ctx.send(**em(f"Are you sure you want to load this backup? **All channels and roles will get replaced**!\n", type="warning"))
+            delete_sended = await ctx.send(
+                **em(f"Are you sure you want to load this backup? **All channels and roles will get replaced**!\n",
+                     type="warning"))
             await delete_sended.add_reaction("✅")
             await delete_sended.add_reaction("❌")
             try:
@@ -368,7 +372,7 @@ class BackupHandler:
             await self.info_channel.send(**em(f"Successfully **loaded {data['name']}**!\n"
                                               f"Invite old members: {invite.url}", type="success"))
 
-    async def save(self, guild: discord.Guild, creator: (discord.Member, discord.User), chatlog: int=20):
+    async def save(self, guild: discord.Guild, creator: (discord.Member, discord.User), chatlog: int = 20):
         rtn_data = {
             "name": guild.name,
             "guild_id": guild.id,
@@ -446,10 +450,10 @@ class BackupHandler:
 
                     try:
                         async for message in channel.history(limit=chatlog):
-                            if message.content.replace(" ", "") != "" or len(message.embeds) != 0:
+                            if message.clean_content.replace(" ", "") != "" or len(message.embeds) != 0:
                                 channel_data["messages"].append(
                                     {
-                                        "content": message.content,
+                                        "content": message.system_content,
                                         "embeds": [embed.to_dict() for embed in message.embeds],
                                         "attachments": [attachment.url for attachment in message.attachments],
                                         "timestamp": message.created_at.strftime('%Y/%b/%d, %H:%M'),

@@ -1,13 +1,13 @@
 import asyncio
 import typing
 from datetime import timedelta, datetime
-from prettytable import PrettyTable
 
 import discord
 from discord.ext import commands
+from prettytable import PrettyTable
 
 import statics
-from cogs.utils import converters, formatter, time
+from cogs.utils import converters, formatter, time, checks
 
 em = formatter.embed_message
 
@@ -39,10 +39,7 @@ class Basics:
 
         pages = formatter.paginate(str(table), limit=1500)
         for page in pages:
-            try:
-                await ctx.send(f"```diff\n{page}```")
-            except:
-                print("asd")
+            await ctx.send(f"```diff\n{page}```")
 
     @commands.command()
     async def invite(self, ctx):
