@@ -2,14 +2,22 @@ from discord.ext import commands
 import discord
 import asyncio
 import traceback
+import sys
 
 import statics
+from cogs.utils import formatter
+
+import statics
+
+
+em = formatter.embed_message
 
 
 class Stats:
     def __init__(self, bot):
         self.bot = bot
-        self.bot.loop.create_task(self._loop())
+        if not statics.test_mode:
+            self.bot.loop.create_task(self._loop())
 
     async def _loop(self):
         await self.bot.wait_until_ready()

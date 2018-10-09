@@ -1,3 +1,4 @@
+test_mode = False
 token = "your discord token"
 client_secret = "your client secret"
 sentry_key = "your sentry key"
