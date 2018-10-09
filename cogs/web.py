@@ -34,14 +34,19 @@ class WebServer:
         self.bot.loop.create_task(self.start())
 
     async def start(self):
+        self.running = True
         app = web.Application()
+        self.bot.web_server = app
         app["bot"] = self.bot
         app.add_routes(routes)
 
         runner = web.AppRunner(app)
         await runner.setup()
         site = web.TCPSite(runner, '0.0.0.0', 8089)
-        await site.start()
+        try:
+            await site.start()
+        except OSError:
+            pass
 
 
 def setup(bot):
