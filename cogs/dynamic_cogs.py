@@ -16,7 +16,6 @@ class Admin:
         return checks.is_bot_admin(ctx)
 
     @commands.command(hidden=True)
-    @commands.is_owner()
     async def restart(self, ctx):
         await ctx.send("Restarting ...")
         exit()
