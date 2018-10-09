@@ -3,7 +3,7 @@ import asyncio
 from discord.ext import commands
 
 import statics
-from cogs.utils import checks, backups, formatter, file_system
+from cogs.utils import checks, backups, formatter, file_system, converters
 
 em = formatter.embed_message
 
@@ -93,7 +93,7 @@ class Templates:
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     @commands.cooldown(1, 5 * 60, commands.BucketType.guild)
-    async def load(self, ctx, template_name, *options_input):
+    async def load(self, ctx, template_name: converters.JsonFileContent("storage/templates/"), *options_input):
         """
         Load a template
 
@@ -101,9 +101,8 @@ class Templates:
         **options**: info (on), settings (on), roles (on), channels (on), bans (on), delete (on)
         <option> turn an option on; !<option> turn an option off
         """
-        data = file_system.get_json_file(f"templates/{template_name.lower()}")
+        data = template_name
         if data is None:
-            ctx.command.reset_cooldown(ctx)
             raise commands.BadArgument(f"Sorry, I was **unable to find** this **template**.")
 
         handler = backups.BackupHandler(self.bot)

@@ -1,4 +1,5 @@
 import json
+import os
 
 
 base_path = "storage/"
@@ -14,3 +15,6 @@ def get_json_file(file):
             return json.load(f)
     except:
         return None
+
+def delete(file):
+    os.remove(base_path + file + ".json")

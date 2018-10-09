@@ -1,5 +1,6 @@
 from discord.ext import commands
-import discord
+import json
+import traceback
 
 
 class AllInOneConverter(commands.Converter):
@@ -32,3 +33,16 @@ class MemberUserConvert(commands.Converter):
                 pass
 
         raise commands.BadArgument
+
+
+class JsonFileContent(commands.Converter):
+    def __init__(self, base_path):
+        self.base_path = base_path
+
+    async def convert(self, ctx, argument):
+        try:
+            with open(self.base_path + argument + ".json", "r") as f:
+                content = json.load(f)
+                return content
+        except:
+            return None

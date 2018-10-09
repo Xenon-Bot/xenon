@@ -1,4 +1,5 @@
 import asyncio
+import os
 import random
 import traceback
 from datetime import timedelta, datetime
@@ -7,7 +8,7 @@ import discord
 from discord.ext import commands
 
 import statics
-from cogs.utils import checks, backups, formatter, file_system
+from cogs.utils import checks, backups, formatter, file_system, converters
 
 em = formatter.embed_message
 
@@ -24,13 +25,13 @@ class Backups:
         """Main backup command"""
         await ctx.invoke(self.bot.get_command("help"), "backup")
 
-
     @backup.command()
     async def rejoin(self, ctx):
         """Authorize this bot to add your members back."""
         await ctx.send(
-            **em("By clicking the link below you **authorize Xenon** to **add you back** to backed up guilds you were in.\n"
-                 "https://xenon.discord.club/rejoin", type="info"))
+            **em(
+                "By clicking the link below you **authorize Xenon** to **add you back** to backed up guilds you were in.\n"
+                "https://xenon.discord.club/rejoin", type="info"))
 
     @backup.command(aliases=["c"])
     @commands.guild_only()
@@ -75,13 +76,25 @@ class Backups:
         await sended.edit(
             **em("Successfully **created backup**. Please **check your dm's** to see the backup-id.", type="success"))
 
+    @backup.command(aliases=["del"])
+    async def delete(self, ctx, backup_id):
+        data = file_system.get_json_file(f"backups/{backup_id}")
+        if data is None:
+            raise commands.BadArgument(f"Sorry, I was **unable to find** that **backup**.")
+
+        if str(ctx.author.id) != str(data["creator"]):
+            raise commands.BadArgument(f"Only **the creator** can **delete** this backup.")
+
+        file_system.delete(f"backups/{backup_id}")
+        await ctx.send(**em(f"Successfully **deleted the backup**.", type="success"))
+
     @backup.command(aliases=["l"])
     @commands.guild_only()
     @commands.check(checks.has_top_role)
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     @commands.cooldown(1, 5 * 60, commands.BucketType.guild)
-    async def load(self, ctx, backup_id, *options_input):
+    async def load(self, ctx, backup_id: converters.JsonFileContent("storage/backups/"), *options_input):
         """
         Load a backup
 
@@ -89,11 +102,10 @@ class Backups:
         **options**: info (on), settings (on), roles (on), channels (on), bans (on), delete (on), rejoin (off)
         <option> turn an option on; !<option> turn an option off
         """
-        data = file_system.get_json_file(f"backups/{backup_id}")
-        if data is None:
-            ctx.command.reset_cooldown(ctx)
-            raise commands.BadArgument(f"Sorry, I was **unable to find** this **backup**.")
+        if backup_id is None:
+            raise commands.BadArgument("I was **unable to find** that backup.")
 
+        data = backup_id
         if str(data["creator"]) == str(self.bot.user.id):
             guild = self.bot.get_guild(int(data["guild_id"]))
             if guild is None:
