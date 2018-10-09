@@ -1,8 +1,9 @@
 import asyncio
+import typing
 from datetime import timedelta, datetime
+from prettytable import PrettyTable
 
 import discord
-import typing
 from discord.ext import commands
 
 import statics
@@ -28,12 +29,29 @@ class Basics:
         await ctx.send(embed=embed)
 
     @commands.command()
+    async def shards(self, ctx):
+        shards = self.bot.shard_info
+        table = PrettyTable()
+        table.field_names = ["Shard-Id", "Guilds", "Users", "Latency"]
+        for shard, info in shards.items():
+            guilds, users, latency = info.values()
+            table.add_row([shard, guilds, users, f"{round(latency * 100, 1)} ms"])
+
+        pages = formatter.paginate(str(table), limit=1500)
+        for page in pages:
+            try:
+                await ctx.send(f"```diff\n{page}```")
+            except:
+                print("asd")
+
+    @commands.command()
     async def invite(self, ctx):
         """Shows the invite of the bot"""
         await ctx.invoke(self.bot.get_command("info bot"))
 
     @commands.group(aliases=["i"], invoke_without_command=True)
-    async def info(self, ctx, something: typing.Union[discord.Member, discord.User, discord.Role, discord.TextChannel] = None):
+    async def info(self, ctx,
+                   something: typing.Union[discord.Member, discord.User, discord.Role, discord.TextChannel] = None):
         """
         Shows info about a discord object
 

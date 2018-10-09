@@ -49,6 +49,6 @@ def paginate(content, limit):
 
         else:
             i += 1
-            result[i] = line
+            result.append(line)
 
     return result

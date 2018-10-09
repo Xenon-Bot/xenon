@@ -1,12 +1,13 @@
-from discord.ext import commands
-import traceback
-import sys
-import dbl
 import logging
+import sys
+import traceback
+
+import dbl
+import discord
 import sentry_sdk
+from discord.ext import commands
 
 import statics
-
 
 description = ""
 
@@ -22,9 +23,17 @@ logger.addHandler(handler)
 def prefix(bot, msg):
     return statics.prefix
 
+
 class Xenon(commands.AutoShardedBot):
     def __init__(self, token):
-        super().__init__(command_prefix=prefix, description=description)
+        super().__init__(
+            command_prefix=prefix,
+            description=description,
+            #activity=discord.Activity(type=discord.ActivityType.streaming,
+                                      #name="Starting Up ...",
+                                      #url="https://twitch.tv/merlintor")
+        )
+
         self.dblpy = dbl.Client(self, statics.dbl_token, loop=self.loop)
 
         self.initial_extensions = (
@@ -38,7 +47,7 @@ class Xenon(commands.AutoShardedBot):
 
             "cogs.command_error",
             "cogs.web",
-            #"cogs.stats"
+            # "cogs.stats"
         )
 
         for cog in self.initial_extensions:
@@ -51,11 +60,30 @@ class Xenon(commands.AutoShardedBot):
         self.run(statics.token)
 
     async def on_ready(self):
+        #await self.change_presence(activity=discord.Activity(name=""))
         print(f"Connected to {str(self.user)} on {len(self.guilds)} guild(s) with {self.shard_count} shard(s).")
 
     async def on_message(self, msg):
         if msg.author.bot:
             return
         await self.process_commands(msg)
+
+    @property
+    def shard_info(self):
+        shards = {}
+        for guild in self.guilds:
+            shard = guild.shard_id
+            if shards.get(shard) is None:
+                shards[shard] = {"guilds": 1, "users": len(guild.members), "latency": None}
+
+            else:
+                shards[shard]["guilds"] += 1
+                shards[shard]["users"] += len(guild.members)
+
+        for shard, latency in self.latencies:
+            shards[shard]["latency"] = latency
+
+        return shards
+
 
 bot = Xenon(statics.token)
