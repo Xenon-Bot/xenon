@@ -26,12 +26,14 @@ def prefix(bot, msg):
 
 class Xenon(commands.AutoShardedBot):
     def __init__(self, token):
+        activity = None
+        if not statics.test_mode:
+            activity = discord.Activity(type=discord.ActivityType.streaming, name="Starting Up ...", url="https://twitch.tv/merlintor")
+
         super().__init__(
             command_prefix=prefix,
             description=description,
-            #activity=discord.Activity(type=discord.ActivityType.streaming,
-                                      #name="Starting Up ...",
-                                      #url="https://twitch.tv/merlintor")
+            activity = activity
         )
 
         self.dblpy = dbl.Client(self, statics.dbl_token, loop=self.loop)
@@ -47,7 +49,8 @@ class Xenon(commands.AutoShardedBot):
 
             "cogs.command_error",
             "cogs.web",
-            # "cogs.stats"
+            "cogs.special_events",
+            "cogs.stats"
         )
 
         for cog in self.initial_extensions:
@@ -59,9 +62,15 @@ class Xenon(commands.AutoShardedBot):
 
         self.run(statics.token)
 
+    async def on_shard_ready(self, shard_id):
+        print(f"Shard {shard_id} ready")
+
     async def on_ready(self):
-        #await self.change_presence(activity=discord.Activity(name=""))
-        print(f"Connected to {str(self.user)} on {len(self.guilds)} guild(s) with {self.shard_count} shard(s).")
+        if not statics.test_mode:
+            await self.change_presence(activity=discord.Activity(name=""))
+
+        print(f"Connected to {str(self.user)} with {self.shard_count} shard(s).")
+        print(f"Fetched {sum([len(guild.members) for guild in self.guilds])} members in {len(self.guilds)} guilds.")
 
     async def on_message(self, msg):
         if msg.author.bot:
