@@ -52,3 +52,7 @@ def paginate(content, limit):
             result.append(line)
 
     return result
+
+
+def clean(content):
+    return ''.join(e for e in content if e.isalnum())

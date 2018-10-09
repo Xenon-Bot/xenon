@@ -3,6 +3,7 @@ import io
 import textwrap
 import traceback
 from contextlib import redirect_stdout
+from prettytable import PrettyTable
 
 import discord
 from discord.ext import commands
@@ -21,6 +22,21 @@ class Admin:
 
     async def __local_check(self, ctx):
         return checks.is_bot_admin(ctx)
+
+    @commands.command()
+    async def guilds(self, ctx, limit: int = 20, reverse: bool = True, owner: discord.User = None):
+        guilds = sorted([guild for guild in self.bot.guilds if owner is None or guild.owner.id == owner.id],
+                        reverse=reverse, key=lambda g: g.member_count)[:limit]
+        table = PrettyTable()
+        table.field_names = ["Place", "Name", "Guild-Id", "Owner", "Members"]
+        table.align["Name"] = "l"
+        table.align["Owner"] = "l"
+        for place, guild in enumerate(guilds):
+            table.add_row([place + 1, formatter.clean(guild.name), guild.id, formatter.clean(guild.owner.name), guild.member_count])
+
+        pages = formatter.paginate(str(table), limit=1500)
+        for page in pages:
+            await ctx.send(f"```diff\n{page}```")
 
     @commands.command(hidden=True)
     async def debug(self, ctx):
