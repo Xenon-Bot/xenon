@@ -53,7 +53,7 @@ class Backups:
         for i in range(16):
             id += str(random.choice(statics.alphabet))
 
-        sended = await ctx.send(**em("Creating backup, this could take a while.", type="working"))
+        status = await ctx.send(**em("Creating backup, this could take a while.", type="working"))
 
         handler = backups.BackupHandler(self.bot)
         data = await handler.save(ctx.guild, ctx.author, chatlog)
@@ -67,14 +67,31 @@ class Backups:
             embed = em(f"Created backup of **{ctx.guild.name}** with the Backup id `{id}`.", type="info")["embed"]
             embed.add_field(name="Usage", value=f"```{statics.prefix}backup load {id}```\n"
                                                 f"```{statics.prefix}backup info {id}```")
-            await dm_channel.send(embed=embed)
+            embed.set_footer(text="Click the phone below to get a mobile friendly version")
+            info = await dm_channel.send(embed=embed)
+            await info.add_reaction("📱")
         except discord.Forbidden:
-            await sended.edit(
+            await status.edit(
                 **em("I was **unable to send you the backup-id**. Please enable private messages on this server!",
                      type="error"))
 
-        await sended.edit(
+        await status.edit(
             **em("Successfully **created backup**. Please **check your dm's** to see the backup-id.", type="success"))
+
+    async def on_reaction_add(self, reaction, user):
+        if user.bot or reaction.emoji != "📱" or len(reaction.message.embeds) == 0 \
+                or reaction.message.author.id != self.bot.user.id:
+            return
+
+        embed = reaction.message.embeds[0]
+        if embed.author.name != "Info" or len(embed.fields) == 0:
+            return
+
+        field = embed.fields[0]
+        if field.name != "Usage":
+            return
+
+        await reaction.message.edit(content=field.value, embed=None)
 
     @backup.command(aliases=["del"])
     async def delete(self, ctx, backup_id):
