@@ -1,5 +1,7 @@
 import discord
 
+import statics
+
 # https://www.iconfinder.com/iconsets/small-n-flat
 message_types = {
     None: ("", "{c}", "", 0x36393e),
@@ -14,12 +16,12 @@ message_types = {
     "working": ("Please wait ...", "{c}",
                 "https://images-ext-1.discordapp.net/external/AzWR8HxPJ4t4rPA1DagxJkZsOCOMp4OTgwxL3QAjF4U/https/cdn.discordapp.com/emojis/424900448663633920.gif",
                 0x36393e),
-    "error": ("Error", "{c}", "https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-512.png",
+    "error": ("Error", "{c}" + f"\n\n[Support]({statics.support_invite})", "https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-512.png",
               0xc64935),
     "perm_error": ("Permissions Error", "{c}",
                    "https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-512.png",
                    0xc64935),
-    "unex_error": ("Error", "**Error Code:**\n```{c}```",
+    "unex_error": ("Error", "**Error Code:**\n```{c}```" + f"\n\n[Support]({statics.support_invite})",
                    "https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-512.png", 0xc64935)
 }
 

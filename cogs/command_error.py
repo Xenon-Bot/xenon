@@ -3,6 +3,7 @@ import traceback
 
 from discord.ext import commands
 
+import statics
 from cogs.utils import checks, formatter
 
 em = formatter.embed_message
@@ -45,16 +46,22 @@ class CommandError():
             pass
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(**em(f"Please **define** the required **argument** `{error.param.name}`.", type="error"))
+            await ctx.send(**em(
+                f"Please **define** the required **argument** `{error.param.name}`.",
+                type="error"))
         elif isinstance(error, checks.Blacklisted):
-            await ctx.send(**em(f"You are not allowed to use this bot anymore. [Support](https://discord.club/discord)", type="error"))
+            await ctx.send(
+                **em(f"You are not allowed to use this bot anymore.", type="error"))
         elif isinstance(error, checks.NotGuildOwner):
             await ctx.send(**em("You need to be the **owner of this guild** to perform this command", type="error"))
         elif isinstance(error, checks.HasNotTopRole):
             await ctx.send(**em(
-                "The role called `Xenon` needs to be **on the top of the role hierarchy**.", type="error"))
+                f"The role called `Xenon` needs to be **on the top of the role hierarchy**.",
+                type="error"))
         elif isinstance(error, checks.InputTimeout):
-            await ctx.send(**em("**Canceled** input, because you did **not respond** in the right way.", type="error"))
+            await ctx.send(**em(
+                f"**Canceled** input, because you did **not respond** in the right way.",
+                type="error"))
 
         elif isinstance(error, commands.MissingPermissions):
             await ctx.send(
@@ -68,7 +75,9 @@ class CommandError():
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send(**em(f"This command **can't be used** in **Private Messages**!", type="error"))
         elif isinstance(error, commands.BadUnionArgument):
-            await ctx.send(**em(f"I was not able to find a **{'** / **'.join([str(conv.__name__) for conv in error.converters])}** for the argument `{error.param.name}`", type="error"))
+            await ctx.send(**em(
+                f"I was not able to find a **{'** / **'.join([str(conv.__name__) for conv in error.converters])}** for the argument `{error.param.name}`",
+                type="error"))
         elif isinstance(error, commands.BadArgument):
             await ctx.send(**em(str(error), type="error"))
 
