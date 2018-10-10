@@ -44,6 +44,24 @@ def is_bot_admin(ctx):
 
     return True
 
+class NotPro(commands.MissingPermissions):
+    def __init__(self):
+        self.missing_perms = ["ProUser"]
+
+def is_pro(ctx):
+    guild = ctx.bot.get_guild(statics.support_guild)
+    if guild is None:
+        raise NotPro
+
+    member = guild.get_member(ctx.author.id)
+    if member is None:
+        raise NotPro
+
+    if not statics.pro_role in [role.id for role in member.roles]:
+        raise NotPro
+
+    return True
+
 
 class Blacklisted(commands.CommandError):
     pass

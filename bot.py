@@ -46,6 +46,7 @@ class Xenon(commands.AutoShardedBot):
             "cogs.admin",
             "cogs.dynamic_cogs",
             "cogs.blacklist",
+            "cogs.pro",
 
             "cogs.command_error",
             "cogs.web",
