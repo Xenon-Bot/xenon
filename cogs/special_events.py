@@ -9,8 +9,9 @@ em = formatter.embed_message
 
 class SpecialEvents:
     def __init__(self, bot):
-        bot.on_error = self.on_error
         self.bot = bot
+        if not statics.test_mode:
+            bot.on_error = self.custom_on_error
 
     async def on_guild_join(self, guild):
         if statics.test_mode:
@@ -41,10 +42,7 @@ class SpecialEvents:
         embed.set_author(name="Shard connected", icon_url="https://cdn4.iconfinder.com/data/icons/small-n-flat/24/star-512.png")
         await channel.send(embed=embed)
 
-    async def on_error(self, event_method, *args, **kwargs):
-        if statics.test_mode:
-            return
-
+    async def custom_on_error(self, event_method, *args, **kwargs):
         print('Ignoring exception in {}'.format(event_method), file=sys.stderr)
         traceback.print_exc()
         channel = self.bot.get_channel(499211087628206110)

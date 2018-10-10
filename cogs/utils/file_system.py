@@ -15,7 +15,7 @@ async def get_json_file(file):
     try:
         async with aiofiles.open(base_path + file + ".json", "r") as f:
             return json.loads(await f.read())
-        
+
     except:
         return None
 

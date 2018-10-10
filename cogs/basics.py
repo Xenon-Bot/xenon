@@ -30,6 +30,7 @@ class Basics:
 
     @commands.command()
     async def shards(self, ctx):
+        """Show information about the shards"""
         shards = self.bot.shard_info
         table = PrettyTable()
         table.field_names = ["Shard-Id", "Guilds", "Users", "Latency"]

