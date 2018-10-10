@@ -16,7 +16,7 @@ async def rejoin(request):
     try:
         token, response = await oauth.client.get_access_token(code=code, redirect_uri="https://xenon.discord.club/rejoin", loop=request.app.loop)
         user = await oauth.client.request(method="GET", access_token=token, url="https://discordapp.com/api/v6/users/@me")
-        file_system.save_json_file(f"rejoin/{user['id']}", response)
+        await file_system.save_json_file(f"rejoin/{user['id']}", response)
     except:
         raise web.HTTPBadRequest
 

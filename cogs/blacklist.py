@@ -18,8 +18,8 @@ class Blacklist:
         self.bot = bot
 
         @bot.check
-        def not_blacklisted(ctx):
-            blacklist = file_system.get_json_file("blacklist")
+        async def not_blacklisted(ctx):
+            blacklist = await file_system.get_json_file("blacklist")
             if blacklist is None:
                 return True
             if ctx.author.id not in blacklist:
@@ -43,7 +43,7 @@ class Blacklist:
 
         **user**: The user to add to the blacklist
         """
-        blacklist = file_system.get_json_file("blacklist")
+        blacklist = await file_system.get_json_file("blacklist")
         if blacklist is None:
             blacklist = []
 
@@ -51,7 +51,7 @@ class Blacklist:
             raise commands.BadArgument("This user is **already blacklisted**!")
 
         blacklist.append(user.id)
-        file_system.save_json_file("blacklist", blacklist)
+        await file_system.save_json_file("blacklist", blacklist)
         await ctx.send(**em(f"Successfully **added {str(user)}** to the blacklist!", type="success"))
 
     @blacklist.command(aliases=["delete", "del", "rm"])
@@ -61,7 +61,7 @@ class Blacklist:
 
         **user**: The user to remove from the blacklist
         """
-        blacklist = file_system.get_json_file("blacklist")
+        blacklist = await file_system.get_json_file("blacklist")
         if blacklist is None:
             blacklist = []
 
@@ -69,13 +69,13 @@ class Blacklist:
             raise commands.BadArgument("This user **isn't blacklisted**!")
 
         blacklist.remove(user.id)
-        file_system.save_json_file("blacklist", blacklist)
+        await file_system.save_json_file("blacklist", blacklist)
         await ctx.send(**em(f"Successfully **removed {str(user)}** from the blacklist!", type="success"))
 
     @blacklist.command(aliases=["info", "i", "l"])
     async def list(self, ctx):
         """Show the list of blacklisted users"""
-        blacklist = file_system.get_json_file("blacklist")
+        blacklist = await file_system.get_json_file("blacklist")
         if blacklist is None or len(blacklist) == 0:
             await ctx.send(**em("The **blacklist** is currently **empty**!", type="info"))
             return

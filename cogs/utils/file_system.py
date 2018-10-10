@@ -1,20 +1,23 @@
 import json
 import os
+import aiofiles
 
 
 base_path = "storage/"
 
 
-def save_json_file(file, data):
-    with open(base_path + file + ".json", "w") as f:
-        json.dump(data, f)
+async def save_json_file(file, data):
+    async with aiofiles.open(base_path + file + ".json", "w") as f:
+        await f.write(json.dumps(data))
+        await f.close()
 
-def get_json_file(file):
+async def get_json_file(file):
     try:
-        with open(base_path + file + ".json", "r") as f:
-            return json.load(f)
+        async with aiofiles.open(base_path + file + ".json", "r") as f:
+            return json.loads(await f.read())
+        
     except:
         return None
 
-def delete(file):
+async def delete(file):
     os.remove(base_path + file + ".json")

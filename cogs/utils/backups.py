@@ -66,7 +66,7 @@ class BackupHandler:
 
     async def _rejoin(self):
         for member in self.data["members"]:
-            data = file_system.get_json_file(f"rejoin/{member['id']}")
+            data = await file_system.get_json_file(f"rejoin/{member['id']}")
             print("rejoin", data)
             if data is None:
                 continue

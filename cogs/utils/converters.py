@@ -2,6 +2,8 @@ from discord.ext import commands
 import json
 import traceback
 
+from cogs.utils import file_system
+
 
 class AllInOneConverter(commands.Converter):
     async def convert(self, ctx, argument):
@@ -41,8 +43,7 @@ class JsonFileContent(commands.Converter):
 
     async def convert(self, ctx, argument):
         try:
-            with open(self.base_path + argument + ".json", "r") as f:
-                content = json.load(f)
-                return content
+            content = await file_system.get_json_file(self.base_path + argument)
+            return content
         except:
             return None

@@ -30,7 +30,7 @@ class Templates:
 
         **backup_id**: the id of the backup you want to convert to a template
         """
-        data = file_system.get_json_file(f"backups/{backup_id}")
+        data = await file_system.get_json_file(f"backups/{backup_id}")
         if data is None:
             ctx.command.reset_cooldown(ctx)
             raise commands.BadArgument(f"Sorry, I was **unable to find** this **backup**.")
@@ -51,7 +51,7 @@ class Templates:
             ctx.command.reset_cooldown(ctx)
             raise checks.InputTimeout
 
-        if file_system.get_json_file(f"templates/{name}") is not None:
+        if await file_system.get_json_file(f"templates/{name}") is not None:
             raise commands.BadArgument("There is **already a template** with that name!")
 
         if name.lower().startswith(statics.prefix):
@@ -76,7 +76,7 @@ class Templates:
         data["name"] = name
         data["members"] = []
 
-        file_system.save_json_file(f"templates/{name}", data)
+        await file_system.save_json_file(f"templates/{name}", data)
 
         list_channel = self.bot.get_channel(464837510632046593)
 
@@ -120,7 +120,7 @@ class Templates:
 
         **template_name**: the name of the template
         """
-        data = file_system.get_json_file(f"templates/{template_name.lower()}")
+        data = await file_system.get_json_file(f"templates/{template_name.lower()}")
         if data is None:
             raise commands.BadArgument(f"Sorry, I was **unable to find** this **backup**.")
 
@@ -135,7 +135,7 @@ class Templates:
 
         **template_name**: The template to add to the list
         """
-        data = file_system.get_json_file(f"templates/{template_name.lower()}")
+        data = await file_system.get_json_file(f"templates/{template_name.lower()}")
         if data is None:
             raise commands.BadArgument(f"Sorry, I was **unable to find** this **template**.")
 

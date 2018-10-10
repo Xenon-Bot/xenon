@@ -57,7 +57,7 @@ class Backups:
 
         handler = backups.BackupHandler(self.bot)
         data = await handler.save(ctx.guild, ctx.author, chatlog)
-        file_system.save_json_file(f"backups/{id}", data)
+        await file_system.save_json_file(f"backups/{id}", data)
 
         try:
             if ctx.author.dm_channel is None:
@@ -78,14 +78,14 @@ class Backups:
 
     @backup.command(aliases=["del"])
     async def delete(self, ctx, backup_id):
-        data = file_system.get_json_file(f"backups/{backup_id}")
+        data = await file_system.get_json_file(f"backups/{backup_id}")
         if data is None:
             raise commands.BadArgument(f"Sorry, I was **unable to find** that **backup**.")
 
         if str(ctx.author.id) != str(data["creator"]):
             raise commands.BadArgument(f"Only **the creator** can **delete** this backup.")
 
-        file_system.delete(f"backups/{backup_id}")
+        await file_system.delete(f"backups/{backup_id}")
         await ctx.send(**em(f"Successfully **deleted the backup**.", type="success"))
 
     @backup.command(aliases=["l"])
@@ -94,7 +94,7 @@ class Backups:
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     @commands.cooldown(1, 5 * 60, commands.BucketType.guild)
-    async def load(self, ctx, backup_id: converters.JsonFileContent("storage/backups/"), *options_input):
+    async def load(self, ctx, backup_id: converters.JsonFileContent("backups/"), *options_input):
         """
         Load a backup
 
@@ -131,7 +131,7 @@ class Backups:
 
         **backup_id**: the id of the backup
         """
-        data = file_system.get_json_file(f"backups/{backup_id}")
+        data = await file_system.get_json_file(f"backups/{backup_id}")
         if data is None:
             raise commands.BadArgument(f"Sorry, I was **unable to find** this **backup**.")
 
@@ -149,7 +149,7 @@ class Backups:
         **interval**: the interval e.g. '1d 8h 15m'
         """
         if len(interval) == 0:
-            intervals = file_system.get_json_file("intervals")
+            intervals = await file_system.get_json_file("intervals")
             if intervals is None:
                 await ctx.invoke(self.bot.get_command("help"), "backup", "interval")
                 return
@@ -170,13 +170,13 @@ class Backups:
             return
 
         if interval[0] == "off":
-            intervals = file_system.get_json_file("intervals")
+            intervals = await file_system.get_json_file("intervals")
             if intervals is None:
                 intervals = {}
             else:
                 intervals.pop(str(ctx.guild.id), None)
 
-            file_system.save_json_file("intervals", intervals)
+            await file_system.save_json_file("intervals", intervals)
             await ctx.send(**em(f"Successfully **turned backup interval off**", type="success"))
             return
 
@@ -189,12 +189,12 @@ class Backups:
         if interval_sum < 60 or interval_sum > 60 * 24 * 7 * 2:
             raise commands.BadArgument(f"Please specify a valid **interval between 1h and 2w**, e.g. `8h 15m`.")
 
-        intervals = file_system.get_json_file("intervals")
+        intervals = await file_system.get_json_file("intervals")
         if intervals is None:
             intervals = {}
 
         intervals[str(ctx.guild.id)] = [interval_sum, interval_sum]
-        file_system.save_json_file("intervals", intervals)
+        await file_system.save_json_file("intervals", intervals)
 
         await ctx.send(**em(
             f"Successfully **set backup interval** to `{self.bot.time.format_timedelta(timedelta(minutes=interval_sum))}`"),
@@ -212,7 +212,7 @@ class Backups:
 
                     handler = backups.BackupHandler(self.bot)
                     data = await handler.save(guild, guild.owner)
-                    file_system.save_json_file(f"backups/{id}", data)
+                    await file_system.save_json_file(f"backups/{id}", data)
 
                     if guild.owner.dm_channel is None:
                         await guild.owner.create_dm()
@@ -232,7 +232,7 @@ class Backups:
             await asyncio.sleep(1 * 60)
 
             try:
-                intervals = file_system.get_json_file("intervals")
+                intervals = await file_system.get_json_file("intervals")
                 if intervals is None:
                     continue
 
@@ -249,7 +249,7 @@ class Backups:
 
                     intervals[guild_id] = interval
 
-                file_system.save_json_file("intervals", intervals)
+                await file_system.save_json_file("intervals", intervals)
 
             except:
                 traceback.print_exc()
