@@ -19,6 +19,12 @@ class Pro:
     @commands.check(checks.is_pro)
     @commands.cooldown(1, 5 * 60, commands.BucketType.guild)
     async def copy(self, ctx, guild_id: int):
+        """
+        Copy a guild
+        Be careful with this, it does not have any confirm warnings yet
+
+        **guild_id** The id of the guild you want to copy
+        """
         guild = self.bot.get_guild(guild_id)
         if guild is None:
             raise commands.BadArgument(f"I was **unable to find that guild**.")

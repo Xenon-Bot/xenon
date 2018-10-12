@@ -8,7 +8,7 @@ base_path = "storage/"
 
 async def save_json_file(file, data):
     async with aiofiles.open(base_path + file + ".json", "w") as f:
-        await f.write(json.dumps(data))
+        await f.write(json.dumps(data, indent=1))
         await f.close()
 
 async def get_json_file(file):

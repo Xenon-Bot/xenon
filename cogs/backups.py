@@ -1,14 +1,14 @@
 import asyncio
-import os
 import random
 import traceback
 from datetime import timedelta, datetime
 
 import discord
 from discord.ext import commands
+from discord_backups import BackupSaver, BackupLoader
 
 import statics
-from cogs.utils import checks, backups, formatter, file_system, converters
+from cogs.utils import checks, formatter, file_system, converters, backups
 
 em = formatter.embed_message
 
@@ -24,6 +24,10 @@ class Backups:
     async def backup(self, ctx):
         """Main backup command"""
         await ctx.invoke(self.bot.get_command("help"), "backup")
+
+    @backup.command()
+    async def convert(self, ctx):
+        pass
 
     @backup.command()
     async def rejoin(self, ctx):
@@ -55,8 +59,8 @@ class Backups:
 
         status = await ctx.send(**em("Creating backup, this could take a while.", type="working"))
 
-        handler = backups.BackupHandler(self.bot)
-        data = await handler.save(ctx.guild, ctx.author, chatlog)
+        handler = BackupSaver(self.bot, self.bot.session, ctx.guild)
+        data = await handler.save(ctx.author, chatlog)
         await file_system.save_json_file(f"backups/{id}", data)
 
         try:
@@ -91,7 +95,7 @@ class Backups:
         if field.name != "Usage":
             return
 
-        await reaction.message.edit(content=field.value, embed=None)
+        await reaction.message.edit(content=field.value.splitlines()[0].replace("`", ""), embed=None)
 
     @backup.command(aliases=["del"])
     async def delete(self, ctx, backup_id):
@@ -111,7 +115,7 @@ class Backups:
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(administrator=True)
     @commands.cooldown(1, 5 * 60, commands.BucketType.guild)
-    async def load(self, ctx, backup_id: converters.JsonFileContent("backups/"), *options_input):
+    async def load(self, ctx, backup_id: converters.JsonFileContent("backups/"), chatlog: int = 20, *options_input):
         """
         Load a backup
 
@@ -138,8 +142,14 @@ class Backups:
             raise commands.BadArgument(
                 f"Sorry, **you can't load this backup** because you are **not the creator** of it. After a discussion with discord this was the only way **to protect this bot** against abusers. [More details](https://cdn.discordapp.com/attachments/442447986052562956/480486412446072857/unknown.png)")
 
-        handler = backups.BackupHandler(self.bot)
-        await handler.load_command(ctx, data, options_input)
+        if data.get("version") is None:
+            raise commands.BadArgument(f"This **backup is outdated**, please use `{statics.prefix}backup convert` to convert it.")
+
+        handler = BackupLoader(self.bot, self.bot.session, data)
+        await handler.load(ctx.guild, ctx.author, chatlog)
+
+        await ctx.guild.text_channels[0].send(
+            **em(f"Successfully loaded backup.\n\n[Member List]({data['paste']})", type="success"))
 
     @backup.command(aliases=["i"])
     async def info(self, ctx, backup_id):
@@ -152,8 +162,10 @@ class Backups:
         if data is None:
             raise commands.BadArgument(f"Sorry, I was **unable to find** this **backup**.")
 
-        handler = backups.BackupHandler(self.bot)
-        await ctx.send(embed=handler.get_backup_info(data))
+        if data.get("version") is None:
+            raise commands.BadArgument(f"This **backup is outdated**, please use `{statics.prefix}backup convert` to convert it.")
+
+        # Get Backup info
 
     @backup.command(aliases=["iv"])
     @commands.guild_only()
@@ -227,8 +239,8 @@ class Backups:
                     for i in range(16):
                         id += str(random.choice(statics.alphabet))
 
-                    handler = backups.BackupHandler(self.bot)
-                    data = await handler.save(guild, guild.owner)
+                    handler = BackupSaver(self.bot, self.bot.session, guild)
+                    data = await handler.save(guild.owner)
                     await file_system.save_json_file(f"backups/{id}", data)
 
                     if guild.owner.dm_channel is None:
@@ -238,7 +250,9 @@ class Backups:
                     embed = em(f"Created backup of **{guild.name}** with the Backup id `{id}`.", type="info")
                     embed.add_field(name="Usage", value=f"```{statics.prefix}backup load {id}```\n"
                                                         f"```{statics.prefix}backup info {id}```")
-                    await dm_channel.send(embed=embed)
+                    embed.set_footer(text="Click the phone below to get a mobile friendly version")
+                    info = await dm_channel.send(embed=embed)
+                    await info.add_reaction("📱")
                 except Exception as e:
                     print(f"Error executing interval for {guild.id}: {type(e).__name__} {str(e)}")
 
