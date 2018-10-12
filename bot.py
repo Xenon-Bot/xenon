@@ -5,6 +5,7 @@ import traceback
 import dbl
 import discord
 import sentry_sdk
+import aiohttp
 from discord.ext import commands
 
 import statics
@@ -36,6 +37,7 @@ class Xenon(commands.AutoShardedBot):
             activity = activity
         )
 
+        self.session = aiohttp.ClientSession(loop=self.loop)
         self.dblpy = dbl.Client(self, statics.dbl_token, loop=self.loop)
 
         self.initial_extensions = (
@@ -47,6 +49,7 @@ class Xenon(commands.AutoShardedBot):
             "cogs.dynamic_cogs",
             "cogs.blacklist",
             "cogs.pro",
+            "cogs.rollback",
 
             "cogs.command_error",
             "cogs.web",
