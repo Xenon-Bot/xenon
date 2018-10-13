@@ -49,7 +49,7 @@ class Xenon(commands.AutoShardedBot):
             "cogs.dynamic_cogs",
             "cogs.blacklist",
             "cogs.pro",
-            "cogs.rollback",
+            # "cogs.rollback",
 
             "cogs.command_error",
             "cogs.web",

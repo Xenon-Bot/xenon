@@ -15,7 +15,9 @@ class Rollback:
         self.rollbacks = {}
         self.id_translator = {}
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, hidden=True)
+    @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(administrator=True)
     async def rollback(self, ctx, minutes: int):
         events = self.rollbacks.get(str(ctx.guild.id))
         if events is None:
@@ -38,11 +40,13 @@ class Rollback:
         await ctx.send(**em(f"Successfully reversed **{len(in_timespan)}** events", type="success"))
 
     @rollback.command(aliases=["enable"])
+    @commands.has_permissions(administrator=True)
     async def activate(self, ctx):
         self.rollbacks[str(ctx.guild.id)] = []
         await ctx.send(**em("Successfully **enabled rollback** for this guild.", type="success"))
 
     @rollback.command(aliases=["disable"])
+    @commands.has_permissions(administrator=True)
     async def deactivate(self, ctx):
         self.rollbacks.pop(str(ctx.guild.id), None)
         await ctx.send(**em("Successfully **disabled rollback** for this guild.", type="success"))
