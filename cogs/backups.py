@@ -145,6 +145,24 @@ class Backups:
         if data.get("version") is None:
             raise commands.BadArgument(f"This **backup is outdated**, please use `{statics.prefix}backup convert` to convert it.")
 
+        warning = await ctx.send(
+            **em("Are you sure you want to copy  that guild?\n**All channels will get replaced.**", type="warning"))
+        await warning.add_reaction("✅")
+        await warning.add_reaction("❌")
+        try:
+            reaction, user = await self.bot.wait_for(
+                event="reaction_add",
+                timeout=60,
+                check=lambda r, u: u.id == ctx.author.id and
+                                   r.message.id == warning.id and r.message.channel.id == warning.channel.id and
+                                   (str(r.emoji) == "✅" or str(r.emoji) == "❌")
+            )
+        except asyncio.TimeoutError:
+            raise commands.BadArgument("**Canceled loading process.**")
+
+        if str(reaction.emoji) != "✅":
+            raise commands.BadArgument("**Canceled loading process**")
+
         handler = BackupLoader(self.bot, self.bot.session, data)
         await handler.load(ctx.guild, ctx.author, chatlog)
 
