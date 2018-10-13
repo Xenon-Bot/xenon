@@ -5,10 +5,10 @@ from datetime import timedelta, datetime
 
 import discord
 from discord.ext import commands
-from discord_backups import BackupSaver, BackupLoader
+from discord_backups import BackupSaver, BackupLoader, BackupInfo
 
 import statics
-from cogs.utils import checks, formatter, file_system, converters, backups
+from cogs.utils import checks, formatter, file_system, converters
 
 em = formatter.embed_message
 
@@ -165,7 +165,16 @@ class Backups:
         if data.get("version") is None:
             raise commands.BadArgument(f"This **backup is outdated**, please use `{statics.prefix}backup convert` to convert it.")
 
-        # Get Backup info
+        handler = BackupInfo(bot=self.bot, data=data)
+        embed = em("")["embed"]
+        embed.set_author(name=handler.name, icon_url=handler.icon_url)
+        embed.add_field(name="Creator", value=f"<@{handler.creator}>")
+        embed.add_field(name="Members", value=handler.member_count)
+        embed.add_field(name="Chatlog", value=handler.chatlog)
+        embed.add_field(name="Channels", value=handler.channels())
+        embed.add_field(name="Roles", value=handler.roles())
+
+        await ctx.send(embed=embed)
 
     @backup.command(aliases=["iv"])
     @commands.guild_only()
