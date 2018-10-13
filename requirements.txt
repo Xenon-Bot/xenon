@@ -1,0 +1,4 @@
+discord==0.0.2
+discord_backups>=0.1.1
+dblpy==0.1.6
+sentry_sdk>=0.3.6
