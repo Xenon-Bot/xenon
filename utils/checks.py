@@ -13,7 +13,7 @@ def bot_has_managed_top_role():
     return cmd.check(predicate)
 
 
-def has_role_on_support_guild(role_name):
+def check_role_on_support_guild(role_name):
     async def predicate(ctx):
         support_guild = ctx.bot.get_guild(ctx.config.support_guild)
         if support_guild is None:
@@ -30,6 +30,25 @@ def has_role_on_support_guild(role_name):
         if len(list(roles)) == 0:
             raise cmd.CommandError(
                 f"You are **missing** the `{role_name}` **role** on the support guild."
+            )
+
+        return True
+
+    return predicate
+
+
+def has_role_on_support_guild(role_name):
+    pred = check_role_on_support_guild(role_name)
+    return cmd.check(pred)
+
+
+def is_pro():
+    async def predicate(ctx):
+        try:
+            await check_role_on_support_guild("Xenon Pro")(ctx)
+        except cmd.CommandError:
+            raise cmd.CommandError(
+                f"This command is only for **Xenon Pro** users. Use `{ctx.config.prefix}pro` for more information."
             )
 
         return True
