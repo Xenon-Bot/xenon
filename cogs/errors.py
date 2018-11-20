@@ -57,17 +57,31 @@ class Errors:
             )
             return
 
-            return
-
         if isinstance(error, cmd.BadUnionArgument):
             # cba
             pass
-            return
 
         if isinstance(error, cmd.BadArgument):
-            # A converter failed
-            await ctx.send(**em(str(error), type="error"))
-            return
+            if 'Converting to "' in str(error):
+                types = {
+                    "int": "number"
+                }
+                type = str(error).split('"')[1]
+                parameter = str(error).split('"')[3]
+                await ctx.send(**em(
+                    f"The value you passed to **{parameter}** is not a valid **{types.get(type, type)}**.",
+                    type="error"
+                ))
+                return
+
+            if '" not found' in str(error):
+                type = str(error).split(" ")[0]
+                value = str(error).split('"')[1]
+                await ctx.send(**em(
+                    f"**No {type} found** with **that fits** the value `{value}`.",
+                    type="error"
+                ))
+                return
 
         if catch_all:
             if isinstance(error, cmd.CommandError):
