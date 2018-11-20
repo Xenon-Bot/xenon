@@ -9,6 +9,7 @@ If you only want to use specific parts of the bot, you can edit the variable "ex
 ## Database
 
 The bot requires a rethinkdb-database running on port 28015. All backups, templates and user information are saved there.
+You can find more information about rethinkdb [here](https://www.rethinkdb.com/docs/install/).
 
 ## Logs
 
