@@ -14,3 +14,5 @@ extensions = [
     "cogs.templates",
     "cogs.pro"
 ]
+
+support_guild = 410488579140354049

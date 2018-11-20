@@ -11,3 +11,27 @@ def bot_has_managed_top_role():
                 f"The role called **{ctx.bot.user.name}** needs to be **at the top** of the role hierarchy")
 
     return cmd.check(predicate)
+
+
+def has_role_on_support_guild(role_name):
+    async def predicate(ctx):
+        support_guild = ctx.bot.get_guild(ctx.config.support_guild)
+        if support_guild is None:
+            ctx.log.warning("Support Guild is unavailable")
+            raise cmd.CommandError(
+                "The support guild is currently unavailable. Please try again later."
+            )
+
+        member = support_guild.get_member(ctx.author.id)
+        if member is None:
+            raise cmd.CommandError("You need to be on the support guild to use this command.")
+
+        roles = filter(lambda r: r.name == role_name, member.roles)
+        if len(list(roles)) == 0:
+            raise cmd.CommandError(
+                f"You are **missing** the `{role_name}` **role** on the support guild."
+            )
+
+        return True
+
+    return cmd.check(predicate)

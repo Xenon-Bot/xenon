@@ -177,6 +177,8 @@ class Backups:
 
     @backup.command(aliases=["iv", "auto"])
     @cmd.cooldown(1, 1, cmd.BucketType.guild)
+    @cmd.has_permissions(administrator=True)
+    @cmd.bot_has_permissions(administrator=True)
     async def interval(self, ctx, *interval):
         """
         Setup automated backups

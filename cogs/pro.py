@@ -13,6 +13,7 @@ class Pro:
     @cmd.guild_only()
     @cmd.has_permissions(administrator=True)
     @cmd.bot_has_permissions(administrator=True)
+    @checks.has_role_on_support_guild("Xenon Pro")
     @checks.bot_has_managed_top_role()
     @cmd.cooldown(1, 5 * 60, cmd.BucketType.guild)
     async def copy(self, ctx, guild_id: int, chatlog: int = backups.max_chatlog):
@@ -28,6 +29,9 @@ class Pro:
         guild = self.bot.get_guild(guild_id)
         if guild is None:
             raise cmd.CommandError(f"There is **no guild with the id** `{guild_id}`.")
+
+        if guild.get_member(ctx.author.id) is None or not guild.get_member(ctx.author.id).guild_permissions.administrator:
+            raise cmd.MissingPermissions([f"administrator` on the guild `{guild.name}"])
 
         warning = await ctx.send(**ctx.em("Are you sure you want to copy that guild? **All channels and roles will get replaced!**", type="warning"))
         await warning.add_reaction("✅")
