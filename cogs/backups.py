@@ -176,13 +176,13 @@ class Backups:
         await ctx.send(embed=embed)
 
     @backup.command(aliases=["iv", "auto"])
-    @cmd.cooldown(1, 30, cmd.BucketType.guild)
+    @cmd.cooldown(1, 1, cmd.BucketType.guild)
     async def interval(self, ctx, *interval):
         """
         Setup automated backups
 
 
-        interval ::     The time between every backup.
+        interval ::     The time between every backup or "off".
                         Supported units: minutes (m), hours (h), days (d), weeks (w), month (m)
                         Example: 1d 12h
         """
@@ -208,6 +208,11 @@ class Backups:
                 )
             )
             await ctx.send(embed=embed)
+            return
+
+        if interval[0].lower() == "off":
+            await ctx.db.rdb.table("intervals").get(str(ctx.guild.id)).delete().run(ctx.db.con)
+            await ctx.send(**ctx.em("Successfully **turned off the backup** interval.", type="success"))
             return
 
         delta_types = {"m": 1, "h": 60, "d": 60 * 24, "w": 60 * 24 * 7}
