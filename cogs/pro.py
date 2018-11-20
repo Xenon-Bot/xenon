@@ -9,11 +9,22 @@ class Pro:
     def __init__(self, bot):
         self.bot = bot
 
+    @cmd.command()
+    async def pro(self, ctx):
+        """Shows information about Xenon Pro"""
+        await ctx.send(**ctx.em(
+            "**Xenon Pro** is the **paid version** of xenon. It includes some **exclusive features**.\n"
+            "You can buy it [here](https://donatebot.io/checkout/410488579140354049).\n\n"
+            "All main features of the bot will remain completely free!",
+            type="info"
+        ))
+        await ctx.invoke(self.bot.get_command("help"), "Pro")
+
     @cmd.command(aliases=["cp"])
     @cmd.guild_only()
     @cmd.has_permissions(administrator=True)
     @cmd.bot_has_permissions(administrator=True)
-    @checks.has_role_on_support_guild("Xenon Pro")
+    @checks.is_pro()
     @checks.bot_has_managed_top_role()
     @cmd.cooldown(1, 5 * 60, cmd.BucketType.guild)
     async def copy(self, ctx, guild_id: int, chatlog: int = backups.max_chatlog):
