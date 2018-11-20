@@ -1,9 +1,13 @@
 # Xenon
 
+## Requirements
+
+Use `pip install -r requirements.txt` to install all requirements.
+
 ## config.py
 
 config.py contains all sensitive values and some startup configurations.
-You can example_config.py, change all values that start with "your" and rename it to config.py.
+You can use example_config.py, change all values that start with "your" and rename it to config.py.
 If you only want to use specific parts of the bot, you can edit the variable "extensions". All extensions should work independent of each other.
 
 ## Database
