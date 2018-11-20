@@ -1,9 +1,15 @@
 # Xenon
 
-## statics.py
+## config.py
 
-Contains all secret values for the bot.
+config.py contains all sensitive values and some startup configurations.
+You can example_config.py, change all values that start with "your" and rename it to config.py.
+If you only want to use specific parts of the bot, you can edit the variable "extensions". All extensions should work independent of each other.
 
-## web.py
+## Database
 
-Binds to Port 8089. Contains the web authorization for the rejoin option.
+The bot requires a rethinkdb-database running on port 28015. All backups, templates and user information are saved there.
+
+## Logs
+
+The bot creates log files in the log/ directory. You might need to create it if it isn't already there.
