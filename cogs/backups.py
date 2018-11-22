@@ -12,6 +12,7 @@ from utils import checks, helpers
 
 
 max_chatlog = 20
+max_reinvite = 100
 
 
 class Backups:
@@ -123,7 +124,8 @@ class Backups:
             options = {
                 "channels": True,
                 "roles": True,
-                "bans": True
+                "bans": True,
+                "members": True
             }
 
         else:
@@ -135,14 +137,84 @@ class Backups:
         await handler.load(ctx.guild, ctx.author, chatlog, **options)
         await ctx.guild.text_channels[0].send(**ctx.em("Successfully loaded backup.", type="success"))
 
+    @backup.command(aliases=["reinv"])
+    @cmd.guild_only()
+    @checks.is_pro()
+    @cmd.has_permissions(administrator=True)
+    @cmd.bot_has_permissions(administrator=True)
+    @cmd.cooldown(1, 3 * 60 * 60, cmd.BucketType.user)
+    async def reinvite(self, ctx, backup_id, limit=max_reinvite):
+        """
+        Reinvite members from a backup
+        Abusing this feature will result in a ban!
+
+
+        backup_id ::    The id of the backup
+
+        limit     ::    The maxmimal count of members (max. 100) (default 100)
+        """
+        limit = limit if limit < max_reinvite and limit >= 0 else max_reinvite
+        backup = await ctx.db.rdb.table("backups").get(backup_id).run(ctx.db.con)
+        if backup is None or backup.get("creator") != str(ctx.author.id):
+            raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
+
+        warning = await ctx.send(**ctx.em(
+            "Are you sure you want to reinvite the members from this backup? **That could be interpreted as massive spam!**\n\n"
+            f"If the backup saved more than {limit} members, the will only load the {limit} members with the most roles.",
+            type="warning"
+        ))
+        await warning.add_reaction("✅")
+        await warning.add_reaction("❌")
+        try:
+            reaction, user = await self.bot.wait_for(
+                "reaction_add",
+                check=lambda r, u: r.message.id == warning.id and u.id == ctx.author.id,
+                timeout=60)
+        except TimeoutError:
+            raise cmd.CommandError(
+                "Please make sure to **click the ✅ reaction** in order to reinvite the members.")
+            await warning.delete()
+
+        if str(reaction.emoji) != "✅":
+            ctx.command.reset_cooldown(ctx)
+            await warning.delete()
+            return
+
+        members = backup["backup"]["members"]
+        if len(members) > limit:
+            members = sorted(members, key=lambda m: len(m["roles"]), reverse=True)
+            members = members[:limit]
+
+        invite = await ctx.channel.create_invite(unique=False)
+
+        status = await ctx.send(**ctx.em("**Reinviting members** ... Please wait", type="working"))
+        skipped = 0
+        for member in members:
+            member = await self.bot.get_user_info(int(member["id"]))
+            if member is None:
+                continue
+
+            try:
+                await member.send(
+                    f"The user **{ctx.author}** reinvited you to the backed up guild **{backup['backup']['name']}**.\n\n"
+                    f"**Invite: <{invite}>**\n\n"
+                    f"If you get spammed or think someone abuses this feature, please report him [here]()!"
+                )
+            except:
+                skipped += 1
+
+        await status.edit(**ctx.em(
+            f"Successfully **reinvited {len(members) - skipped} members**. Skipped: {skipped}",
+            type="success"
+        ))
+
     @backup.command(aliases=["del", "remove", "rm"])
     @cmd.cooldown(1, 5, cmd.BucketType.user)
     async def delete(self, ctx, backup_id):
         """
         Delete a backup
 
-
-        backup_id ::    The id of the backup
+        backup_id::    The id of the backup
         """
         backup = await ctx.db.rdb.table("backups").get(backup_id).run(ctx.db.con)
         if backup is None or backup.get("creator") != str(ctx.author.id):
@@ -157,7 +229,7 @@ class Backups:
         """
         Get information about a backup
 
-        backup_id ::    The id of the backup
+        backup_id::    The id of the backup
         """
         backup = await ctx.db.rdb.table("backups").get(backup_id).run(ctx.db.con)
         if backup is None or backup.get("creator") != str(ctx.author.id):
@@ -183,9 +255,8 @@ class Backups:
         """
         Setup automated backups
 
-
-        interval ::     The time between every backup or "off".
-                        Supported units: minutes (m), hours (h), days (d), weeks (w), month (m)
+        interval::     The time between every backup or "off".
+                        Supported units: minutes(m), hours(h), days(d), weeks(w), month(m)
                         Example: 1d 12h
         """
         if len(interval) == 0:
