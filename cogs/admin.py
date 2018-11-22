@@ -5,11 +5,8 @@ import inspect
 from contextlib import redirect_stdout
 import textwrap
 import io
-from datetime import datetime
-import pytz
-from prettytable import PrettyTable
 
-from utils import formatter, helpers
+from utils import checks
 
 
 class Admin:
@@ -17,56 +14,24 @@ class Admin:
         self.bot = bot
         self._last_result = None
 
-        @bot.check
-        async def not_blacklisted(ctx):
-            entry = await ctx.db.rdb.table("blacklist").get(str(ctx.author.id)).run(ctx.db.con)
-            if entry is None:
-                return True
-
-            raise cmd.CommandError("Sorry, **you are blacklisted**.\n\n"
-                                   f"**Reason**: {entry['reason']}")
-
-    @cmd.group(aliases=["bl"], hidden=True, invoke_without_command=True)
+    @cmd.command(aliases=["su"], hidden=True)
     @cmd.is_owner()
-    async def blacklist(self, ctx):
-        blacklist = await ctx.db.rdb.table("blacklist").run(ctx.db.con)
-        table = PrettyTable()
-        table.field_names = ["User", "Reason", "Admin", "Timestamp"]
-        while (await blacklist.fetch_next()):
-            entry = await blacklist.next()
-            try:
-                user = await self.bot.get_user_info(int(entry["id"]))
-                admin = await self.bot.get_user_info(int(entry["admin"]))
-            except:
-                continue
+    async def sudo(self, ctx, member: discord.Member, *, msg):
+        """
+        Execute a command in place of another user
 
-            table.add_row([
-                f"{user} ({entry['id']})",
-                entry["reason"],
-                f"{admin} ({entry['admin']})",
-                helpers.datetime_to_string(entry["timestamp"])
-            ])
 
-        pages = formatter.paginate(str(table))
-        for page in pages:
-            await ctx.send(f"```diff\n{page}```")
+        member ::   The user (must be a member of this guild)
+        msg    ::   The message. Doesn't need to be command
+        """
+        webhook = await ctx.channel.create_webhook(name="sudo")
+        await webhook.send(content=msg, username=member.name, avatar_url=member.avatar_url)
+        await webhook.delete()
 
-    @blacklist.command()
-    @cmd.is_owner()
-    async def add(self, ctx, user: discord.User, *, reason):
-        await ctx.db.rdb.table("blacklist").insert({
-            "id": str(user.id),
-            "reason": reason,
-            "admin": str(ctx.author.id),
-            "timestamp": datetime.now(pytz.utc)
-        }, conflict="replace").run(ctx.db.con)
-        await ctx.send(**ctx.em(f"Successfully **blacklisted** the user {str(user)} (<@{user.id}>).", type="success"))
-
-    @blacklist.command(aliases=["rm", "remove", "del"])
-    @cmd.is_owner()
-    async def delete(self, ctx, user: discord.User):
-        await ctx.db.rdb.table("blacklist").get(str(user.id)).delete().run(ctx.db.con)
-        await ctx.send(**ctx.em(f"Successfully **removed** the user {str(user)} (<@{user.id}>) from the **blacklist**.", type="success"))
+        message = ctx.message
+        message.author = member
+        message.content = msg
+        await self.bot.process_commands(message)
 
     @cmd.command(aliases=["rl"], hidden=True)
     @cmd.is_owner()
@@ -101,9 +66,15 @@ class Admin:
             traceback.print_exc()
             raise cmd.CommandError(f"Error while reloading the cog named **{cog}**.")
 
-    @cmd.command(hidden=True)
+    @cmd.command()
+    @checks.has_role_on_support_guild("Admin")
+    async def restart(self, ctx):
+        await ctx.send(**ctx.em("Reastarting ...", type="info"))
+        await self.bot.close()
+
+    @cmd.command(name="exec", hidden=True)
     @cmd.is_owner()
-    async def exec(self, ctx, *, body: str):
+    async def _exec(self, ctx, *, body: str):
         """
         Executes something, uses exec not eval -> returns None
         **body**: The code to get executed

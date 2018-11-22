@@ -11,7 +11,7 @@ table_setup = {
         "backups": {},
         "templates": {},
         "intervals": {},
-        "blacklist": {}
+        "users": {}
     }
 }
 
