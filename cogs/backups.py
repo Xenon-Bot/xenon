@@ -198,7 +198,7 @@ class Backups:
                 await member.send(
                     f"The user **{ctx.author}** reinvited you to the backed up guild **{backup['backup']['name']}**.\n\n"
                     f"**Invite: <{invite}>**\n\n"
-                    f"If you get spammed or think someone abuses this feature, please report him [here]()!"
+                    f"If you get spammed or think someone abuses this feature, please report him [here](https://discord.club/discord)!"
                 )
             except:
                 skipped += 1

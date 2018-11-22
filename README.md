@@ -3,7 +3,7 @@
 ## Requirements
 
 You need Python 3.6.x to run the bot. >=3.7 and <=3.5 are not supported!  
-Use `pip install -r requirements.txt` to install all python packages.
+Use `pip install -U -r requirements.txt` to install all python packages.
 
 ## config.py
 
