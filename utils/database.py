@@ -29,7 +29,8 @@ async def setup():
             if table_name not in await db.table_list().run(con):
                 await db.table_create(table_name).run(con)
 
-                await db.table(table_name).insert(data).run(con)
+                if len(data) >= 0:
+                    await db.table(table_name).insert(data).run(con)
 
 
 async def update_stats(**keys):

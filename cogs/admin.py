@@ -66,7 +66,7 @@ class Admin:
             traceback.print_exc()
             raise cmd.CommandError(f"Error while reloading the cog named **{cog}**.")
 
-    @cmd.command()
+    @cmd.command(hidden=True)
     @checks.has_role_on_support_guild("Admin")
     async def restart(self, ctx):
         await ctx.send(**ctx.em("Reastarting ...", type="info"))

@@ -79,7 +79,8 @@ class Backups:
         embed = msg.embeds[0]
         for field in embed.fields:
             if field.name == "Usage":
-                await msg.edit(content=field.value, embed=None)
+                value = field.value.splitlines()[0].strip("`")
+                await msg.edit(content=value, embed=None)
                 break
 
     @backup.command(aliases=["l"])
