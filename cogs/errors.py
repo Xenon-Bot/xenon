@@ -30,7 +30,10 @@ class Errors:
         catch_all = True
 
         if not isinstance(error, cmd.CommandOnCooldown):
-            ctx.command.reset_cooldown(ctx)
+            try:
+                ctx.command.reset_cooldown(ctx)
+            except AttributeError:
+                pass
 
         for error_cls in ignore:
             if isinstance(error, error_cls):
@@ -63,22 +66,22 @@ class Errors:
 
         if isinstance(error, cmd.BadArgument):
             if 'Converting to "' in str(error):
-                types = {
+                converters = {
                     "int": "number"
                 }
-                type = str(error).split('"')[1]
+                conv = str(error).split('"')[1]
                 parameter = str(error).split('"')[3]
                 await ctx.send(**em(
-                    f"The value you passed to **{parameter}** is not a valid **{types.get(type, type)}**.",
+                    f"The value you passed to **{parameter}** is not a valid **{converters.get(conv, conv)}**.",
                     type="error"
                 ))
                 return
 
             if '" not found' in str(error):
-                type = str(error).split(" ")[0]
+                conv = str(error).split(" ")[0]
                 value = str(error).split('"')[1]
                 await ctx.send(**em(
-                    f"**No {type} found** with **that fits** the value `{value}`.",
+                    f"**No {conv} found** that fits the value `{value}`.",
                     type="error"
                 ))
                 return
