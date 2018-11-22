@@ -70,6 +70,7 @@ class Templates:
             "original": backup_id,
             "template": backup["backup"]
         }).run(ctx.db.con)
+
         await ctx.send(**ctx.em("Successfully **created template**.\n"
                                 f"You can load the template with `{ctx.prefix}template load {name}`", type="success"))
 

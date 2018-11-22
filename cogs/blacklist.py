@@ -4,7 +4,7 @@ from datetime import datetime
 import pytz
 from prettytable import PrettyTable
 
-from utils import formatter, helpers
+from utils import formatter, helpers, checks
 
 
 class Blacklist:
@@ -21,7 +21,7 @@ class Blacklist:
                                    f"**Reason**: {entry['blacklist']['reason']}")
 
     @cmd.group(aliases=["bl"], hidden=True, invoke_without_command=True)
-    @cmd.is_owner()
+    @checks.has_role_on_support_guild("Admin")
     async def blacklist(self, ctx):
         blacklist = await ctx.db.rdb.table("users").filter({"blacklist": {"state": True}}).run(ctx.db.con)
         table = PrettyTable()
@@ -46,7 +46,7 @@ class Blacklist:
             await ctx.send(f"```diff\n{page}```")
 
     @blacklist.command()
-    @cmd.is_owner()
+    @checks.has_role_on_support_guild("Admin")
     async def add(self, ctx, user: discord.User, *, reason):
         await ctx.db.rdb.table("users").insert({
             "id": str(user.id),
@@ -60,7 +60,7 @@ class Blacklist:
         await ctx.send(**ctx.em(f"Successfully **blacklisted** the user **{str(user)}** (<@{user.id}>).", type="success"))
 
     @blacklist.command(aliases=["rm", "remove", "del"])
-    @cmd.is_owner()
+    @checks.has_role_on_support_guild("Admin")
     async def delete(self, ctx, user: discord.User):
         await ctx.db.rdb.table("users").get(str(user.id)).replace(ctx.db.rdb.row.without('blacklist')).run(ctx.db.con)
         await ctx.send(**ctx.em(f"Successfully **removed** the user **{str(user)}** (<@{user.id}>) from the **blacklist**.", type="success"))
