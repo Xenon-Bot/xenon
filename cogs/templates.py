@@ -13,10 +13,6 @@ class Templates:
         """Create & load public templates"""
         await ctx.invoke(self.bot.get_command("help"), "template")
 
-    @template.command(aliases=["ls"])
-    async def list(self, ctx):
-        pass
-
     @template.command(aliases=["c"])
     @cmd.cooldown(1, 30, cmd.BucketType.user)
     async def create(self, ctx, backup_id, name, *, description):
@@ -84,7 +80,7 @@ class Templates:
         """
         template_name = template_name.lower().replace(" ", "_")
         template = await ctx.db.rdb.table("templates").get(template_name).run(ctx.db.con)
-        if template is None or template.get("creator") != str(ctx.author.id):
+        if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
         await ctx.db.rdb.table("templates").get(template_name).delete().run(ctx.db.con)

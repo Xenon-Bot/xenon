@@ -25,7 +25,7 @@ class Basics:
             shards[guild.shard_id]["members"] += guild.member_count
 
         for shard_id, values in shards.items():
-            table.add_row([shard_id, round(values["latency"] * 1000, 1),
+            table.add_row([shard_id, f"{round(values['latency'] * 1000, 1)} ms",
                            values["guilds"], values["members"]])
 
         pages = formatter.paginate(str(table))
