@@ -67,6 +67,10 @@ class Templates:
             "template": backup["backup"]
         }).run(ctx.db.con)
 
+        template = await ctx.db.rdb.table("templates").get(name).run(ctx.db.con)
+        embed = self.template_info(ctx, name, template)
+        await self.bot.get_channel(464837510632046593).send(embed=embed)
+
         await ctx.send(**ctx.em("Successfully **created template**.\n"
                                 f"You can load the template with `{ctx.prefix}template load {name}`", type="success"))
 
@@ -88,6 +92,10 @@ class Templates:
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
         await ctx.db.rdb.table("templates").get(template_name).update({"featured": feature}).run(ctx.db.con)
+
+        embed = self.template_info(ctx, template_name, template)
+        await self.bot.get_channel(464837529267601408).send(embed=embed)
+
         await ctx.send(**ctx.em(f"Successfully **{'un' if not feature else ''}featured template**.", type="success"))
 
     @template.command(aliases=["del", "rm", "remove"])
@@ -162,14 +170,26 @@ class Templates:
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
-        handler = BackupInfo(self.bot, template["template"])
+        embed = self.template_info(ctx, template_name, template)
+        await ctx.send(embed=embed)
+
+    def template_info(self, ctx, name, template):
+        handler = BackupInfo(ctx.bot, template["template"])
         embed = ctx.em("")["embed"]
-        embed.title = template_name
+        embed.title = name
         embed.add_field(name="Creator", value=f"<@{template['creator']}>")
         embed.add_field(name="Created At", value="N/A", inline=False)
         embed.add_field(name="Channels", value=handler.channels(), inline=True)
         embed.add_field(name="Roles", value=handler.roles(), inline=True)
-        await ctx.send(embed=embed)
+
+        return embed
+
+    @template.command(aliases=["ls"])
+    async def list(self, ctx):
+        await ctx.send(**ctx.em(
+            "You can find a **list of templates** in <#464837510632046593> and <#464837529267601408> on the [support server](https://discord.club/discord).",
+            type="info"
+        ))
 
 
 def setup(bot):
