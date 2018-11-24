@@ -70,7 +70,28 @@ class Templates:
         await ctx.send(**ctx.em("Successfully **created template**.\n"
                                 f"You can load the template with `{ctx.prefix}template load {name}`", type="success"))
 
+    @template.command(aliases=["unfeature"])
+    @checks.has_role_on_support_guild("Staff")
+    async def feature(self, ctx, *, template_name):
+        """
+        Feature a template
+
+
+        template_name ::    The name of the template
+        """
+        feature = True
+        if ctx.invoked_with == "unfeature":
+            feature = False
+
+        template_name = template_name.lower().replace(" ", "_")
+        template = await ctx.db.rdb.table("templates").get(template_name).run(ctx.db.con)
+        if template is None:
+            raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
+        await ctx.db.rdb.table("templates").get(template_name).update({"featured": feature}).run(ctx.db.con)
+        await ctx.send(**ctx.em(f"Successfully **{'un' if not feature else ''}featured template**.", type="success"))
+
     @template.command(aliases=["del", "rm", "remove"])
+    @checks.has_role_on_support_guild("Staff")
     async def delete(self, ctx, *, template_name):
         """
         Delete a template created by you
