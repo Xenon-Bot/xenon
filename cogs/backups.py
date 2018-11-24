@@ -126,7 +126,8 @@ class Backups:
                 "channels": True,
                 "roles": True,
                 "bans": True,
-                "members": True
+                "members": True,
+                "settings": True
             }
 
         else:
