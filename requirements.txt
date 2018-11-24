@@ -2,5 +2,6 @@ asyncio>=3.4.3
 rethinkdb>=2.3.0.post6
 prettytable
 pytz>=2017.3
+psutil>=5.4.2
 git+https://github.com/Merlintor/discord-backups.git
 git+https://github.com/Rapptz/discord.py@rewrite

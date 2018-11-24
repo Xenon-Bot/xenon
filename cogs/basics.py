@@ -1,5 +1,6 @@
 from discord.ext import commands as cmd
 from prettytable import PrettyTable
+import psutil
 
 from utils import formatter
 
@@ -31,6 +32,28 @@ class Basics:
         pages = formatter.paginate(str(table))
         for page in pages:
             await ctx.send(f"```diff\n{page}```")
+
+    @cmd.command()
+    async def invite(self, ctx):
+        """Invite Xenon"""
+        await ctx.send(**ctx.em("You can **invite Xenon** [here](https://discord.club/invite/xenon).", type="info"))
+
+    @cmd.command(aliases=["i", "stats", "status"])
+    async def info(self, ctx):
+        embed = ctx.em("")["embed"]
+        embed.description = "Server Backups, Templates and more"
+        embed.title = "Xenon"
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        embed.add_field(name="Invite", value="[Click Here](https://discord.club/invite/xenon)")
+        embed.add_field(name="Discord", value="[Click Here](https://discord.club/discord)")
+        embed.add_field(name="Prefix", value=ctx.config.prefix)
+        embed.add_field(name="Guilds", value=len(self.bot.guilds))
+        embed.add_field(name="Shards", value=self.bot.shard_count)
+        embed.add_field(name="Users", value=len(self.bot.users))
+        embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent()}%")
+        embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
+
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
