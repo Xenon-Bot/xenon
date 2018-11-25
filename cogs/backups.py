@@ -240,6 +240,7 @@ class Backups:
         handler = BackupInfo(self.bot, backup["backup"])
         embed = ctx.em("")["embed"]
         embed.title = handler.name
+        embed.set_thumbnail(url=handler.icon_url)
         embed.add_field(name="Creator", value=f"<@{backup['creator']}>")
         embed.add_field(name="Members", value=handler.member_count, inline=True)
         embed.add_field(name="Created At", value=helpers.datetime_to_string(
