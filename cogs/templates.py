@@ -64,6 +64,7 @@ class Templates:
             "loaded": 0,
             "featured": False,
             "original": backup_id,
+            "description": description,
             "template": backup["backup"]
         }).run(ctx.db.con)
 
@@ -177,6 +178,7 @@ class Templates:
         handler = BackupInfo(ctx.bot, template["template"])
         embed = ctx.em("")["embed"]
         embed.title = name
+        embed.description = template["description"]
         embed.add_field(name="Creator", value=f"<@{template['creator']}>")
         embed.add_field(name="Created At", value="N/A", inline=False)
         embed.add_field(name="Channels", value=handler.channels(), inline=True)
