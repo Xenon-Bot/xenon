@@ -17,7 +17,7 @@ message_types = {
     "error": ("Error", "{c}" + f"\n\n[Support](https://discord.club/discord)",
               "https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-512.png",
               0xc64935),
-    "perm_error": ("Permissions Error", "{c}",
+    "perm_error": ("Insufficient Permission", "{c}",
                    "https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-512.png",
                    0xc64935),
     "unex_error": ("Error", "**Error Code:**\n```{c}```" + f"\n\n[Support](https://discord.club/discord)",
