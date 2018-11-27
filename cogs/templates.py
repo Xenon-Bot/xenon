@@ -70,7 +70,7 @@ class Templates:
 
         template = await ctx.db.rdb.table("templates").get(name).run(ctx.db.con)
         embed = self.template_info(ctx, name, template)
-        await self.bot.get_channel(464837510632046593).send(embed=embed)
+        await self.bot.get_channel(516345778327912448).send(embed=embed)
 
         await ctx.send(**ctx.em("Successfully **created template**.\n"
                                 f"You can load the template with `{ctx.prefix}template load {name}`", type="success"))
@@ -180,7 +180,6 @@ class Templates:
         embed.title = name
         embed.description = template["description"]
         embed.add_field(name="Creator", value=f"<@{template['creator']}>")
-        embed.add_field(name="Created At", value="N/A", inline=False)
         embed.add_field(name="Channels", value=handler.channels(), inline=True)
         embed.add_field(name="Roles", value=handler.roles(), inline=True)
 
