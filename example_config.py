@@ -12,7 +12,15 @@ extensions = [
     "cogs.admin",
     "cogs.backups",
     "cogs.templates",
-    "cogs.pro"
+    "cogs.pro",
+    "cogs.blacklist",
+    "cogs.basics",
+    "cogs.stats"
 ]
 
 support_guild = 410488579140354049
+
+self_host = True
+# The options below are not required if "self_host" is enabled
+
+dbl_token = ""
