@@ -25,15 +25,16 @@ class Stats:
     async def update_loop(self):
         while True:
             await asyncio.sleep(60)
-            if not self.bot.config.self_host:
+            try:
                 await self.bot.change_presence(activity=discord.Activity(
                     name=f"{len(self.bot.guilds)} Servers | {self.bot.config.prefix}help",
                     type=discord.ActivityType.watching
                 ), afk=False)
-                try:
+                if not self.bot.config.self_host:
                     await self.update_discordbots_org()
-                except:
-                    traceback.print_exc()
+
+            except:
+                traceback.print_exc()
 
 
 def setup(bot):
