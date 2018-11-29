@@ -15,7 +15,7 @@ class Pro:
         await ctx.send(**ctx.em(
             "**Xenon Pro** is the **paid version** of xenon. It includes some **exclusive features**.\n"
             "You can buy it [here](https://donatebot.io/checkout/410488579140354049).\n\n"
-            "All main features of the bot will remain completely free!",
+            "You can find **more information** about the subscription and a **detailed list of perks** [here](https://docs.discord.club/xenon/how-to/xenon-pro).",
             type="info"
         ))
         await ctx.invoke(self.bot.get_command("help"), "Pro")
