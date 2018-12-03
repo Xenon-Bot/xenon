@@ -13,7 +13,7 @@ class Blacklist:
 
         @bot.check
         async def not_blacklisted(ctx):
-            entry = await ctx.db.rdb.table("users").get(str(ctx.author.id)).run(ctx.db.con)
+            entry = await ctx.db.table("users").get(str(ctx.author.id)).run(ctx.db.con)
             if entry is None or entry.get("blacklist") is None:
                 return True
 
@@ -23,7 +23,7 @@ class Blacklist:
     @cmd.group(aliases=["bl"], hidden=True, invoke_without_command=True)
     @checks.has_role_on_support_guild("Admin")
     async def blacklist(self, ctx):
-        blacklist = await ctx.db.rdb.table("users").filter({"blacklist": {"state": True}}).run(ctx.db.con)
+        blacklist = await ctx.db.table("users").filter({"blacklist": {"state": True}}).run(ctx.db.con)
         table = PrettyTable()
         table.field_names = ["User", "Reason", "Admin", "Timestamp"]
         while (await blacklist.fetch_next()):
@@ -48,7 +48,7 @@ class Blacklist:
     @blacklist.command()
     @checks.has_role_on_support_guild("Admin")
     async def add(self, ctx, user: discord.User, *, reason):
-        await ctx.db.rdb.table("users").insert({
+        await ctx.db.table("users").insert({
             "id": str(user.id),
             "blacklist": {
                 "state": True,
@@ -62,7 +62,7 @@ class Blacklist:
     @blacklist.command(aliases=["rm", "remove", "del"])
     @checks.has_role_on_support_guild("Admin")
     async def delete(self, ctx, user: discord.User):
-        await ctx.db.rdb.table("users").get(str(user.id)).replace(ctx.db.rdb.row.without('blacklist')).run(ctx.db.con)
+        await ctx.db.table("users").get(str(user.id)).replace(ctx.db.row.without('blacklist')).run(ctx.db.con)
         await ctx.send(**ctx.em(f"Successfully **removed** the user **{str(user)}** (<@{user.id}>) from the **blacklist**.", type="success"))
 
 

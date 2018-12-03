@@ -27,11 +27,11 @@ class Templates:
         description ::      A description for the template
         """
         name = name.lower().replace(" ", "_")
-        backup = await ctx.db.rdb.table("backups").get(backup_id).run(ctx.db.con)
+        backup = await ctx.db.table("backups").get(backup_id).run(ctx.db.con)
         if backup is None or backup.get("creator") != str(ctx.author.id):
             raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
 
-        already_exists = (await ctx.db.rdb.table("templates").get(name).run(ctx.db.con)) is not None
+        already_exists = (await ctx.db.table("templates").get(name).run(ctx.db.con)) is not None
         if already_exists:
             raise cmd.CommandError(
                 f"There is **already a template with that name**, please choose another one."
@@ -58,7 +58,7 @@ class Templates:
             await warning.delete()
             return
 
-        await ctx.db.rdb.table("templates").insert({
+        await ctx.db.table("templates").insert({
             "id": name,
             "creator": backup["creator"],
             "loaded": 0,
@@ -68,7 +68,7 @@ class Templates:
             "template": backup["backup"]
         }).run(ctx.db.con)
 
-        template = await ctx.db.rdb.table("templates").get(name).run(ctx.db.con)
+        template = await ctx.db.table("templates").get(name).run(ctx.db.con)
         embed = self.template_info(ctx, name, template)
         await self.bot.get_channel(516345778327912448).send(embed=embed)
 
@@ -89,10 +89,10 @@ class Templates:
             feature = False
 
         template_name = template_name.lower().replace(" ", "_")
-        template = await ctx.db.rdb.table("templates").get(template_name).run(ctx.db.con)
+        template = await ctx.db.table("templates").get(template_name).run(ctx.db.con)
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
-        await ctx.db.rdb.table("templates").get(template_name).update({"featured": feature}).run(ctx.db.con)
+        await ctx.db.table("templates").get(template_name).update({"featured": feature}).run(ctx.db.con)
 
         embed = self.template_info(ctx, template_name, template)
         await self.bot.get_channel(464837529267601408).send(embed=embed)
@@ -109,11 +109,11 @@ class Templates:
         template_name ::    The name of the template
         """
         template_name = template_name.lower().replace(" ", "_")
-        template = await ctx.db.rdb.table("templates").get(template_name).run(ctx.db.con)
+        template = await ctx.db.table("templates").get(template_name).run(ctx.db.con)
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
-        await ctx.db.rdb.table("templates").get(template_name).delete().run(ctx.db.con)
+        await ctx.db.table("templates").get(template_name).delete().run(ctx.db.con)
         await ctx.send(**ctx.em("Successfully **deleted template**.", type="success"))
 
     @template.command(aliases=["l"])
@@ -130,7 +130,7 @@ class Templates:
         template_name ::    The name of the template
         """
         template_name = template_name.lower().replace(" ", "_")
-        template = await ctx.db.rdb.table("templates").get(template_name).run(ctx.db.con)
+        template = await ctx.db.table("templates").get(template_name).run(ctx.db.con)
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
@@ -153,7 +153,7 @@ class Templates:
             await warning.delete()
             return
 
-        await ctx.db.rdb.table("templates").get(template_name).update({"loaded": ctx.db.rdb.row["loaded"] + 1}).run(ctx.db.con)
+        await ctx.db.table("templates").get(template_name).update({"loaded": ctx.db.row["loaded"] + 1}).run(ctx.db.con)
         handler = BackupLoader(self.bot, self.bot.session, template["template"])
         await handler.load(ctx.guild, ctx.author, 0)
 
@@ -167,7 +167,7 @@ class Templates:
         template_name ::    The name of the template
         """
         template_name = template_name.lower().replace(" ", "_")
-        template = await ctx.db.rdb.table("templates").get(template_name).run(ctx.db.con)
+        template = await ctx.db.table("templates").get(template_name).run(ctx.db.con)
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 

@@ -49,7 +49,7 @@ class Backups:
         handler = BackupSaver(self.bot, self.bot.session, ctx.guild)
         backup = await handler.save(chatlog)
         id = self.random_id()
-        await ctx.db.rdb.table("backups").insert({
+        await ctx.db.table("backups").insert({
             "id": id,
             "creator": str(ctx.author.id),
             "timestamp": datetime.now(pytz.utc),
@@ -99,7 +99,7 @@ class Backups:
         chatlog   ::    The count of messages to load per channel (max. 20) (default 20)
         """
         chatlog = chatlog if chatlog < max_chatlog and chatlog >= 0 else max_chatlog
-        backup = await ctx.db.rdb.table("backups").get(backup_id).run(ctx.db.con)
+        backup = await ctx.db.table("backups").get(backup_id).run(ctx.db.con)
         if backup is None or backup.get("creator") != str(ctx.author.id):
             raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
 
@@ -156,7 +156,7 @@ class Backups:
         limit     ::    The maxmimal count of members (max. 100) (default 100)
         """
         limit = limit if limit < max_reinvite and limit >= 0 else max_reinvite
-        backup = await ctx.db.rdb.table("backups").get(backup_id).run(ctx.db.con)
+        backup = await ctx.db.table("backups").get(backup_id).run(ctx.db.con)
         if backup is None or backup.get("creator") != str(ctx.author.id):
             raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
 
@@ -218,11 +218,11 @@ class Backups:
 
         backup_id::    The id of the backup
         """
-        backup = await ctx.db.rdb.table("backups").get(backup_id).run(ctx.db.con)
+        backup = await ctx.db.table("backups").get(backup_id).run(ctx.db.con)
         if backup is None or backup.get("creator") != str(ctx.author.id):
             raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
 
-        await ctx.db.rdb.table("backups").get(backup_id).delete().run(ctx.db.con)
+        await ctx.db.table("backups").get(backup_id).delete().run(ctx.db.con)
         await ctx.send(**ctx.em("Successfully **deleted backup**.", type="success"))
 
     @backup.command(aliases=["i", "inf"])
@@ -233,7 +233,7 @@ class Backups:
 
         backup_id::    The id of the backup
         """
-        backup = await ctx.db.rdb.table("backups").get(backup_id).run(ctx.db.con)
+        backup = await ctx.db.table("backups").get(backup_id).run(ctx.db.con)
         if backup is None or backup.get("creator") != str(ctx.author.id):
             raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
 
@@ -263,7 +263,7 @@ class Backups:
                         Example: 1d 12h
         """
         if len(interval) == 0:
-            interval = await ctx.db.rdb.table("intervals").get(str(ctx.guild.id)).run(ctx.db.con)
+            interval = await ctx.db.table("intervals").get(str(ctx.guild.id)).run(ctx.db.con)
             if interval is None:
                 await ctx.send(**ctx.em("The backup interval **is currently turned off** for this guild.", type="info"))
                 return
@@ -287,7 +287,7 @@ class Backups:
             return
 
         if interval[0].lower() == "off":
-            await ctx.db.rdb.table("intervals").get(str(ctx.guild.id)).delete().run(ctx.db.con)
+            await ctx.db.table("intervals").get(str(ctx.guild.id)).delete().run(ctx.db.con)
             await ctx.send(**ctx.em("Successfully **turned off the backup** interval.", type="success"))
             return
 
@@ -301,7 +301,7 @@ class Backups:
                 continue
 
         minutes = minutes if minutes >= 60 else 60
-        await ctx.db.rdb.table("intervals").insert({
+        await ctx.db.table("intervals").insert({
             "id": str(ctx.guild.id),
             "interval": minutes,
             "remaining": minutes
@@ -325,12 +325,12 @@ class Backups:
                 for guild_id in to_backup:
                     guild = self.bot.get_guild(guild_id)
                     if guild is None:
-                        await db.rdb.table("intervals").get(str(guild_id)).delete().run(db.con)
+                        await db.table("intervals").get(str(guild_id)).delete().run(db.con)
 
                     handler = BackupSaver(self.bot, self.bot.session, guild)
                     backup = await handler.save(max_chatlog)
                     id = self.random_id()
-                    await db.rdb.table("backups").insert({
+                    await db.table("backups").insert({
                         "id": id,
                         "creator": str(guild.owner.id),
                         "timestamp": datetime.now(pytz.utc),
@@ -356,12 +356,12 @@ class Backups:
             try:
                 await sleep(60)
 
-                await db.rdb.table("intervals").update({"remaining": db.rdb.row["remaining"] - 1}).run(db.con)
-                filter = db.rdb.table("intervals").filter(
+                await db.table("intervals").update({"remaining": db.row["remaining"] - 1}).run(db.con)
+                filter = db.table("intervals").filter(
                     lambda interval: (interval["remaining"] <= 0)
                 )
                 to_backup = await filter.run(db.con)
-                await filter.update({"remaining": db.rdb.row["interval"]}).run(db.con)
+                await filter.update({"remaining": db.row["interval"]}).run(db.con)
                 self.to_backup += [int(iv["id"]) for iv in await helpers.async_cursor_to_list(to_backup)]
             except:
                 traceback.print_exc()

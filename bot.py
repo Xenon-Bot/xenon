@@ -63,7 +63,7 @@ class Xenon(cmd.AutoShardedBot):
 
     @property
     def db(self):
-        return database
+        return database.rdb
 
     def run(self):
         super().run(self.config.token)
