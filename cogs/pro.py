@@ -44,6 +44,9 @@ class Pro:
         if guild.get_member(ctx.author.id) is None or not guild.get_member(ctx.author.id).guild_permissions.administrator:
             raise cmd.MissingPermissions([f"administrator` on the guild `{guild.name}"])
 
+        if not guild.me.guild_permissions.administrator:
+            raise cmd.BotMissingPermissions([f"administrator` on the guild `{guild.name}"])
+
         warning = await ctx.send(**ctx.em("Are you sure you want to copy that guild? **All channels and roles will get replaced!**", type="warning"))
         await warning.add_reaction("✅")
         await warning.add_reaction("❌")
@@ -64,6 +67,27 @@ class Pro:
 
         await copy_guild(guild, ctx.guild, chatlog)
         await ctx.guild.text_channels[0].send(**ctx.em("Successfully copied guild.", type="success"))
+
+    @cmd.group(invoke_without_command=True, aliases=["unsync"])
+    async def sync(self, ctx):
+        """Sync messages, channels & bans from one to another server"""
+        await ctx.invoke(self.bot.get_command("help"), "sync")
+
+    @sync.command()
+    @cmd.guild_only()
+    @cmd.has_permissions(administrator=True)
+    @cmd.bot_has_permissions(administrator=True)
+    @checks.is_pro()
+    async def bans(self, ctx, guild_id: int):
+        pass
+
+    @sync.command(aliases=["messages"])
+    @cmd.guild_only()
+    @cmd.has_permissions(administrator=True)
+    @cmd.bot_has_permissions(administrator=True)
+    @checks.is_pro()
+    async def channel(self, ctx, channel_id):
+        pass
 
 
 def setup(bot):

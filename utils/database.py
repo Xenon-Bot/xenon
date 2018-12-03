@@ -11,7 +11,8 @@ table_setup = {
         "backups": {},
         "templates": {},
         "intervals": {},
-        "users": {}
+        "users": {},
+        "syncs": {}
     }
 }
 
