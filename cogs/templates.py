@@ -188,7 +188,7 @@ class Templates:
     @template.command(aliases=["ls"])
     async def list(self, ctx):
         await ctx.send(**ctx.em(
-            "You can find a **list of templates** in <#464837510632046593> and <#464837529267601408> on the [support server](https://discord.club/discord).",
+            "You can find a **list of templates** in <#516345778327912448> and <#464837529267601408> on the [support server](https://discord.club/discord).",
             type="info"
         ))
 
