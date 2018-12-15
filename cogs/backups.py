@@ -1,5 +1,4 @@
 from discord.ext import commands as cmd
-import discord
 from discord_backups import BackupSaver, BackupLoader, BackupInfo
 import string
 import random
@@ -44,7 +43,7 @@ class Backups:
 
         chatlog ::      The count of messages to save per channel (max. 20) (default 20)
         """
-        chatlog = chatlog if chatlog < max_chatlog and chatlog > 0 else max_chatlog
+        chatlog = chatlog if chatlog < max_chatlog and chatlog >= 0 else max_chatlog
         status = await ctx.send(**ctx.em("**Creating backup** ... Please wait", type="working"))
         handler = BackupSaver(self.bot, self.bot.session, ctx.guild)
         backup = await handler.save(chatlog)
@@ -58,30 +57,20 @@ class Backups:
 
         await status.edit(**ctx.em("Successfully **created backup**.", type="success"))
         try:
-            embed = ctx.em(
-                f"Created backup of **{ctx.guild.name}** with the Backup id `{id}`\n", type="info")["embed"]
-            embed.add_field(name="Usage",
-                            value=f"```{ctx.prefix}backup load {id}```\n```{ctx.prefix}backup info {id}```")
-            result_msg = await ctx.author.send(embed=embed)
-            await result_msg.add_reaction("📱")
+            print(ctx.author.mobile_status)
+            if ctx.author.is_on_mobile():
+                await ctx.author.send(f"{ctx.prefix}backup load {id}")
+
+            else:
+                embed = ctx.em(
+                    f"Created backup of **{ctx.guild.name}** with the Backup id `{id}`\n", type="info")["embed"]
+                embed.add_field(name="Usage",
+                                value=f"```{ctx.prefix}backup load {id}```\n```{ctx.prefix}backup info {id}```")
+                await ctx.author.send(embed=embed)
+
         except:
             traceback.print_exc()
             await status.edit(**ctx.em("I was **unable to send you the backup-id**. Please make sure you have dm's enabled.", type="error"))
-
-    async def on_reaction_add(self, reaction, user):
-        msg = reaction.message
-        if not isinstance(msg.channel, discord.DMChannel) or user.bot:
-            return
-
-        if str(reaction.emoji) != "📱" or len(msg.embeds) == 0:
-            return
-
-        embed = msg.embeds[0]
-        for field in embed.fields:
-            if field.name == "Usage":
-                value = field.value.splitlines()[0].strip("`")
-                await msg.edit(content=value, embed=None)
-                break
 
     @backup.command(aliases=["l"])
     @cmd.guild_only()
@@ -325,7 +314,7 @@ class Backups:
                 for guild_id in to_backup:
                     guild = self.bot.get_guild(guild_id)
                     if guild is None:
-                        await db.table("intervals").get(str(guild_id)).delete().run(db.con)
+                        continue
 
                     handler = BackupSaver(self.bot, self.bot.session, guild)
                     backup = await handler.save(max_chatlog)
@@ -345,8 +334,7 @@ class Backups:
                         name="Usage",
                         value=f"```{self.bot.config.prefix}backup load {id}```\n```{self.bot.config.prefix}backup info {id}```"
                     )
-                    result_msg = await guild.owner.send(embed=embed)
-                    await result_msg.add_reaction("📱")
+                    await guild.owner.send(embed=embed)
             except:
                 traceback.print_exc()
 
