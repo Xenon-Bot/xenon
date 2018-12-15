@@ -57,7 +57,6 @@ class Backups:
 
         await status.edit(**ctx.em("Successfully **created backup**.", type="success"))
         try:
-            print(ctx.author.mobile_status)
             if ctx.author.is_on_mobile():
                 await ctx.author.send(f"{ctx.prefix}backup load {id}")
 
