@@ -70,7 +70,7 @@ class Pro:
 
     @cmd.group(invoke_without_command=True, aliases=["unsync"])
     async def sync(self, ctx):
-        """Sync messages, channels & bans from one to another server"""
+        """Sync messages, channel & bans from one to another server"""
         await ctx.invoke(self.bot.get_command("help"), "sync")
 
     @sync.command()

@@ -25,19 +25,11 @@ message_types = {
 }
 
 
-def embed_message(content=None, embed_title=None, embed=None, type=None):
-    title, content_format, icon, color = message_types.get(type) or message_types.get(None)
-    title = embed_title or title
+def embed_message(content=None, title=None, type=None):
+    emb_title, content_format, icon, color = message_types.get(type) or message_types.get(None)
+    title = title or emb_title
     embed = discord.Embed(color=discord.Color(color), description=content_format.format(c=content))
     embed.set_author(name=title, icon_url=icon)
-
-    if isinstance(embed, discord.Embed):
-        custom_embed = discord.Embed(color=discord.Color(color))
-        custom_embed.set_author(name=title, icon_url=icon)
-        embed_data = custom_embed.to_dict()
-        embed_data.update(embed.to_dict())
-        embed = discord.Embed.from_data(embed_data)
-
     return {"embed": embed}
 
 
