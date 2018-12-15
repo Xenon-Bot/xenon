@@ -83,6 +83,12 @@ class Pro:
     @cmd.bot_has_permissions(administrator=True)
     @checks.is_pro()
     async def bans(self, ctx, guild_id: int):
+        """
+        Copy all bans from another guild to this guild and keep them up to date
+
+
+        guild_id ::     The id of the guild
+        """
         guild = self.bot.get_guild(guild_id)
         if guild is None:
             raise cmd.CommandError(f"There is **no guild with the id** `{guild_id}`.")
@@ -152,6 +158,12 @@ class Pro:
     @cmd.bot_has_permissions(administrator=True)
     @checks.is_pro()
     async def messages(self, ctx, channel_id: int):
+        """
+        Synchronize all new messages from another channel to this channel
+
+
+        channel_id ::     The id of the channel
+        """
         channel = self.bot.get_channel(channel_id)
         if channel is None:
             raise cmd.CommandError(f"There is **no channel with the id** `{channel_id}`.")
