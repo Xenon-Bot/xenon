@@ -156,6 +156,9 @@ class Pro:
         if channel is None:
             raise cmd.CommandError(f"There is **no channel with the id** `{channel_id}`.")
 
+        if channel.id == ctx.channel.id:
+            raise cmd.CommandError(f"**No lol.**")
+
         if channel.guild.get_member(ctx.author.id) is None or not channel.permissions_for(channel.guild.get_member(ctx.author.id)).administrator:
             raise cmd.MissingPermissions([f"administrator` in the channel `{channel.name}"])
 
