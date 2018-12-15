@@ -1,5 +1,6 @@
 from discord.ext import commands as cmd
 from discord_backups import copy_guild
+import discord
 
 from utils import checks, helpers
 from cogs import backups
@@ -216,7 +217,13 @@ class Pro:
             else:
                 webhook = webhooks[0]
 
-            wait_for.append(await webhook.send(username=msg.author.name, avatar_url=msg.author.avatar_url, content=helpers.clean_content(msg.content), embeds=msg.embeds))
+            embeds = msg.embeds
+            for attachment in msg.attachments:
+                embed = discord.Embed()
+                embed.set_image(url=attachment.url)
+                embeds.append(embed)
+
+            wait_for.append(await webhook.send(username=msg.author.name, avatar_url=msg.author.avatar_url, content=helpers.clean_content(msg.content), embeds=embeds))
 
 
 def setup(bot):
