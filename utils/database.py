@@ -11,7 +11,8 @@ table_setup = {
         "templates": {},
         "intervals": {},
         "users": {},
-        "syncs": {}
+        "syncs": {},
+        "shards": {}
     }
 }
 

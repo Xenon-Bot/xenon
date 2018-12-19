@@ -10,16 +10,11 @@ class Pro:
     def __init__(self, bot):
         self.bot = bot
 
-    @cmd.command()
-    async def pro(self, ctx):
-        """Shows information about Xenon Pro"""
-        await ctx.send(**ctx.em(
-            "**Xenon Pro** is the **paid version** of xenon. It includes some **exclusive features**.\n"
-            "You can buy it [here](https://donatebot.io/checkout/410488579140354049).\n\n"
-            "You can find **more information** about the subscription and a **detailed list of perks** [here](https://docs.discord.club/xenon/how-to/xenon-pro).",
-            type="info"
-        ))
-        await ctx.invoke(self.bot.get_command("help"), "Pro")
+    async def on_ready(self):
+        if self.bot.user.id == 524652984425250847:
+            @self.bot.check
+            async def is_pro(ctx):
+                return await checks.check_role_on_support_guild("Xenon Pro")(ctx)
 
     @cmd.command(aliases=["cp"])
     @cmd.guild_only()

@@ -34,9 +34,6 @@ class Xenon(cmd.AutoShardedBot):
         await self.process_commands(message)
 
     async def process_commands(self, message):
-        if message.author.bot:
-            return
-
         ctx = await self.get_context(message, cls=Context)
         await self.invoke(ctx)
 
@@ -48,6 +45,38 @@ class Xenon(cmd.AutoShardedBot):
                  self.config.prefix]
 
         return valid
+
+    def is_primary_shard(self):
+        return self.get_guild(self.config.support_guild) is not None
+
+    def is_splitted(self):
+        return (self.shard_count or 1) != len(self.shard_ids or [0])
+
+    async def get_shard_stats(self):
+        if self.is_splitted():
+            stats = await self.db.table("shards").get("stats").run(self.db.con)
+            return stats["shards"]
+
+        else:
+            latencies = self.latencies
+            stats = {str(id): {"latency": latency, "guilds": 0, "users": 0}
+                     for id, latency in latencies}
+            for guild in self.guilds:
+                try:
+                    stats[str(guild.shard_id)]["guilds"] += 1
+                    stats[str(guild.shard_id)]["users"] += guild.member_count
+                except:
+                    pass
+
+            return stats
+
+    async def get_guild_count(self):
+        stats = await self.get_shard_stats()
+        return sum([values["guilds"] for i, values in stats.items()])
+
+    async def get_user_count(self):
+        stats = await self.get_shard_stats()
+        return sum([values["users"] for i, values in stats.items()])
 
     @property
     def em(self):

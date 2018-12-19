@@ -19,7 +19,7 @@ class Backups:
         self.bot = bot
         self.to_backup = []
 
-        if getattr(bot, "backup_interval", None) is None:
+        if getattr(bot, "backup_interval", None) is None and bot.is_primary_shard():
             bot.backup_interval = bot.loop.create_task(self.interval_loop())
             bot.loop.create_task(self.backup_loop())
 
@@ -132,7 +132,7 @@ class Backups:
     @checks.is_pro()
     @cmd.has_permissions(administrator=True)
     @cmd.bot_has_permissions(administrator=True)
-    @cmd.cooldown(1, 3 * 60 * 60, cmd.BucketType.user)
+    @cmd.cooldown(1, 1 * 60 * 60, cmd.BucketType.user)
     async def reinvite(self, ctx, backup_id, limit=max_reinvite):
         """
         Reinvite members from a backup
@@ -338,11 +338,10 @@ class Backups:
                 traceback.print_exc()
 
     async def interval_loop(self):
+        await self.bot.wait_until_ready()
         db = self.bot.db
         while True:
             try:
-                await sleep(60)
-
                 await db.table("intervals").update({"remaining": db.row["remaining"] - 1}).run(db.con)
                 filter = db.table("intervals").filter(
                     lambda interval: (interval["remaining"] <= 0)
@@ -352,6 +351,8 @@ class Backups:
                 self.to_backup += [int(iv["id"]) for iv in await helpers.async_cursor_to_list(to_backup)]
             except:
                 traceback.print_exc()
+
+            await sleep(60)
 
 
 def setup(bot):
