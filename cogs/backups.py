@@ -19,9 +19,8 @@ class Backups:
         self.bot = bot
         self.to_backup = []
 
-        if getattr(bot, "backup_interval", None) is None and bot.is_primary_shard():
+        if getattr(bot, "backup_interval", None) is None:
             bot.backup_interval = bot.loop.create_task(self.interval_loop())
-            bot.loop.create_task(self.backup_loop())
 
     @cmd.group(aliases=["bu"], invoke_without_command=True)
     async def backup(self, ctx):
@@ -263,7 +262,7 @@ class Backups:
             )
             embed.add_field(
                 name="Remaining",
-                value=str(timedelta(minutes=interval["remaining"])).split(".")[0]
+                value=str(interval["next"] - datetime.now(pytz.utc)).split(".")[0]
             )
             embed.add_field(
                 name="Next Backup",
@@ -292,63 +291,61 @@ class Backups:
         await ctx.db.table("intervals").insert({
             "id": str(ctx.guild.id),
             "interval": minutes,
-            "remaining": minutes
+            "next": datetime.now(pytz.utc) + timedelta(minutes=minutes)
         }, conflict="replace").run(ctx.db.con)
         embed = ctx.em("Successfully updated the backup interval", type="success")["embed"]
         embed.add_field(name="Interval", value=str(timedelta(minutes=minutes)).split(".")[0])
         embed.add_field(
             name="Next Backup",
-            value=helpers.datetime_to_string(datetime.utcnow() + timedelta(minutes=minutes))
+            value=helpers.datetime_to_string(datetime.now(pytz.utc) + timedelta(minutes=minutes))
         )
         await ctx.send(embed=embed)
 
-    async def backup_loop(self):
-        db = self.bot.db
-        while True:
-            try:
-                await sleep(60)
+    async def run_backup(self, guild_id):
+        guild = self.bot.get_guild(guild_id)
+        if guild is None:
+            return
 
-                to_backup = self.to_backup.copy()
-                self.to_backup = []
-                for guild_id in to_backup:
-                    guild = self.bot.get_guild(guild_id)
-                    if guild is None:
-                        continue
+        handler = BackupSaver(self.bot, self.bot.session, guild)
+        backup = await handler.save(max_chatlog)
+        id = self.random_id()
+        await self.bot.db.table("backups").insert({
+            "id": id,
+            "creator": str(guild.owner.id),
+            "timestamp": datetime.now(pytz.utc),
+            "backup": backup
+        }).run(self.bot.db.con)
 
-                    handler = BackupSaver(self.bot, self.bot.session, guild)
-                    backup = await handler.save(max_chatlog)
-                    id = self.random_id()
-                    await db.table("backups").insert({
-                        "id": id,
-                        "creator": str(guild.owner.id),
-                        "timestamp": datetime.now(pytz.utc),
-                        "backup": backup
-                    }).run(db.con)
-
-                    embed = self.bot.em(
-                        f"Created **automated** backup of **{guild.name}** with the Backup id `{id}`\n",
-                        type="info"
-                    )["embed"]
-                    embed.add_field(
-                        name="Usage",
-                        value=f"```{self.bot.config.prefix}backup load {id}```\n```{self.bot.config.prefix}backup info {id}```"
-                    )
-                    await guild.owner.send(embed=embed)
-            except:
-                traceback.print_exc()
+        embed = self.bot.em(
+            f"Created **automated** backup of **{guild.name}** with the Backup id `{id}`\n",
+            type="info"
+        )["embed"]
+        embed.add_field(
+            name="Usage",
+            value=f"```{self.bot.config.prefix}backup load {id}```\n```{self.bot.config.prefix}backup info {id}```"
+        )
+        await guild.owner.send(embed=embed)
 
     async def interval_loop(self):
+        filter = self.bot.db.table("intervals").filter(lambda iv: iv["next"].during(
+            self.bot.db.time(2000, 1, 1, 'Z'), self.bot.db.now()))
+
         await self.bot.wait_until_ready()
-        db = self.bot.db
         while True:
             try:
-                await db.table("intervals").update({"remaining": db.row["remaining"] - 1}).run(db.con)
-                filter = db.table("intervals").filter(
-                    lambda interval: (interval["remaining"] <= 0)
-                )
-                to_backup = await filter.run(db.con)
-                await filter.update({"remaining": db.row["interval"]}).run(db.con)
-                self.to_backup += [int(iv["id"]) for iv in await helpers.async_cursor_to_list(to_backup)]
+                to_backup = await filter.run(self.bot.db.con)
+                while await to_backup.fetch_next():
+                    interval = await to_backup.next()
+                    try:
+                        await self.run_backup(int(interval["id"]))
+                    except:
+                        traceback.print_exc()
+
+                    next = interval["next"]
+                    while next < datetime.now(pytz.utc):
+                        next += timedelta(minutes=interval["interval"])
+
+                    await self.bot.db.table("intervals").update({"id": interval["id"], "next": next}).run(self.bot.db.con)
             except:
                 traceback.print_exc()
 
