@@ -45,7 +45,7 @@ class Basics:
         embed.add_field(name="Discord", value="[Click Here](https://discord.club/discord)")
         embed.add_field(name="Prefix", value=ctx.config.prefix)
         embed.add_field(name="Guilds", value=await self.bot.get_guild_count())
-        embed.add_field(name="Shards", value=self.bot.config.shard_count)
+        embed.add_field(name="Shards", value=self.bot.config.shard_count or 1)
         embed.add_field(name="Users", value=await self.bot.get_user_count())
         embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent()}%")
         embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")

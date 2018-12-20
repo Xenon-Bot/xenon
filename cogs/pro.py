@@ -205,20 +205,23 @@ class Pro:
             if target is None:
                 continue
 
-            webhooks = await target.webhooks()
-            if len(webhooks) == 0:
-                webhook = await target.create_webhook(name="message sync")
+            try:
+                webhooks = await target.webhooks()
+                if len(webhooks) == 0:
+                    webhook = await target.create_webhook(name="message sync")
 
-            else:
-                webhook = webhooks[0]
+                else:
+                    webhook = webhooks[0]
 
-            embeds = msg.embeds
-            for attachment in msg.attachments:
-                embed = discord.Embed()
-                embed.set_image(url=attachment.url)
-                embeds.append(embed)
+                embeds = msg.embeds
+                for attachment in msg.attachments:
+                    embed = discord.Embed()
+                    embed.set_image(url=attachment.url)
+                    embeds.append(embed)
 
-            wait_for.append(await webhook.send(username=msg.author.name, avatar_url=msg.author.avatar_url, content=helpers.clean_content(msg.content), embeds=embeds))
+                wait_for.append(await webhook.send(username=msg.author.name, avatar_url=msg.author.avatar_url, content=helpers.clean_content(msg.content), embeds=embeds))
+            except:
+                pass
 
 
 def setup(bot):
