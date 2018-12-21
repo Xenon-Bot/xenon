@@ -7,8 +7,40 @@ def bot_has_managed_top_role():
             return True
 
         else:
-            raise cmd.CommandError(
-                f"The role called **{ctx.bot.user.name}** needs to be **at the top** of the role hierarchy")
+            sended = await ctx.send(**ctx.em(
+                f"The role called **{ctx.bot.user.name}** is currently not at the top of the role hierarchy.\n\n"
+                "Continuing could cause bugs while loading the backup. Do you want to continue?", type="warning"))
+
+            await sended.add_reaction("✅")
+            await sended.add_reaction("❌")
+
+            try:
+                reaction, user = await ctx.bot.wait_for(
+                    "reaction_add",
+                    check=lambda r, u: r.message.id == sended.id and u.id == ctx.author.id,
+                    timeout=60)
+            except TimeoutError:
+                try:
+                    ctx.command.reset_cooldown(ctx)
+                except:
+                    pass
+
+                await sended.delete()
+                raise cmd.CommandError(
+                    "Please make sure to **click the ✅ reaction** in order to load the backup.")
+
+            if str(reaction.emoji) != "✅":
+                try:
+                    ctx.command.reset_cooldown(ctx)
+                except:
+                    pass
+
+                await sended.delete()
+                raise cmd.CommandError(
+                    "Please make sure to **click the ✅ reaction** in order to load the backup.")
+
+            await sended.delete()
+            return True
 
     return cmd.check(predicate)
 
