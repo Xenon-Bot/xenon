@@ -1,12 +1,29 @@
 import asyncio
+import sys
+import getopt
 
 from utils import database
 from bot import Xenon
 
 
 async def prepare_bot(loop):
+    opts, args = getopt.getopt(sys.argv[1:], "", ["shard_count=", "shard_ids="])
+
+    arguments = {}
+    for opt, arg in opts:
+        opt = opt.strip("-")
+        if opt == "shard_count":
+            arg = int(arg)
+
+        if opt == "shard_ids":
+            arg = [int(id) for id in arg.split(",")]
+
+        arguments[opt.strip("-")] = arg
+
+    print(arguments)
+
     await database.setup()
-    bot = Xenon(loop=loop)
+    bot = Xenon(loop=loop, **arguments)
 
     return bot
 

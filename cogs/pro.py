@@ -124,12 +124,12 @@ class Pro:
         syncs = await self.bot.db.table("syncs").get_all(str(guild.id), index="origin").filter(lambda s: s["types"].contains("bans")).run(self.bot.db.con)
         while await syncs.fetch_next():
             sync = await syncs.next()
-            target = self.bot.get_guild(sync.get("target"))
+            target = self.bot.get_guild(int(sync["target"]))
             if target is None:
                 continue
 
             try:
-                await target.ban(user, reason=f"Banned on {sync.get('origin')}")
+                await target.ban(user, reason=f"Banned on `{guild.name}`")
 
             except:
                 pass
@@ -143,7 +143,7 @@ class Pro:
                 continue
 
             try:
-                await target.unban(user, reason=f"Unbanned on {sync['origin']}")
+                await target.unban(user, reason=f"Unbanned on `{guild.name}`")
 
             except:
                 pass

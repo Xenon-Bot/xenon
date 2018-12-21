@@ -266,9 +266,7 @@ class Backups:
             )
             embed.add_field(
                 name="Next Backup",
-                value=helpers.datetime_to_string(
-                    (datetime.utcnow() + timedelta(minutes=interval["interval"]))
-                )
+                value=helpers.datetime_to_string(interval["next"])
             )
             await ctx.send(embed=embed)
             return
@@ -304,7 +302,7 @@ class Backups:
     async def run_backup(self, guild_id):
         guild = self.bot.get_guild(guild_id)
         if guild is None:
-            return
+            raise ValueError
 
         handler = BackupSaver(self.bot, self.bot.session, guild)
         backup = await handler.save(max_chatlog)
@@ -324,7 +322,10 @@ class Backups:
             name="Usage",
             value=f"```{self.bot.config.prefix}backup load {id}```\n```{self.bot.config.prefix}backup info {id}```"
         )
-        await guild.owner.send(embed=embed)
+        try:
+            await guild.owner.send(embed=embed)
+        except:
+            pass
 
     async def interval_loop(self):
         filter = self.bot.db.table("intervals").filter(lambda iv: iv["next"].during(
@@ -338,14 +339,15 @@ class Backups:
                     interval = await to_backup.next()
                     try:
                         await self.run_backup(int(interval["id"]))
+
+                        next = interval["next"]
+                        while next < datetime.now(pytz.utc):
+                            next += timedelta(minutes=interval["interval"])
+
+                        await self.bot.db.table("intervals").update({"id": interval["id"], "next": next}).run(self.bot.db.con)
                     except:
                         traceback.print_exc()
 
-                    next = interval["next"]
-                    while next < datetime.now(pytz.utc):
-                        next += timedelta(minutes=interval["interval"])
-
-                    await self.bot.db.table("intervals").update({"id": interval["id"], "next": next}).run(self.bot.db.con)
             except:
                 traceback.print_exc()
 

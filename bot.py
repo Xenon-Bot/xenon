@@ -8,8 +8,8 @@ from utils.extended import Context
 class Xenon(cmd.AutoShardedBot):
     def __init__(self, **kwargs):
         super().__init__(command_prefix=self._prefix_callable,
-                         shard_count=self.config.shard_count,
-                         shard_ids=self.config.shard_ids)
+                         shard_count=kwargs.get("shard_count") or self.config.shard_count,
+                         shard_ids=kwargs.get("shard_ids") or self.config.shard_ids)
 
         self.session = ClientSession(loop=self.loop)
         for ext in self.config.extensions:

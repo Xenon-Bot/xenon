@@ -1,8 +1,9 @@
 # Rename this to "config.py"
 
 token = "your-bot-token"
-shard_count = 1  # ~ guilds // 1000
-shard_ids = None  # ~ Optional
+# shard_count and shard_ids can be overwritten by Command Line Arguments
+shard_count = None  # ~ guilds // 1000
+shard_ids = None
 
 prefix = "x!"
 
