@@ -2,6 +2,8 @@ import discord
 import asyncio
 import traceback
 
+from utils import helpers
+
 
 class Stats:
     def __init__(self, bot):
@@ -28,7 +30,7 @@ class Stats:
             try:
                 guilds = await self.bot.get_guild_count()
                 await self.bot.change_presence(activity=discord.Activity(
-                    name=f"{guilds} Guilds | {self.bot.config.prefix}help",
+                    name=f"{helpers.format_number(guilds)} Guilds | {self.bot.config.prefix}help",
                     type=discord.ActivityType.watching
                 ), afk=False)
 

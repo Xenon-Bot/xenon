@@ -2,7 +2,7 @@ from discord.ext import commands as cmd
 from prettytable import PrettyTable
 import psutil
 
-from utils import formatter
+from utils import formatter, helpers
 
 
 class Basics:
@@ -22,8 +22,9 @@ class Basics:
         table.field_names = ["Shard-Id", "Latency", "Guilds", "Users"]
         shards = await self.bot.get_shard_stats()
         for shard_id, values in shards.items():
-            table.add_row([shard_id, f"{round(values['latency'] * 1000, 1)} ms",
-                           values["guilds"], values["users"]])
+            prefix = '> ' if str(shard_id) == str(ctx.guild.shard_id) else ''
+            table.add_row([prefix + str(shard_id), f"{round(values['latency'] * 1000, 1)} ms",
+                           helpers.format_number(values["guilds"]), helpers.format_number(values["users"])])
 
         pages = formatter.paginate(str(table))
         for page in pages:
@@ -44,9 +45,9 @@ class Basics:
         embed.add_field(name="Invite", value="[Click Here](https://discord.club/invite/xenon)")
         embed.add_field(name="Discord", value="[Click Here](https://discord.club/discord)")
         embed.add_field(name="Prefix", value=ctx.config.prefix)
-        embed.add_field(name="Guilds", value=await self.bot.get_guild_count())
-        embed.add_field(name="Shards", value=self.bot.config.shard_count or 1)
-        embed.add_field(name="Users", value=await self.bot.get_user_count())
+        embed.add_field(name="Guilds", value=helpers.format_number(await self.bot.get_guild_count()))
+        embed.add_field(name="Shards", value=self.bot.shard_count or 1)
+        embed.add_field(name="Users", value=helpers.format_number(await self.bot.get_user_count()))
         embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent()}%")
         embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
 
