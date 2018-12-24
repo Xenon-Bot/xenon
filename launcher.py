@@ -18,9 +18,7 @@ async def prepare_bot(loop):
         if opt == "shard_ids":
             arg = [int(id) for id in arg.split(",")]
 
-        arguments[opt.strip("-")] = arg
-
-    print(arguments)
+        arguments[opt] = arg
 
     await database.setup()
     bot = Xenon(loop=loop, **arguments)
