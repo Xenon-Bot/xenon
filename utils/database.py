@@ -12,7 +12,8 @@ table_setup = {
         "intervals": {},
         "users": {},
         "syncs": {},
-        "shards": {}
+        "shards": {},
+        "pubsub": {}
     }
 }
 
