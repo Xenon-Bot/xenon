@@ -20,6 +20,7 @@ extensions = [
 ]
 
 support_guild = 410488579140354049
+update_channel = 516969058118139950
 
 self_host = True
 # The options below are not required if "self_host" is enabled
