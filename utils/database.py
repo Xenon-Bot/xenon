@@ -30,7 +30,7 @@ async def setup():
             if table_name not in await db.table_list().run(rdb.con):
                 await db.table_create(table_name).run(rdb.con)
 
-                if len(data) >= 0:
+                if len(data) > 0:
                     await db.table(table_name).insert(data).run(rdb.con)
 
 

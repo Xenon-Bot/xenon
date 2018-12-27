@@ -8,8 +8,8 @@ class Sharding:
     def __init__(self, bot):
         self.bot = bot
 
-        self.bot.loop.create_task(self.update_loop())
-        if not self.bot.is_splitted():
+        if self.bot.is_splitted():
+            self.bot.loop.create_task(self.update_loop())
             self.bot.loop.create_task(self.subscribe_to_events())
 
     async def update_database(self):
@@ -32,9 +32,7 @@ class Sharding:
         await self.bot.wait_until_ready()
         while True:
             try:
-                if self.bot.is_splitted():
-                    await self.update_database()
-
+                await self.update_database()
             except:
                 traceback.print_exc()
             await asyncio.sleep(60)
@@ -51,7 +49,9 @@ class Sharding:
             if getattr(self, event, None) is not None:
                 await getattr(self, event)(**kwargs)
 
-        await pubsub.subscribe("events", distribute_events)
+        await self.bot.wait_until_ready()
+        if self.bot.is_primary_shard():
+            await pubsub.subscribe("events", distribute_events)
 
 
 def setup(bot):
