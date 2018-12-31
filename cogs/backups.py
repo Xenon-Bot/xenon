@@ -126,6 +126,34 @@ class Backups:
         await handler.load(ctx.guild, ctx.author, chatlog, **options)
         await ctx.guild.text_channels[0].send(**ctx.em("Successfully loaded backup.", type="success"))
 
+    @backup.command(aliases=["users"])
+    @checks.is_pro()
+    @cmd.cooldown(1, 5 * 60, cmd.BucketType.user)
+    async def members(self, ctx, backup_id):
+        """
+        Get a list of members that are saved in the backup
+
+
+        backup_id ::    The id of the backup
+        """
+        backup = await ctx.db.table("backups").get(backup_id).run(ctx.db.con)
+        if backup is None or backup.get("creator") != str(ctx.author.id):
+            raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
+
+        response = await self.bot.session.post(
+            url="https://api.paste.ee/v1/pastes",
+            headers={"X-Auth-Token": ctx.config.pasteee_key},
+            json={
+                "description": f"Members stored in the backup with the id '{backup_id}'",
+                "sections": [{
+                    "name": "Members",
+                    "contents": "\n".join([f"{member['name']}#{member['discriminator']} ({member['id']})" for member in backup["backup"]["members"]])
+                }]
+            }
+        )
+        json = await response.json()
+        await ctx.send(**ctx.em(f"You can find a list of members stored in that backup [here]({json['link']})", type="info"))
+
     @backup.command(aliases=["reinv"])
     @cmd.guild_only()
     @checks.is_pro()
