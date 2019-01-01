@@ -126,34 +126,6 @@ class Backups:
         await handler.load(ctx.guild, ctx.author, chatlog, **options)
         await ctx.guild.text_channels[0].send(**ctx.em("Successfully loaded backup.", type="success"))
 
-    @backup.command(aliases=["users"])
-    @checks.is_pro()
-    @cmd.cooldown(1, 5 * 60, cmd.BucketType.user)
-    async def members(self, ctx, backup_id):
-        """
-        Get a list of members that are saved in the backup
-
-
-        backup_id ::    The id of the backup
-        """
-        backup = await ctx.db.table("backups").get(backup_id).run(ctx.db.con)
-        if backup is None or backup.get("creator") != str(ctx.author.id):
-            raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
-
-        response = await self.bot.session.post(
-            url="https://api.paste.ee/v1/pastes",
-            headers={"X-Auth-Token": ctx.config.pasteee_key},
-            json={
-                "description": f"Members stored in the backup with the id '{backup_id}'",
-                "sections": [{
-                    "name": "Members",
-                    "contents": "\n".join([f"{member['name']}#{member['discriminator']} ({member['id']})" for member in backup["backup"]["members"]])
-                }]
-            }
-        )
-        json = await response.json()
-        await ctx.send(**ctx.em(f"You can find a list of members stored in that backup [here]({json['link']})", type="info"))
-
     @backup.command(aliases=["reinv"])
     @cmd.guild_only()
     @checks.is_pro()
@@ -263,6 +235,39 @@ class Backups:
         )
         embed.add_field(name="Channels", value=handler.channels(), inline=True)
         embed.add_field(name="Roles", value=handler.roles(), inline=True)
+
+        try:
+            if backup.get("paste") is None:
+                await checks.check_role_on_support_guild("Xenon Pro")(ctx)
+                response = await self.bot.session.post(
+                    url="https://api.paste.ee/v1/pastes",
+                    headers={"X-Auth-Token": ctx.config.pasteee_key},
+                    json={
+                        "description": f"Additional information for backup with the id '{backup_id}'",
+                        "expiration": "never",
+                        "sections": [
+                            {
+                                "name": "Bans",
+                                "contents": "\n".join([f"{ban['user']}\t{ban['reason']}" for ban in backup["backup"]["bans"]])
+                            },
+                            {
+                                "name": "Members",
+                                "contents": "\n".join([f"{member['name']}#{member['discriminator']}\t({member['id']})" for member in backup["backup"]["members"]])
+                            }
+                        ]
+                    }
+                )
+                paste_url = (await response.json())["link"]
+                await ctx.db.table("backups").get(backup_id).update({"paste": paste_url}).run(ctx.db.con)
+
+            else:
+                paste_url = backup.get("paste")
+        except:
+            pass
+        else:
+            embed.url = paste_url
+            embed.set_footer(text="Click the title for more information and a list of members")
+
         await ctx.send(embed=embed)
 
     @backup.command(aliases=["iv", "auto"])
