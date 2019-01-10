@@ -1,5 +1,12 @@
 # Xenon
 
+## Disclaimer
+
+You might need basic knowledge of python, pip, git and the console of your operating system to run this bot.  
+If you need further help you can join the [support discord](https://discord.club/discord), but I won't answer any question regarding the topics above.  
+  
+[Hosted Version](https://discordbots.org/bot/xenon)
+
 ## Requirements
 
 You need Python 3.6.x to run the bot. >=3.7 and <=3.5 are not supported!  
