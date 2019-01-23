@@ -10,8 +10,9 @@ import pytz
 from utils import checks, helpers
 
 
-max_chatlog = 20
+max_chatlog = 25
 max_reinvite = 100
+min_interval = 60 * 12
 
 
 class Backups:
@@ -35,14 +36,22 @@ class Backups:
     @cmd.has_permissions(administrator=True)
     @cmd.bot_has_permissions(administrator=True)
     @cmd.cooldown(1, 1 * 60, cmd.BucketType.guild)
-    async def create(self, ctx, chatlog: int = 20):
-        """
+    async def create(self, ctx, chatlog: int = 0):
+        f"""
         Create a backup
 
 
-        chatlog ::      The count of messages to save per channel (max. 20) (default 20)
+        chatlog ::      The count of messages to save per channel (max. {max_chatlog}) (default 0)
         """
-        chatlog = chatlog if chatlog < max_chatlog and chatlog >= 0 else max_chatlog
+        try:
+            await checks.check_role_on_support_guild("Xenon Pro")(ctx)
+        except:
+            if chatlog > 0:
+                raise cmd.CommandError(
+                    "You need **Xenon Pro** to save messages. Use `x!pro` for more information.")
+        else:
+            chatlog = chatlog if chatlog < max_chatlog and chatlog >= 0 else max_chatlog
+
         status = await ctx.send(**ctx.em("**Creating backup** ... Please wait", type="working"))
         handler = BackupSaver(self.bot, self.bot.session, ctx.guild)
         backup = await handler.save(chatlog)
@@ -76,14 +85,14 @@ class Backups:
     @cmd.bot_has_permissions(administrator=True)
     @checks.bot_has_managed_top_role()
     @cmd.cooldown(1, 5 * 60, cmd.BucketType.guild)
-    async def load(self, ctx, backup_id, chatlog: int = 20, *load_options):
-        """
+    async def load(self, ctx, backup_id, chatlog: int = max_chatlog, *load_options):
+        f"""
         Load a backup
 
 
         backup_id ::    The id of the backup
 
-        chatlog   ::    The count of messages to load per channel (max. 20) (default 20)
+        chatlog   ::    The count of messages to load per channel (max. {max_chatlog}) (default {max_chatlog})
         """
         chatlog = chatlog if chatlog < max_chatlog and chatlog >= 0 else max_chatlog
         backup = await ctx.db.table("backups").get(backup_id).run(ctx.db.con)
@@ -318,7 +327,7 @@ class Backups:
             except ValueError:
                 continue
 
-        minutes = minutes if minutes >= 60 else 60
+        minutes = minutes if minutes >= min_interval else min_interval
         await ctx.db.table("intervals").insert({
             "id": str(ctx.guild.id),
             "interval": minutes,
@@ -338,7 +347,7 @@ class Backups:
             raise ValueError
 
         handler = BackupSaver(self.bot, self.bot.session, guild)
-        backup = await handler.save(max_chatlog)
+        backup = await handler.save(0)
         id = self.random_id()
         await self.bot.db.table("backups").insert({
             "id": id,
