@@ -14,6 +14,12 @@ class Basics:
         """Pong"""
         await ctx.send(**ctx.em(f"I have a **latency** of **{round(self.bot.latency * 1000, 1)} ms**.", type="info"))
 
+    @cmd.command(aliases=['shardid'])
+    async def shard(self, ctx, guild_id: int = None):
+        guild_id = guild_id or ctx.guild.id
+        shard_id = (guild_id >> 22) % self.bot.shard_count
+        await ctx.send(**ctx.em(f"The guild with the id **{guild_id}** is on **shard {shard_id}**.", type="info"))
+
     @cmd.command()
     @cmd.cooldown(1, 10, cmd.BucketType.user)
     async def shards(self, ctx):
