@@ -37,11 +37,11 @@ class Backups:
     @cmd.bot_has_permissions(administrator=True)
     @cmd.cooldown(1, 1 * 60, cmd.BucketType.guild)
     async def create(self, ctx, chatlog: int = 0):
-        f"""
+        """
         Create a backup
 
 
-        chatlog ::      The count of messages to save per channel (max. {max_chatlog}) (default 0)
+        chatlog ::      The count of messages to save per channel (max. 25) (default 0)
         """
         try:
             await checks.check_role_on_support_guild("Xenon Pro")(ctx)
@@ -86,13 +86,13 @@ class Backups:
     @checks.bot_has_managed_top_role()
     @cmd.cooldown(1, 5 * 60, cmd.BucketType.guild)
     async def load(self, ctx, backup_id, chatlog: int = max_chatlog, *load_options):
-        f"""
+        """
         Load a backup
 
 
         backup_id ::    The id of the backup
 
-        chatlog   ::    The count of messages to load per channel (max. {max_chatlog}) (default {max_chatlog})
+        chatlog   ::    The count of messages to load per channel (max. 25) (default 25)
         """
         chatlog = chatlog if chatlog < max_chatlog and chatlog >= 0 else max_chatlog
         backup = await ctx.db.table("backups").get(backup_id).run(ctx.db.con)
@@ -108,9 +108,9 @@ class Backups:
                 check=lambda r, u: r.message.id == warning.id and u.id == ctx.author.id,
                 timeout=60)
         except TimeoutError:
+            await warning.delete()
             raise cmd.CommandError(
                 "Please make sure to **click the ✅ reaction** in order to load the backup.")
-            await warning.delete()
 
         if str(reaction.emoji) != "✅":
             ctx.command.reset_cooldown(ctx)
@@ -169,9 +169,9 @@ class Backups:
                 check=lambda r, u: r.message.id == warning.id and u.id == ctx.author.id,
                 timeout=60)
         except TimeoutError:
+            await warning.delete()
             raise cmd.CommandError(
                 "Please make sure to **click the ✅ reaction** in order to reinvite the members.")
-            await warning.delete()
 
         if str(reaction.emoji) != "✅":
             ctx.command.reset_cooldown(ctx)
@@ -283,13 +283,15 @@ class Backups:
     @cmd.cooldown(1, 1, cmd.BucketType.guild)
     @cmd.has_permissions(administrator=True)
     @cmd.bot_has_permissions(administrator=True)
-    async def interval(self, ctx, *interval):
+    async def interval(self, ctx, *interval, chatlog: int = 0): # The chatlog parameter is unreachable because of the *args parameter. It's only there for clear documentation
         """
         Setup automated backups
 
-        interval::     The time between every backup or "off".
+        interval ::     The time between every backup or "off".
                         Supported units: minutes(m), hours(h), days(d), weeks(w), month(m)
                         Example: 1d 12h
+                        
+        chatlog ::      The count of messages to save per channel (max. 25) (default 0)
         """
         if len(interval) == 0:
             interval = await ctx.db.table("intervals").get(str(ctx.guild.id)).run(ctx.db.con)
@@ -310,6 +312,10 @@ class Backups:
                 name="Next Backup",
                 value=helpers.datetime_to_string(interval["next"])
             )
+            embed.add_field(
+                name="Chatlog",
+                value=interval.get("chatlog") or 0
+            )
             await ctx.send(embed=embed)
             return
 
@@ -317,6 +323,22 @@ class Backups:
             await ctx.db.table("intervals").get(str(ctx.guild.id)).delete().run(ctx.db.con)
             await ctx.send(**ctx.em("Successfully **turned off the backup** interval.", type="success"))
             return
+
+        if len(interval) > 1:
+            try:
+                chatlog = int(interval[-1])
+            except:
+                chatlog = 0
+
+            else:
+                try:
+                    await checks.check_role_on_support_guild("Xenon Pro")(ctx)
+                except:
+                    if chatlog > 0:
+                        raise cmd.CommandError(
+                            "You need **Xenon Pro** to save messages. Use `x!pro` for more information.")
+                else:
+                    chatlog = chatlog if chatlog < max_chatlog and chatlog >= 0 else max_chatlog
 
         delta_types = {"m": 1, "h": 60, "d": 60 * 24, "w": 60 * 24 * 7}
         minutes = 0
@@ -331,8 +353,10 @@ class Backups:
         await ctx.db.table("intervals").insert({
             "id": str(ctx.guild.id),
             "interval": minutes,
-            "next": datetime.now(pytz.utc) + timedelta(minutes=minutes)
+            "next": datetime.now(pytz.utc) + timedelta(minutes=minutes),
+            "chatlog": chatlog
         }, conflict="replace").run(ctx.db.con)
+
         embed = ctx.em("Successfully updated the backup interval", type="success")["embed"]
         embed.add_field(name="Interval", value=str(timedelta(minutes=minutes)).split(".")[0])
         embed.add_field(
@@ -341,13 +365,13 @@ class Backups:
         )
         await ctx.send(embed=embed)
 
-    async def run_backup(self, guild_id):
+    async def run_backup(self, guild_id, chatlog):
         guild = self.bot.get_guild(guild_id)
         if guild is None:
             raise ValueError
 
         handler = BackupSaver(self.bot, self.bot.session, guild)
-        backup = await handler.save(0)
+        backup = await handler.save(chatlog)
         id = self.random_id()
         await self.bot.db.table("backups").insert({
             "id": id,
@@ -380,7 +404,7 @@ class Backups:
                 while await to_backup.fetch_next():
                     interval = await to_backup.next()
                     try:
-                        await self.run_backup(int(interval["id"]))
+                        await self.run_backup(int(interval["id"]), interval.get("chatlog") or 0)
 
                         next = interval["next"]
                         while next < datetime.now(pytz.utc):
