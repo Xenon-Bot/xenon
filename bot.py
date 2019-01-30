@@ -1,5 +1,8 @@
 from aiohttp import ClientSession
 from discord.ext import commands as cmd
+import sys
+from rethinkdb.errors import ReqlDriverError
+import traceback
 
 from utils import formatter, logger, database
 from utils.extended import Context
@@ -16,6 +19,24 @@ class Xenon(cmd.AutoShardedBot):
             self.load_extension(ext)
 
         self.log.info(f"Loaded {len(self.cogs)} cogs")
+
+    async def on_error(self, event_method, *args, **kwargs):
+        if sys.exc_info()[0] == ReqlDriverError:
+            self.log.warn("Lost connection to the database. Trying to reconnect ...")
+            while True:
+                try:
+                    await self.db.con.reconnect(noreply_wait=False)
+                except:
+                    print("error reconnecting")
+
+                else:
+                    break
+
+            self.log.info("Successfully reconnected to the database")
+            return
+
+        print('Ignoring exception in {}'.format(event_method), file=sys.stderr)
+        traceback.print_exc()
 
     async def on_shard_ready(self, shard_id):
         self.log.info(f"Shard {shard_id} ready")
