@@ -32,15 +32,3 @@ async def setup():
 
                 if len(data) > 0:
                     await db.table(table_name).insert(data).run(rdb.con)
-
-
-async def update_stats(**keys):
-    await rdb.table("bot").get("stats").update(keys).run(rdb.con)
-
-
-class DatabaseConverter(cmd.Converter):
-    def __init__(self, table):
-        self.table = table
-
-    async def convert(self, ctx, argument):
-        return await rdb.table(self.table).get(argument).run(rdb.con)

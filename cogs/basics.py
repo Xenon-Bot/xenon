@@ -64,13 +64,18 @@ class Basics:
         """Shows information about Xenon Pro"""
         await ctx.send(**ctx.em(
             "**Xenon Pro** is the **paid version** of xenon. It includes some **exclusive features**.\n"
-            "You can buy it [here](https://donatebot.io/checkout/410488579140354049).\n"
+            "You can buy it [here](https://www.patreon.com/merlinfuchs).\n"
             "Invite it [here](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot)\n\n"
             "You can find **more information** about the subscription and a **detailed list of perks** [here](https://docs.discord.club/xenon/how-to/xenon-pro).",
             type="info"
         ))
         if ctx.bot.user.id == 524652984425250847:
             await ctx.invoke(self.bot.get_command("help"), "Pro")
+
+    async def on_guild_join(self, guild):
+        embed = self.bot.em("**Hello and thank you for inviting Xenon!** 😋\n"
+                            f"Use `{self.bot.config.prefix}help` to get a list of commands.\n"
+                            "For updates and further help, you can join the [support discord](https://discord.club/discord)!\n\n")
 
 
 def setup(bot):

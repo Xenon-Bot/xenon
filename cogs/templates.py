@@ -39,7 +39,9 @@ class Templates:
 
         backup["backup"]["members"] = []
 
-        warning = await ctx.send(**ctx.em("Are you sure you want to turn this backup into a template? **All templates are public!**", type="warning"))
+        warning = await ctx.send(
+            **ctx.em("Are you sure you want to turn this backup into a template? **All templates are public!**",
+                     type="warning"))
         await warning.add_reaction("✅")
         await warning.add_reaction("❌")
         try:
@@ -49,10 +51,10 @@ class Templates:
                 timeout=60
             )
         except TimeoutError:
+            await warning.delete()
             raise cmd.CommandError(
                 "Please make sure to **click the ✅ reaction** in order to create a template."
             )
-            await warning.delete()
 
         if str(reaction.emoji) != "✅":
             await warning.delete()
@@ -70,7 +72,14 @@ class Templates:
 
         template = await ctx.db.table("templates").get(name).run(ctx.db.con)
         embed = self.template_info(ctx, name, template)
-        await self.bot.get_channel(516345778327912448).send(embed=embed)
+        try:
+            await self.bot.get_channel(516345778327912448).send(embed=embed)
+        except:
+            await ctx.send(
+                **ctx.em("Please join the support discord and run the command in the #commands channel again.",
+                         type="error"))
+            await ctx.db.table("templates").get(name).delete().run(ctx.db.con)
+            return
 
         await ctx.send(**ctx.em("Successfully **created template**.\n"
                                 f"You can load the template with `{ctx.prefix}template load {name}`", type="success"))
@@ -134,7 +143,9 @@ class Templates:
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
-        warning = await ctx.send(**ctx.em("Are you sure you want to load this template? **All channels and roles will get replaced!**", type="warning"))
+        warning = await ctx.send(
+            **ctx.em("Are you sure you want to load this template? **All channels and roles will get replaced!**",
+                     type="warning"))
         await warning.add_reaction("✅")
         await warning.add_reaction("❌")
         try:
