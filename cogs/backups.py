@@ -11,7 +11,7 @@ from utils import checks, helpers
 
 
 max_reinvite = 100
-min_interval = 60 * 24 * 3
+min_interval = 60 * 24
 
 
 class Backups:
@@ -95,8 +95,9 @@ class Backups:
         Load a backup
 
 
-        backup_id ::    The id of the backup
+        backup_id ::    The id of the backup or "interval" for the latest automated backup
         """
+        backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
         if backup is None or backup.get("creator") != str(ctx.author.id):
             raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
@@ -160,8 +161,9 @@ class Backups:
         """
         Get information about a backup
 
-        backup_id::    The id of the backup
+        backup_id::    The id of the backup or "interval" for the latest automated backup
         """
+        backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
         if backup is None or backup.get("creator") != str(ctx.author.id):
             raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
@@ -208,6 +210,10 @@ class Backups:
                 value=str(interval["next"] - datetime.now(pytz.utc)).split(".")[0]
             )
             embed.add_field(
+                name="Latest Backup",
+                value=helpers.datetime_to_string(interval["next"] - timedelta(minutes=interval["interval"]))
+            )
+            embed.add_field(
                 name="Next Backup",
                 value=helpers.datetime_to_string(interval["next"])
             )
@@ -236,13 +242,15 @@ class Backups:
             "chatlog": 0
         }, conflict="replace").run(ctx.db.con)
 
-        embed = ctx.em("Successfully updated the backup interval", type="success")["embed"]
+        embed = ctx.em("Successfully updated the backup interval.\n"
+                       "Use `x!backup load interval` to load the latest automated backup.", type="success")["embed"]
         embed.add_field(name="Interval", value=str(timedelta(minutes=minutes)).split(".")[0])
         embed.add_field(
             name="Next Backup",
             value=helpers.datetime_to_string(datetime.now(pytz.utc) + timedelta(minutes=minutes))
         )
         await ctx.send(embed=embed)
+        await self.run_backup(ctx.guild.id)
 
     async def run_backup(self, guild_id):
         guild = self.bot.get_guild(guild_id)
