@@ -1,5 +1,5 @@
 # Project Specific
-logs/*
+xenon/logs/*
 config.*
 
 # Byte-compiled / optimized / DLL files
