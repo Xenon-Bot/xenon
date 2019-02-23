@@ -25,7 +25,7 @@ class Backups:
     async def _get_backup(self, id):
         return await self.bot.db.table("backups").get(id).run(self.bot.db.con)
 
-    async def _create_backup(self, creator_id, data, id=None):
+    async def _save_backup(self, creator_id, data, id=None):
         id = id or self.random_id()
         await self.bot.db.table("backups").insert({
             "id": id,
@@ -60,11 +60,10 @@ class Backups:
         """
         Create a backup
         """
-
         status = await ctx.send(**ctx.em("**Creating backup** ... Please wait", type="working"))
         handler = BackupSaver(self.bot, self.bot.session, ctx.guild)
         backup = await handler.save(chatlog=0)
-        id = await self._create_backup(ctx.author.id, backup)
+        id = await self._save_backup(ctx.author.id, backup)
 
         await status.edit(**ctx.em("Successfully **created backup**.", type="success"))
         try:
@@ -95,7 +94,7 @@ class Backups:
         Load a backup
 
 
-        backup_id ::    The id of the backup or "interval" for the latest automated backup
+        backup_id ::    The id of the backup or the guild id to for latest automated backup
         """
         backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
@@ -161,7 +160,7 @@ class Backups:
         """
         Get information about a backup
 
-        backup_id::    The id of the backup or "interval" for the latest automated backup
+        backup_id::    The id of the backup or the guild id to for latest automated backup
         """
         backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
@@ -243,7 +242,7 @@ class Backups:
         }, conflict="replace").run(ctx.db.con)
 
         embed = ctx.em("Successfully updated the backup interval.\n"
-                       "Use `x!backup load interval` to load the latest automated backup.", type="success")["embed"]
+                       f"Use `x!backup load {ctx.guild.id}` to load the latest automated backup.", type="success")["embed"]
         embed.add_field(name="Interval", value=str(timedelta(minutes=minutes)).split(".")[0])
         embed.add_field(
             name="Next Backup",
@@ -259,7 +258,7 @@ class Backups:
 
         handler = BackupSaver(self.bot, self.bot.session, guild)
         data = await handler.save(0)
-        await self._create_backup(guild.owner.id, data, id=str(guild_id))
+        await self._save_backup(guild.owner.id, data, id=str(guild_id))
 
     async def interval_loop(self):
         filter = self.bot.db.table("intervals").filter(lambda iv: iv["next"].during(
