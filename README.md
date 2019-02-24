@@ -7,22 +7,20 @@ If you need further help you can join the [support discord](https://discord.club
 
 [Hosted Version](https://discordbots.org/bot/xenon)
 
-## Requirements
+## With Docker (Recommended)
 
-You need Python 3.6.x to run the bot. &gt;=3.7 and &lt;=3.5 are not supported!  
-Use `pip install -U -r requirements.txt` to install all python packages.
+Download and install [docker](https://www.docker.com/) on your operating system.
 
-## config.py
+Build and run it with docker-compose:
 
-config.py contains all sensitive values and some startup configurations. You can use example\_config.py, change all values that start with "your" and rename it to config.py.
+1. Download / Clone the repository
+2. Edit the `xenon.env` file and change the token
+3. You might wanna change some values in `xenon/config.py` e.g. the prefix
+4. Run `docker-compose build`
+5. Run `docker-compose up`
 
-If you only want to use specific parts of the bot, you can edit the variable "extensions". All extensions should work independent of each other. \(But I wouldn't recommend you to disable the errors extension.\)
+The database and the bot should start up.
 
-## Database
+## Without Docker
 
-The bot requires a rethinkdb-database running on port 28015. All backups, templates and user information are saved there. You can find more information about rethinkdb [here](https://www.rethinkdb.com/docs/install/).
-
-## Logs
-
-The bot creates log files in the logs/ directory. You might need to create it if it isn't already there.
-
+Install all dependencies, edit `xenon/config.py` and change the token, run `xenon/web.py`.
