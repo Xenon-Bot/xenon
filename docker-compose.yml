@@ -3,8 +3,12 @@ services:
   xenon:
     build: .
     restart: unless-stopped
+    env_file:
+     - xenon.env
+    depends_on:
+      - "rethinkdb"
   rethinkdb:
     image: "rethinkdb:2.3.6"
     restart: unless-stopped
-    ports:
-     - "28015:28015"
+    expose:
+     - "28015"

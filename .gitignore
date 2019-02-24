@@ -1,6 +1,5 @@
 # Project Specific
 xenon/logs/*
-config.*
 
 # Byte-compiled / optimized / DLL files
 .idea/

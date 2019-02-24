@@ -1,10 +1,10 @@
 import rethinkdb as rdb
-from discord.ext import commands as cmd
+from os import environ as env
 
 
 rdb.set_loop_type("asyncio")
 
-host, port, database = "rethinkdb", 28015, "xenon"
+host, port, database = env.get("DB_HOST") or "localhost", env.get("DB_PORT") or 28015, "xenon"
 table_setup = {
     "xenon": {
         "backups": {},
