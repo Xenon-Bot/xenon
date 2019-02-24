@@ -4,7 +4,7 @@ from discord.ext import commands as cmd
 
 rdb.set_loop_type("asyncio")
 
-host, port, database = "localhost", 28015, "xenon"
+host, port, database = "rethinkdb", 28015, "xenon"
 table_setup = {
     "xenon": {
         "backups": {},

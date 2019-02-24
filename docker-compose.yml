@@ -1,0 +1,10 @@
+version: '3'
+services:
+  xenon:
+    build: .
+    restart: unless-stopped
+  rethinkdb:
+    image: "rethinkdb:2.3.6"
+    restart: unless-stopped
+    ports:
+     - "28015:28015"
