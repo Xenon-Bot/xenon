@@ -9,7 +9,7 @@ import io
 from utils import checks
 
 
-class Admin:
+class Admin(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._last_result = None

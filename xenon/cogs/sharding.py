@@ -1,10 +1,11 @@
+from discord.ext import commands as cmd
 import traceback
 import asyncio
 
 from utils import pubsub
 
 
-class Sharding:
+class Sharding(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -37,6 +38,7 @@ class Sharding:
                 traceback.print_exc()
             await asyncio.sleep(60)
 
+    @cmd.Cog.listener()
     async def on_shard_ready(self, shard_id):
         if not self.bot.is_primary_shard():
             await pubsub.publish("events", event="on_shard_ready", shard_id=shard_id)

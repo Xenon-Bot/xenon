@@ -7,7 +7,7 @@ from prettytable import PrettyTable
 from utils import formatter, helpers, checks
 
 
-class Blacklist:
+class Blacklist(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
 

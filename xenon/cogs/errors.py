@@ -21,10 +21,11 @@ ignore = [cmd.CommandNotFound, cmd.TooManyArguments]
 catch_all = [cmd.CommandError]
 
 
-class Errors:
+class Errors(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @cmd.Cog.listener()
     async def on_command_error(self, ctx, error):
         error = getattr(error, 'original', error)
         catch_all = True

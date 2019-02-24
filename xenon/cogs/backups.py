@@ -14,7 +14,7 @@ max_reinvite = 100
 min_interval = 60 * 24
 
 
-class Backups:
+class Backups(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.to_backup = []

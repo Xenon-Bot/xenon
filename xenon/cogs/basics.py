@@ -5,7 +5,7 @@ import psutil
 from utils import formatter, helpers
 
 
-class Basics:
+class Basics(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -72,6 +72,7 @@ class Basics:
         if ctx.bot.user.id == 524652984425250847:
             await ctx.invoke(self.bot.get_command("help"), "Pro")
 
+    @cmd.Cog.listener()
     async def on_guild_join(self, guild):
         embed = self.bot.em("**Hello and thank you for inviting Xenon!** 😋\n"
                             f"Use `{self.bot.config.prefix}help` to get a list of commands.\n"

@@ -1,3 +1,4 @@
+from discord.ext import commands as cmd
 import discord
 import asyncio
 import traceback
@@ -5,7 +6,7 @@ import traceback
 from utils import helpers
 
 
-class Stats:
+class Stats(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.bot.loop.create_task(self.update_loop())

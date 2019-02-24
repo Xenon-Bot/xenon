@@ -4,7 +4,7 @@ from discord_backups import BackupInfo, BackupLoader
 from utils import checks
 
 
-class Templates:
+class Templates(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
 
