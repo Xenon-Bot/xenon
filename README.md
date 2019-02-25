@@ -16,8 +16,9 @@ Build and run it with docker-compose:
 1. Download / Clone the repository
 2. Edit the `xenon.env` file and change the token
 3. You might wanna change some values in `xenon/config.py` e.g. the prefix
-4. Run `docker-compose build`
-5. Run `docker-compose up`
+4. Create a `xenon/logs` directory for the log files
+5. Run `docker-compose build`
+6. Run `docker-compose up`
 
 The database and the bot should start up.
 
