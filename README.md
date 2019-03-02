@@ -24,4 +24,4 @@ The database and the bot should start up.
 
 ## Without Docker
 
-Install all dependencies, edit `xenon/config.py` and change the token, run `xenon/web.py`.
+Install all dependencies, edit `xenon/config.py` and change the token, run `xenon/launcher.py`.
