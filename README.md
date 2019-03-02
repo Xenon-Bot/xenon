@@ -24,4 +24,5 @@ The database and the bot should start up.
 
 ## Without Docker
 
+Download and run [rethinkdb](https://www.rethinkdb.com/) and make the port 28015 accessible by the python script. 
 Install all dependencies, edit `xenon/config.py` and change the token, run `xenon/launcher.py`.
