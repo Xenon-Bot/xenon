@@ -29,8 +29,8 @@ class Blacklist(cmd.Cog):
         while (await blacklist.fetch_next()):
             entry = await blacklist.next()
             try:
-                user = await self.bot.get_user_info(int(entry["id"]))
-                admin = await self.bot.get_user_info(int(entry["blacklist"]["admin"]))
+                user = await self.bot.fetch_user(int(entry["id"]))
+                admin = await self.bot.fetch_user(int(entry["blacklist"]["admin"]))
             except:
                 continue
 

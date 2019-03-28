@@ -47,8 +47,7 @@ class Admin(cmd.Cog):
             success = 0
             for cog in self.bot.config.extensions:
                 try:
-                    self.bot.unload_extension(cog)
-                    self.bot.load_extension(cog)
+                    self.bot.reload_extension(cog)
                     success += 1
                 except:
                     failed += 1
@@ -59,8 +58,7 @@ class Admin(cmd.Cog):
 
         base_path = "cogs."
         try:
-            self.bot.unload_extension(base_path + cog.lower())
-            self.bot.load_extension(base_path + cog.lower())
+            self.bot.reload_extension(base_path + cog.lower())
             await ctx.send(**ctx.em(f"Successfully reloaded the cog named **{cog}**.", type="success"))
         except:
             traceback.print_exc()
