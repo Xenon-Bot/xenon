@@ -3,12 +3,15 @@ from discord.ext import commands as cmd
 import sys
 from rethinkdb.errors import ReqlDriverError
 import traceback
+from motor.motor_asyncio import AsyncIOMotorClient
 
-from utils import formatter, logger, database
+from utils import formatter, logger
 from utils.extended import Context
 
 
 class Xenon(cmd.AutoShardedBot):
+    db = AsyncIOMotorClient().xenon
+
     def __init__(self, **kwargs):
         super().__init__(command_prefix=self._prefix_callable,
                          shard_count=kwargs.get("shard_count") or self.config.shard_count,
@@ -110,10 +113,6 @@ class Xenon(cmd.AutoShardedBot):
     @property
     def config(self):
         return __import__("config")
-
-    @property
-    def db(self):
-        return database.rdb
 
     def run(self):
         super().run(self.config.token)

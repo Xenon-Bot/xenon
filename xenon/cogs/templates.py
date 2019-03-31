@@ -11,7 +11,7 @@ class Templates(cmd.Cog):
     @cmd.group(aliases=["temp"], invoke_without_command=True)
     async def template(self, ctx):
         """Create & load public templates"""
-        await ctx.invoke(self.bot.get_command("help"), "template")
+        await ctx.send_help(self.template)
 
     @template.command(aliases=["c"])
     @cmd.cooldown(1, 30, cmd.BucketType.user)
@@ -27,11 +27,11 @@ class Templates(cmd.Cog):
         description ::      A description for the template
         """
         name = name.lower().replace(" ", "_")
-        backup = await ctx.db.table("backups").get(backup_id).run(ctx.db.con)
-        if backup is None or backup.get("creator") != str(ctx.author.id):
+        backup = await ctx.db.backups.find_one(backup_id)
+        if backup is None or backup.get("creator") != ctx.author.id:
             raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
 
-        already_exists = (await ctx.db.table("templates").get(name).run(ctx.db.con)) is not None
+        already_exists = (await ctx.db.templates.find_one(name)) is not None
         if already_exists:
             raise cmd.CommandError(
                 f"There is **already a template with that name**, please choose another one."
@@ -60,25 +60,25 @@ class Templates(cmd.Cog):
             await warning.delete()
             return
 
-        await ctx.db.table("templates").insert({
-            "id": name,
+        await ctx.db.templates.insert_one({
+            "_id": name,
             "creator": backup["creator"],
             "loaded": 0,
             "featured": False,
             "original": backup_id,
             "description": description,
             "template": backup["backup"]
-        }).run(ctx.db.con)
+        })
 
-        template = await ctx.db.table("templates").get(name).run(ctx.db.con)
+        template = await ctx.db.templates.find_one(name)
         embed = self.template_info(ctx, name, template)
         try:
-            await self.bot.get_channel(516345778327912448).send(embed=embed)
+            await self.bot.get_channel(559460404934475808).send(embed=embed)
         except:
             await ctx.send(
                 **ctx.em("Please join the support discord and run the command in the #commands channel again.",
                          type="error"))
-            await ctx.db.table("templates").get(name).delete().run(ctx.db.con)
+            await ctx.db.templates.delete_one(name)
             return
 
         await ctx.send(**ctx.em("Successfully **created template**.\n"
@@ -98,13 +98,13 @@ class Templates(cmd.Cog):
             feature = False
 
         template_name = template_name.lower().replace(" ", "_")
-        template = await ctx.db.table("templates").get(template_name).run(ctx.db.con)
+        template = await ctx.db.templates.find_one(template_name)
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
-        await ctx.db.table("templates").get(template_name).update({"featured": feature}).run(ctx.db.con)
+        await ctx.db.templates.update_one({"_id": template_name}, {"$set": {"featured": feature}})
 
         embed = self.template_info(ctx, template_name, template)
-        await self.bot.get_channel(464837529267601408).send(embed=embed)
+        await self.bot.get_channel(559460386429206528).send(embed=embed)
 
         await ctx.send(**ctx.em(f"Successfully **{'un' if not feature else ''}featured template**.", type="success"))
 
@@ -118,11 +118,11 @@ class Templates(cmd.Cog):
         template_name ::    The name of the template
         """
         template_name = template_name.lower().replace(" ", "_")
-        template = await ctx.db.table("templates").get(template_name).run(ctx.db.con)
+        template = await ctx.db.templates.find_one(template_name)
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
-        await ctx.db.table("templates").get(template_name).delete().run(ctx.db.con)
+        await ctx.db.templates.delete_one({"_id": template_name})
         await ctx.send(**ctx.em("Successfully **deleted template**.", type="success"))
 
     @template.command(aliases=["l"])
@@ -139,7 +139,7 @@ class Templates(cmd.Cog):
         template_name ::    The name of the template
         """
         template_name = template_name.lower().replace(" ", "_")
-        template = await ctx.db.table("templates").get(template_name).run(ctx.db.con)
+        template = await ctx.db.templates.find_one(template_name)
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
@@ -154,17 +154,17 @@ class Templates(cmd.Cog):
                 check=lambda r, u: r.message.id == warning.id and u.id == ctx.author.id,
                 timeout=60)
         except TimeoutError:
+            await warning.delete()
             raise cmd.CommandError(
                 "Please make sure to **click the ✅ reaction** in order to load the template."
             )
-            await warning.delete()
 
         if str(reaction.emoji) != "✅":
             ctx.command.reset_cooldown(ctx)
             await warning.delete()
             return
 
-        await ctx.db.table("templates").get(template_name).update({"loaded": ctx.db.row["loaded"] + 1}).run(ctx.db.con)
+        await ctx.db.templates.update_one({"_id": template_name}, {"$inc": {"loaded": 1}})
         handler = BackupLoader(self.bot, self.bot.session, template["template"])
         await handler.load(ctx.guild, ctx.author, 0)
 
@@ -178,7 +178,7 @@ class Templates(cmd.Cog):
         template_name ::    The name of the template
         """
         template_name = template_name.lower().replace(" ", "_")
-        template = await ctx.db.table("templates").get(template_name).run(ctx.db.con)
+        template = await ctx.db.templates.find_one(template_name)
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 

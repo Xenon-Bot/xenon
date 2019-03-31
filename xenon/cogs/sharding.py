@@ -10,7 +10,7 @@ class Sharding(cmd.Cog):
         self.bot = bot
 
         if self.bot.is_splitted():
-            self.bot.loop.create_task(self.update_loop())
+            # self.bot.loop.create_task(self.update_loop())
             self.bot.loop.create_task(self.subscribe_to_events())
 
     async def update_database(self):
@@ -41,7 +41,7 @@ class Sharding(cmd.Cog):
     @cmd.Cog.listener()
     async def on_shard_ready(self, shard_id):
         if not self.bot.is_primary_shard():
-            await pubsub.publish("events", event="on_shard_ready", shard_id=shard_id)
+            await pubsub.publish(self.bot.db, "events", event="on_shard_ready", shard_id=shard_id)
 
         else:
             await self.bot.get_channel(self.bot.config.update_channel).send(**self.bot.em(f"Shard **{shard_id}** ready"))
@@ -53,7 +53,11 @@ class Sharding(cmd.Cog):
 
         await self.bot.wait_until_ready()
         if self.bot.is_primary_shard():
-            await pubsub.subscribe("events", distribute_events)
+            while True:
+                try:
+                    await pubsub.subscribe(self.bot.db, "events", distribute_events)
+                except:
+                    traceback.print_exc()
 
 
 def setup(bot):

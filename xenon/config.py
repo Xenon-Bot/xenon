@@ -2,7 +2,7 @@ from os import environ as env
 
 
 token = env.get('TOKEN')
-# shard_count and shard_ids can be overwritten by Command Line Arguments
+# shard_count and shard_ids can be overridden by Command Line Arguments
 shard_count = None  # ~ guilds // 1000
 shard_ids = None
 
@@ -14,10 +14,9 @@ extensions = [
     "cogs.admin",
     "cogs.backups",
     "cogs.templates",
-    "cogs.sharding",
-    "cogs.blacklist",
+    "cogs.users",
     "cogs.basics",
-    "cogs.stats"
+    "cogs.sharding"
 ]
 
 support_guild = 410488579140354049
