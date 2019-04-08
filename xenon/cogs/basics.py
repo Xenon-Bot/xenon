@@ -1,6 +1,7 @@
 from discord.ext import commands as cmd
 from prettytable import PrettyTable
 import psutil
+from datetime import datetime, timedelta
 
 from utils import formatter, helpers
 
@@ -26,11 +27,14 @@ class Basics(cmd.Cog):
         """Show information about the virtual shards in this physical shard"""
         table = PrettyTable()
         table.field_names = ["Shard-Id", "Latency", "Guilds", "Users"]
-        shards = await self.bot.get_shard_stats()
-        for shard_id, values in shards.items():
-            prefix = '> ' if str(shard_id) == str(ctx.guild.shard_id) else ''
-            table.add_row([prefix + str(shard_id), f"{round(values['latency'] * 1000, 1)} ms",
-                           helpers.format_number(values["guilds"]), helpers.format_number(values["users"])])
+        shards = await self.bot.get_shards()
+        for shard in shards:
+            latency = f"{round(shard['latency'] * 1000, 1)} ms"
+            if (datetime.utcnow() - shard["seen"]) > timedelta(minutes=3):
+                latency = "offline?"
+
+            table.add_row([str(shard["id"]), latency, helpers.format_number(shard["guilds"]),
+                           helpers.format_number(shard["users"])])
 
         pages = formatter.paginate(str(table))
         for page in pages:
@@ -39,7 +43,9 @@ class Basics(cmd.Cog):
     @cmd.command()
     async def invite(self, ctx):
         """Invite Xenon"""
-        await ctx.send(**ctx.em("**Invite Xenon**\n\n[Xenon](https://discord.club/invite/xenon)\n[Xenon Pro](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot) Use `x!pro` to get more information.", type="info"))
+        await ctx.send(**ctx.em(
+            "**Invite Xenon**\n\n[Xenon](https://discord.club/invite/xenon)\n[Xenon Pro](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot) Use `x!pro` to get more information.",
+            type="info"))
 
     @cmd.command(aliases=["i", "stats", "status"])
     @cmd.cooldown(1, 10, cmd.BucketType.user)

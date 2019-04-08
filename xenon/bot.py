@@ -1,7 +1,6 @@
 from aiohttp import ClientSession
 from discord.ext import commands as cmd
 import sys
-from rethinkdb.errors import ReqlDriverError
 import traceback
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -15,31 +14,14 @@ class Xenon(cmd.AutoShardedBot):
     def __init__(self, **kwargs):
         super().__init__(command_prefix=self._prefix_callable,
                          shard_count=kwargs.get("shard_count") or self.config.shard_count,
-                         shard_ids=kwargs.get("shard_ids") or self.config.shard_ids)
+                         shard_ids=kwargs.get("shard_ids") or self.config.shard_ids,
+                         owner_id=self.config.owner_id)
 
         self.session = ClientSession(loop=self.loop)
         for ext in self.config.extensions:
             self.load_extension(ext)
 
         self.log.info(f"Loaded {len(self.cogs)} cogs")
-
-    async def on_error(self, event_method, *args, **kwargs):
-        if sys.exc_info()[0] == ReqlDriverError:
-            self.log.warn("Lost connection to the database. Trying to reconnect ...")
-            while True:
-                try:
-                    await self.db.con.reconnect(noreply_wait=False)
-                except:
-                    print("error reconnecting")
-
-                else:
-                    break
-
-            self.log.info("Successfully reconnected to the database")
-            return
-
-        print('Ignoring exception in {}'.format(event_method), file=sys.stderr)
-        traceback.print_exc()
 
     async def on_shard_ready(self, shard_id):
         self.log.info(f"Shard {shard_id} ready")
@@ -73,34 +55,16 @@ class Xenon(cmd.AutoShardedBot):
     def is_primary_shard(self):
         return self.get_guild(self.config.support_guild) is not None
 
-    def is_splitted(self):
-        return (self.shard_count or 1) != len(self.shard_ids or [0])
-
-    async def get_shard_stats(self):
-        if self.is_splitted():
-            stats = await self.db.table("shards").get("stats").run(self.db.con)
-            return stats["shards"]
-
-        else:
-            latencies = self.latencies
-            stats = {str(id): {"latency": latency, "guilds": 0, "users": 0}
-                     for id, latency in latencies}
-            for guild in self.guilds:
-                try:
-                    stats[str(guild.shard_id)]["guilds"] += 1
-                    stats[str(guild.shard_id)]["users"] += guild.member_count
-                except:
-                    pass
-
-            return stats
+    async def get_shards(self):
+        return [{"id": shard.pop("_id"), **shard} for shard in await self.db.shards.find().to_list(self.shard_count or 1)]
 
     async def get_guild_count(self):
-        stats = await self.get_shard_stats()
-        return sum([values["guilds"] for i, values in stats.items()])
+        shards = await self.get_shards()
+        return sum([shard["guilds"] for shard in shards])
 
     async def get_user_count(self):
-        stats = await self.get_shard_stats()
-        return sum([values["users"] for i, values in stats.items()])
+        shards = await self.get_shards()
+        return sum([shard["users"] for shard in shards])
 
     @property
     def em(self):

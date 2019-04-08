@@ -16,13 +16,11 @@ extensions = [
     "cogs.templates",
     "cogs.users",
     "cogs.basics",
-    "cogs.sharding"
+    "cogs.sharding",
+    "cogs.stats"
 ]
 
 support_guild = 410488579140354049
-update_channel = 526897380595859456
-
-self_host = True
-# The options below are not required if "self_host" is enabled
+owner_id = 386861188891279362
 
 dbl_token = env.get('DBL_TOKEN')
