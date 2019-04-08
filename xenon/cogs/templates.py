@@ -63,24 +63,12 @@ class Templates(cmd.Cog):
         await ctx.db.templates.insert_one({
             "_id": name,
             "creator": backup["creator"],
-            "loaded": 0,
+            "used": 0,
             "featured": False,
             "original": backup_id,
             "description": description,
             "template": backup["backup"]
         })
-
-        template = await ctx.db.templates.find_one(name)
-        embed = self.template_info(ctx, name, template)
-        try:
-            await self.bot.get_channel(559460404934475808).send(embed=embed)
-        except:
-            await ctx.send(
-                **ctx.em("Please join the support discord and run the command in the #commands channel again.",
-                         type="error"))
-            await ctx.db.templates.delete_one(name)
-            return
-
         await ctx.send(**ctx.em("Successfully **created template**.\n"
                                 f"You can load the template with `{ctx.prefix}template load {name}`", type="success"))
 
@@ -102,9 +90,6 @@ class Templates(cmd.Cog):
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
         await ctx.db.templates.update_one({"_id": template_name}, {"$set": {"featured": feature}})
-
-        embed = self.template_info(ctx, template_name, template)
-        await self.bot.get_channel(559460386429206528).send(embed=embed)
 
         await ctx.send(**ctx.em(f"Successfully **{'un' if not feature else ''}featured template**.", type="success"))
 
@@ -164,7 +149,7 @@ class Templates(cmd.Cog):
             await warning.delete()
             return
 
-        await ctx.db.templates.update_one({"_id": template_name}, {"$inc": {"loaded": 1}})
+        await ctx.db.templates.update_one({"_id": template_name}, {"$inc": {"used": 1}})
         handler = BackupLoader(self.bot, self.bot.session, template["template"])
         await handler.load(ctx.guild, ctx.author, 0)
 
