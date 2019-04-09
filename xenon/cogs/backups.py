@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from utils import checks, helpers
 
 max_reinvite = 100
-min_interval = 2
+min_interval = 60 * 24
 
 
 class Backups(cmd.Cog):
