@@ -25,7 +25,7 @@ class Sharding(cmd.Cog):
 
     async def update_loop(self):
         await self.bot.wait_until_ready()
-        while True:
+        while not self.bot.is_closed():
             try:
                 await self.update_database()
             except:

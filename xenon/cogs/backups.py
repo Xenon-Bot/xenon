@@ -260,7 +260,7 @@ class Backups(cmd.Cog):
 
     async def interval_loop(self):
         await self.bot.wait_until_ready()
-        while True:
+        while not self.bot.is_closed():
             try:
                 to_backup = self.bot.db.intervals.find({"next": {
                     "$lt": datetime.utcnow()

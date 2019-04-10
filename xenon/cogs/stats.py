@@ -28,7 +28,7 @@ class Stats(cmd.Cog):
 
     async def update_loop(self):
         await self.bot.wait_until_ready()
-        while True:
+        while not self.bot.is_closed():
             try:
                 for shard_id, latency in self.bot.latencies:
                     await self.bot.change_presence(activity=discord.Activity(
