@@ -1,12 +1,32 @@
 from discord.ext import commands as cmd
 from discord_backups import BackupInfo, BackupLoader
+import pymongo
+from discord import Embed, Webhook, AsyncWebhookAdapter
+from asyncio import TimeoutError
+import traceback
 
 from utils import checks
 
 
 class Templates(cmd.Cog):
+    approval_options = None
+    approval_webhook = None
+    list_webhook = None
+    featured_webhook = None
+
     def __init__(self, bot):
         self.bot = bot
+        self.approval_webhook = Webhook.from_url(self.bot.config.template_approval,
+                                                 adapter=AsyncWebhookAdapter(self.bot.session))
+        self.list_webhook = Webhook.from_url(self.bot.config.template_list,
+                                             adapter=AsyncWebhookAdapter(self.bot.session))
+        self.featured_webhook = Webhook.from_url(self.bot.config.template_featured,
+                                                 adapter=AsyncWebhookAdapter(self.bot.session))
+        self.approval_options = {
+            "✅": self._approve,
+            "⭐": self._feature,
+            "⛔": self._delete
+        }
 
     @cmd.group(aliases=["temp"], invoke_without_command=True)
     async def template(self, ctx):
@@ -60,17 +80,44 @@ class Templates(cmd.Cog):
             await warning.delete()
             return
 
-        await ctx.db.templates.insert_one({
+        template = {
             "_id": name,
             "creator": backup["creator"],
             "used": 0,
             "featured": False,
+            "approved": False,
             "original": backup_id,
             "description": description,
             "template": backup["backup"]
-        })
+        }
+        await ctx.db.templates.insert_one(template)
         await ctx.send(**ctx.em("Successfully **created template**.\n"
-                                f"You can load the template with `{ctx.prefix}template load {name}`", type="success"))
+                                f"The template **will not be available** until a moderator approves it.\n"
+                                f"Please join the [support server](https://discord.club/discord) and enable direct "
+                                f"messages to get updates about your template.",
+                                type="success"))
+        await self.approval_webhook.send(embed=self._template_info(template))
+
+    @template.command()
+    @checks.has_role_on_support_guild("Staff")
+    async def approve(self, ctx, *, template_name):
+        """
+        Approve a template
+
+
+        template_name ::    The name of the template
+        """
+        template_name = template_name.lower().replace(" ", "_")
+        template = await ctx.db.templates.find_one(template_name)
+        if template is None:
+            raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
+
+        await ctx.send(**ctx.em(f"Successfully **approved template**.", type="success"))
+        await self._approve(template)
+
+    async def _approve(self, template, *args):
+        await self.bot.db.templates.update_one({"_id": template["_id"]}, {"$set": {"approved": True}})
+        await self.list_webhook.send(embed=self._template_info(template))
 
     @template.command(aliases=["unfeature"])
     @checks.has_role_on_support_guild("Staff")
@@ -89,11 +136,15 @@ class Templates(cmd.Cog):
         template = await ctx.db.templates.find_one(template_name)
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
-        await ctx.db.templates.update_one({"_id": template_name}, {"$set": {"featured": feature}})
 
         await ctx.send(**ctx.em(f"Successfully **{'un' if not feature else ''}featured template**.", type="success"))
+        await self._feature(template, state=feature)
 
-    @template.command(aliases=["del", "rm", "remove"])
+    async def _feature(self, template, *args, state=True):
+        await self.bot.db.templates.update_one({"_id": template["_id"]}, {"$set": {"featured": state, "approved": True}})
+        await self.featured_webhook.send(embed=self._template_info(template))
+
+    @template.command(aliases=["del", "rm", "remove", "deny"])
     @checks.has_role_on_support_guild("Staff")
     async def delete(self, ctx, *, template_name):
         """
@@ -107,8 +158,36 @@ class Templates(cmd.Cog):
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
-        await ctx.db.templates.delete_one({"_id": template_name})
+        await self._delete(template, ctx.author)
         await ctx.send(**ctx.em("Successfully **deleted template**.", type="success"))
+
+    async def _delete(self, template, reason_target, *args):
+        try:
+            question = await reason_target.send(
+                **self.bot.em(f"Why do you want to delete/deny the template `{template['_id']}`?", type="wait_for"))
+            user = await self.bot.fetch_user(template["creator"])
+            reason = ""
+
+            try:
+                msg = await self.bot.wait_for("message",
+                                              check=lambda m: not m.author.bot and question.channel.id == m.channel.id,
+                                              timeout=120)
+                await reason_target.send(**self.bot.em("Successfully deleted template.", type="success"))
+                reason = f"```{msg.content}```"
+
+            except TimeoutError:
+                await question.delete()
+
+            finally:
+                await user.send(
+                    **self.bot.em(f"Your **template `{template['_id']}` got denied**.\n{reason}",
+                                  type="info"))
+
+        except:
+            pass
+
+        finally:
+            await self.bot.db.templates.delete_one({"_id": template["_id"]})
 
     @template.command(aliases=["l"])
     @cmd.guild_only()
@@ -167,13 +246,13 @@ class Templates(cmd.Cog):
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
-        embed = self.template_info(ctx, template_name, template)
+        embed = self._template_info(template)
         await ctx.send(embed=embed)
 
-    def template_info(self, ctx, name, template):
-        handler = BackupInfo(ctx.bot, template["template"])
-        embed = ctx.em("")["embed"]
-        embed.title = name
+    def _template_info(self, template):
+        handler = BackupInfo(self.bot, template["template"])
+        embed = Embed(color=0x36393e)
+        embed.title = template["_id"]
         embed.description = template["description"]
         embed.add_field(name="Creator", value=f"<@{template['creator']}>")
         embed.add_field(name="Channels", value=handler.channels(), inline=True)
@@ -182,11 +261,105 @@ class Templates(cmd.Cog):
         return embed
 
     @template.command(aliases=["ls"])
-    async def list(self, ctx):
-        await ctx.send(**ctx.em(
-            "You can find a **list of templates** in <#516345778327912448> and <#464837529267601408> on the [support server](https://discord.club/discord).",
-            type="info"
-        ))
+    async def list(self, ctx, *, keywords=""):
+        await ctx.db.templates.create_index([("description", pymongo.TEXT), ("_id", pymongo.TEXT)])
+        args = {
+            "limit": 10,
+            "skip": 0,
+            "sort": [("featured", pymongo.DESCENDING), ("used", pymongo.DESCENDING)],
+            "filter": {
+                "approved": True,
+            }
+        }
+        if len(keywords) != 0:
+            args["filter"]["$text"] = {
+                "$search": keywords,
+                "$caseSensitive": False
+            }
+
+        msg = await ctx.send(embed=await self.create_list(args))
+        options = ["◀", "❎", "▶"]
+        for option in options:
+            await msg.add_reaction(option)
+
+        try:
+            while True:
+                reaction, user = await self.bot.wait_for(
+                    "reaction_add",
+                    check=lambda r, u: u.id == ctx.author.id and r.message.id == msg.id and str(r.emoji) in options,
+                    timeout=60
+                )
+
+                emoji = reaction.emoji
+                await msg.remove_reaction(emoji, user)
+
+                if str(emoji) == options[0]:
+                    if args["skip"] > 0:
+                        args["skip"] -= args["limit"]
+                        await msg.edit(embed=await self.create_list(args))
+
+                elif str(emoji) == options[2]:
+                    args["skip"] += args["limit"]
+                    await msg.edit(embed=await self.create_list(args))
+
+                else:
+                    raise TimeoutError
+
+        except TimeoutError:
+            try:
+                await msg.clear_reactions()
+
+            except:
+                pass
+
+    async def create_list(self, args):
+        emb = Embed(
+            title="Template List",
+            description="For a detailed list look at the #template_list channel on the [support discord](https://discord.club/discord).\n​\n"
+                        "__**Templates:**__",
+            color=0x36393e
+        )
+        emb.set_footer(text=f"Page {args['skip'] // args['limit'] + 1}")
+
+        templates = self.bot.db.templates.find(**args)
+        async for template in templates:
+            emb.add_field(name=template["_id"], value=template["description"])
+
+        if len(emb.fields) == 0:
+            emb.description += "\nNo templates to display"
+
+        return emb
+
+    @cmd.Cog.listener()
+    async def on_message(self, msg):
+        if msg.channel.id == self.bot.config.template_approval_channel and msg.author.bot:
+            for emoji in self.approval_options.keys():
+                await msg.add_reaction(emoji)
+
+    @cmd.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        if payload.channel_id != self.bot.config.template_approval_channel:
+            return
+
+        channel = self.bot.get_channel(payload.channel_id)
+        user = await self.bot.fetch_user(payload.user_id)
+
+        if channel is None or user is None or user.bot:
+            return
+
+        message = await channel.fetch_message(payload.message_id)
+
+        action = self.approval_options.get(str(payload.emoji))
+        if action is not None:
+            if len(message.embeds) == 0:
+                return
+
+            template = await self.bot.db.templates.find_one(message.embeds[0].title)
+            if template is None:
+                return
+
+            await action(template, user)
+            await message.delete()
 
 
 def setup(bot):
