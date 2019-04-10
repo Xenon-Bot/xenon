@@ -247,6 +247,7 @@ class Templates(cmd.Cog):
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
         embed = self._template_info(template)
+        embed.add_field(name="Uses", value=template.get("used") or 0)
         await ctx.send(embed=embed)
 
     def _template_info(self, template):
@@ -260,7 +261,7 @@ class Templates(cmd.Cog):
 
         return embed
 
-    @template.command(aliases=["ls"])
+    @template.command(aliases=["ls", "search"])
     async def list(self, ctx, *, keywords=""):
         await ctx.db.templates.create_index([("description", pymongo.TEXT), ("_id", pymongo.TEXT)])
         args = {
