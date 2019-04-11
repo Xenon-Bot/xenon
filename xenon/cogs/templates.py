@@ -121,7 +121,7 @@ class Templates(cmd.Cog):
 
         try:
             user = await self.bot.fetch_user(template["creator"])
-            await user.send(**self.bot.em(f"Your **template `{template['_id']}` got approved**.", type="success"))
+            await user.send(**self.bot.em(f"Your **template `{template['_id']}` got approved**.", type="info"))
         except:
             pass
 
@@ -147,12 +147,13 @@ class Templates(cmd.Cog):
         await self._feature(template, state=feature)
 
     async def _feature(self, template, *args, state=True):
-        await self.bot.db.templates.update_one({"_id": template["_id"]}, {"$set": {"featured": state, "approved": True}})
+        await self.bot.db.templates.update_one({"_id": template["_id"]},
+                                               {"$set": {"featured": state, "approved": True}})
         await self.featured_webhook.send(embed=self._template_info(template))
 
         try:
             user = await self.bot.fetch_user(template["creator"])
-            await user.send(**self.bot.em(f"Your **template `{template['_id']}` got featured**!", type="success"))
+            await user.send(**self.bot.em(f"Your **template `{template['_id']}` got featured**!", type="info"))
         except:
             pass
 
@@ -336,7 +337,9 @@ class Templates(cmd.Cog):
 
         templates = self.bot.db.templates.find(**args)
         async for template in templates:
-            emb.add_field(name=template["_id"], value=template["description"])
+            emb.add_field(name=template["_id"],
+                          value=template["description"] if len(template["description"]) > 0 else "No description",
+                          inline=False)
 
         if len(emb.fields) == 0:
             emb.description += "\nNo templates to display"
