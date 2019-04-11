@@ -2,7 +2,7 @@ from os import environ as env
 
 
 token = env.get('TOKEN')
-# shard_count and shard_ids can be overwritten by Command Line Arguments
+# shard_count and shard_ids can be overridden by Command Line Arguments
 shard_count = None  # ~ guilds // 1000
 shard_ids = None
 
@@ -14,16 +14,20 @@ extensions = [
     "cogs.admin",
     "cogs.backups",
     "cogs.templates",
-    "cogs.sharding",
-    "cogs.blacklist",
+    "cogs.users",
     "cogs.basics",
+    "cogs.sharding",
     "cogs.stats"
 ]
 
-support_guild = 410488579140354049
-update_channel = 526897380595859456
+db_host = env.get('DB_HOST') or 'localhost'
 
-self_host = True
-# The options below are not required if "self_host" is enabled
+support_guild = 410488579140354049
+owner_id = 386861188891279362
+
+template_approval_channel = 565845836529926144
+template_list = env.get('TEMPLATE_LIST')
+template_approval = env.get('TEMPLATE_APPROVAL')
+template_featured = env.get('TEMPLATE_FEATURED')
 
 dbl_token = env.get('DBL_TOKEN')

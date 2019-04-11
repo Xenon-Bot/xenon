@@ -2,7 +2,6 @@ import asyncio
 import sys
 import getopt
 
-from utils import database
 from bot import Xenon
 
 
@@ -20,7 +19,6 @@ async def prepare_bot(loop):
 
         arguments[opt] = arg
 
-    await database.setup()
     bot = Xenon(loop=loop, **arguments)
 
     return bot

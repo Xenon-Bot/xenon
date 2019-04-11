@@ -6,9 +6,9 @@ services:
     env_file:
      - xenon.env
     depends_on:
-      - "rethinkdb"
-  rethinkdb:
-    image: "rethinkdb:2.3.6"
+      - "mongodb"
+  mongodb:
+    image: "mongo:4.0.8-xenial"
     restart: unless-stopped
     expose:
-     - "28015"
+     - "27017"
