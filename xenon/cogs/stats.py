@@ -30,12 +30,11 @@ class Stats(cmd.Cog):
         await self.bot.wait_until_ready()
         while not self.bot.is_closed():
             try:
-                for shard_id, latency in self.bot.latencies:
-                    await self.bot.change_presence(activity=discord.Activity(
-                        name=f"Shard {shard_id} | {self.bot.config.prefix}help",
-                        type=discord.ActivityType.watching,
-                        shard_id=shard_id
-                    ), afk=False)
+                guilds = await self.bot.get_guild_count()
+                await self.bot.change_presence(activity=discord.Activity(
+                    name=f"{helpers.format_number(guilds)} Guilds | {self.bot.config.prefix}help",
+                    type=discord.ActivityType.watching
+                ), afk=False)
 
                 if self.bot.config.dbl_token and self.bot.is_primary_shard():
                     await self.update_discordbots_org()
