@@ -171,28 +171,29 @@ class Templates(cmd.Cog):
         if template is None:
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
-        await self._delete(template, ctx.author)
-        await ctx.send(**ctx.em("Successfully **deleted template**.", type="success"))
+        await self._delete(template, ctx.author, ctx.channel)
+        await ctx.send(**ctx.em("Successfully **deleted/denied template**.", type="success"))
 
-    async def _delete(self, template, reason_target, *args):
+    async def _delete(self, template, user, channel):
         try:
-            question = await reason_target.send(
+            question = await channel.send(
                 **self.bot.em(f"Why do you want to delete/deny the template `{template['_id']}`?", type="wait_for"))
-            user = await self.bot.fetch_user(template["creator"])
+            creator = await self.bot.fetch_user(template["creator"])
             reason = ""
 
             try:
                 msg = await self.bot.wait_for("message",
-                                              check=lambda m: question.channel.id == m.channel.id,
+                                              check=lambda m: question.channel.id == m.channel.id and user.id == m.author.id,
                                               timeout=120)
-                await question.channel.send(**self.bot.em("Successfully deleted/denied template.", type="success"))
                 reason = f"```{msg.content}```"
+                await msg.delete()
 
             except TimeoutError:
                 await question.delete()
 
             finally:
-                await user.send(
+                await question.delete()
+                await creator.send(
                     **self.bot.em(f"Your **template `{template['_id']}` got denied**.\n{reason}",
                                   type="info"))
 
@@ -348,7 +349,8 @@ class Templates(cmd.Cog):
 
     @cmd.Cog.listener()
     async def on_message(self, msg):
-        if msg.channel.id == self.bot.config.template_approval_channel and msg.author.bot:
+        if msg.channel.id == self.bot.config.template_approval_channel and msg.author.discriminator == "0000":
+            print(msg.author.discriminator == "0000")
             for emoji in self.approval_options.keys():
                 await msg.add_reaction(emoji)
 
@@ -374,7 +376,7 @@ class Templates(cmd.Cog):
             if template is None:
                 return
 
-            await action(template, user)
+            await action(template, user, channel)
             await message.delete()
 
 
