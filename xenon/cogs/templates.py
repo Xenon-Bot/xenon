@@ -119,6 +119,12 @@ class Templates(cmd.Cog):
         await self.bot.db.templates.update_one({"_id": template["_id"]}, {"$set": {"approved": True}})
         await self.list_webhook.send(embed=self._template_info(template))
 
+        try:
+            user = await self.bot.fetch_user(template["creator"])
+            await user.send(**self.bot.em(f"Your **template `{template['_id']}` got approved**.", type="success"))
+        except:
+            pass
+
     @template.command(aliases=["unfeature"])
     @checks.has_role_on_support_guild("Staff")
     async def feature(self, ctx, *, template_name):
@@ -143,6 +149,12 @@ class Templates(cmd.Cog):
     async def _feature(self, template, *args, state=True):
         await self.bot.db.templates.update_one({"_id": template["_id"]}, {"$set": {"featured": state, "approved": True}})
         await self.featured_webhook.send(embed=self._template_info(template))
+
+        try:
+            user = await self.bot.fetch_user(template["creator"])
+            await user.send(**self.bot.em(f"Your **template `{template['_id']}` got featured**!", type="success"))
+        except:
+            pass
 
     @template.command(aliases=["del", "rm", "remove", "deny"])
     @checks.has_role_on_support_guild("Staff")
@@ -170,9 +182,9 @@ class Templates(cmd.Cog):
 
             try:
                 msg = await self.bot.wait_for("message",
-                                              check=lambda m: not m.author.bot and question.channel.id == m.channel.id,
+                                              check=lambda m: question.channel.id == m.channel.id,
                                               timeout=120)
-                await reason_target.send(**self.bot.em("Successfully deleted template.", type="success"))
+                await question.channel.send(**self.bot.em("Successfully deleted/denied template.", type="success"))
                 reason = f"```{msg.content}```"
 
             except TimeoutError:
@@ -263,7 +275,7 @@ class Templates(cmd.Cog):
 
     @template.command(aliases=["ls", "search"])
     async def list(self, ctx, *, keywords=""):
-        await ctx.db.templates.create_index([("description", pymongo.TEXT), ("_id", pymongo.TEXT)])
+        # await ctx.db.templates.create_index([("description", pymongo.TEXT), ("_id", pymongo.TEXT)])
         args = {
             "limit": 10,
             "skip": 0,
