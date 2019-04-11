@@ -277,6 +277,12 @@ class Templates(cmd.Cog):
 
     @template.command(aliases=["ls", "search"])
     async def list(self, ctx, *, keywords=""):
+        """
+        Get a list of public templates
+
+
+        keywords ::    Keywords to search for. Make sure to include non stop-words
+        """
         # await ctx.db.templates.create_index([("description", pymongo.TEXT), ("_id", pymongo.TEXT)])
         args = {
             "limit": 10,

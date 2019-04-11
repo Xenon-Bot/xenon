@@ -20,6 +20,8 @@ extensions = [
     "cogs.stats"
 ]
 
+db_host = env.get('DB_HOST') or 'localhost'
+
 support_guild = 410488579140354049
 owner_id = 386861188891279362
 

@@ -1,7 +1,5 @@
 from aiohttp import ClientSession
 from discord.ext import commands as cmd
-import sys
-import traceback
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from utils import formatter, logger
@@ -9,7 +7,8 @@ from utils.extended import Context
 
 
 class Xenon(cmd.AutoShardedBot):
-    db = AsyncIOMotorClient().xenon
+    session = None
+    db = None
 
     def __init__(self, **kwargs):
         super().__init__(command_prefix=self._prefix_callable,
@@ -18,6 +17,7 @@ class Xenon(cmd.AutoShardedBot):
                          owner_id=self.config.owner_id)
 
         self.session = ClientSession(loop=self.loop)
+        self.db = AsyncIOMotorClient(host=self.config.db_host).xenon
         for ext in self.config.extensions:
             self.load_extension(ext)
 
