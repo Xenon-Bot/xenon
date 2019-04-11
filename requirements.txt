@@ -4,4 +4,4 @@ prettytable
 pytz>=2017.3
 psutil>=5.4.2
 git+https://github.com/Merlintor/discord-backups.git
-discord.py==1.0.0
+discord.py==1.0.1
