@@ -261,7 +261,7 @@ class Templates(cmd.Cog):
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
         embed = self._template_info(template)
-        embed.add_field(name="Uses", value=template.get("used") or 0)
+        embed._fields.insert(1, {"name": "Uses", "value": str(template.get("used") or 0), "inline": True})
         await ctx.send(embed=embed)
 
     def _template_info(self, template):
