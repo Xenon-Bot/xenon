@@ -276,6 +276,7 @@ class Templates(cmd.Cog):
         return embed
 
     @template.command(aliases=["ls", "search"])
+    @cmd.cooldown(1, 10, cmd.BucketType.user)
     async def list(self, ctx, *, keywords=""):
         """
         Get a list of public templates
