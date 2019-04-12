@@ -75,8 +75,6 @@ class Basics(cmd.Cog):
             "You can find **more information** about the subscription and a **detailed list of perks** [here](https://docs.discord.club/xenon/how-to/xenon-pro).",
             type="info"
         ))
-        if ctx.bot.user.id == 524652984425250847:
-            await ctx.invoke(self.bot.get_command("help"), "Pro")
 
     @cmd.Cog.listener()
     async def on_guild_join(self, guild):
