@@ -36,7 +36,7 @@ class Stats(cmd.Cog):
                     type=discord.ActivityType.watching
                 ), afk=False)
 
-                if self.bot.config.dbl_token and self.bot.is_primary_shard():
+                if self.bot.config.dbl_token is not None and self.bot.is_primary_shard():
                     await self.update_discordbots_org()
 
             except:
