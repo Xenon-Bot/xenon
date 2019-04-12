@@ -52,7 +52,7 @@ class Backups(cmd.Cog):
     @cmd.guild_only()
     @cmd.has_permissions(administrator=True)
     @cmd.bot_has_permissions(administrator=True)
-    @cmd.cooldown(1, 1 * 60, cmd.BucketType.guild)
+    @cmd.cooldown(1, 3 * 60, cmd.BucketType.guild)
     async def create(self, ctx):
         """
         Create a backup
