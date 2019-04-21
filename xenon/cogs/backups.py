@@ -161,6 +161,74 @@ class Backups(cmd.Cog):
         await self._delete_backup(backup_id)
         await ctx.send(**ctx.em("Successfully **deleted backup**.", type="success"))
 
+    @backup.command(aliases=["ls"])
+    @cmd.cooldown(1, 30, cmd.BucketType.user)
+    async def list(self, ctx):
+        """
+        Get a list of your backups
+        """
+        args = {
+            "limit": 10,
+            "skip": 0,
+            "sort": [("timestamp", pymongo.DESCENDING)],
+            "filter": {
+                "creator": ctx.author.id,
+            }
+        }
+
+        msg = await ctx.send(embed=await self.create_list(args))
+        options = ["◀", "❎", "▶"]
+        for option in options:
+            await msg.add_reaction(option)
+
+        try:
+            while True:
+                reaction, user = await self.bot.wait_for(
+                    "reaction_add",
+                    check=lambda r, u: u.id == ctx.author.id and r.message.id == msg.id and str(r.emoji) in options,
+                    timeout=60
+                )
+
+                emoji = reaction.emoji
+                await msg.remove_reaction(emoji, user)
+
+                if str(emoji) == options[0]:
+                    if args["skip"] > 0:
+                        args["skip"] -= args["limit"]
+                        await msg.edit(embed=await self.create_list(args))
+
+                elif str(emoji) == options[2]:
+                    args["skip"] += args["limit"]
+                    await msg.edit(embed=await self.create_list(args))
+
+                else:
+                    raise TimeoutError
+
+        except TimeoutError:
+            try:
+                await msg.clear_reactions()
+
+            except:
+                pass
+
+    async def create_list(self, args):
+        emb = Embed(
+            title="Your Backups",
+            color=0x36393e
+        )
+        emb.set_footer(text=f"Page {args['skip'] // args['limit'] + 1}")
+
+        backups = self.bot.db.backups.find(**args)
+        async for backup in backups:
+            emb.add_field(name=backup["_id"],
+                          value=f"{backup['backup']['name']} (`{helpers.datetime_to_string(backup['timestamp'])}`)",
+                          inline=False)
+
+        if len(emb.fields) == 0:
+            emb.description += "\nNo backups to display"
+
+        return emb
+
     @backup.command(aliases=["i", "inf"])
     @cmd.cooldown(1, 5, cmd.BucketType.user)
     async def info(self, ctx, backup_id):
