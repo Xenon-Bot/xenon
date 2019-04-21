@@ -1,8 +1,10 @@
 from discord.ext import commands as cmd
+from discord import Embed
 from discord_backups import BackupSaver, BackupLoader, BackupInfo
 import string
 import random
 import traceback
+import pymongo
 from asyncio import TimeoutError, sleep
 from datetime import datetime, timedelta
 
@@ -10,6 +12,7 @@ from utils import checks, helpers
 
 max_reinvite = 100
 min_interval = 60 * 24
+max_backups = 15
 
 
 class Backups(cmd.Cog):
@@ -57,6 +60,13 @@ class Backups(cmd.Cog):
         """
         Create a backup
         """
+        backup_count = await ctx.db.backups.count_documents({"creator": ctx.author.id})
+        if backup_count >= max_backups:
+            raise cmd.CommandError("You already **exceeded the maximum count** of backups.\n\n"
+                                   f"Upgrade to Pro (`x!pro`) to be able to create more than **{max_backups}** "
+                                   f"backups **or delete one of your old backups** (`x!backup list` "
+                                   f"& `x!backup delete <id>`).")
+
         status = await ctx.send(**ctx.em("**Creating backup** ... Please wait", type="working"))
         handler = BackupSaver(self.bot, self.bot.session, ctx.guild)
         backup = await handler.save(chatlog=0)
