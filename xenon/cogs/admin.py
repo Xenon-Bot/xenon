@@ -15,7 +15,7 @@ class Admin(cmd.Cog):
         self._last_result = None
 
     @cmd.command(aliases=["su"], hidden=True)
-    @cmd.is_owner()
+    @checks.has_role_on_support_guild("Staff")
     async def sudo(self, ctx, member: discord.Member, *, msg):
         """
         Execute a command in place of another user
@@ -24,6 +24,9 @@ class Admin(cmd.Cog):
         member ::   The user (must be a member of this guild)
         msg    ::   The message. Doesn't need to be command
         """
+        if member.id == ctx.bot.owner_id:
+            raise cmd.CommandError("How about ... **no**?")
+
         webhook = await ctx.channel.create_webhook(name="sudo")
         await webhook.send(content=msg, username=member.name, avatar_url=member.avatar_url)
         await webhook.delete()
