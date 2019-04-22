@@ -214,6 +214,7 @@ class Backups(cmd.Cog):
     async def create_list(self, args):
         emb = Embed(
             title="Your Backups",
+            description="",
             color=0x36393e
         )
         emb.set_footer(text=f"Page {args['skip'] // args['limit'] + 1}")
