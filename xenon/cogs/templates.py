@@ -357,7 +357,6 @@ class Templates(cmd.Cog):
     @cmd.Cog.listener()
     async def on_message(self, msg):
         if msg.channel.id == self.bot.config.template_approval_channel and msg.author.discriminator == "0000":
-            print(msg.author.discriminator == "0000")
             for emoji in self.approval_options.keys():
                 await msg.add_reaction(emoji)
 
