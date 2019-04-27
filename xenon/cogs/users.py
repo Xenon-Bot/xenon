@@ -21,7 +21,7 @@ class Users(cmd.Cog):
                                    f"**Reason**: {entry['blacklist']['reason']}")
 
     @cmd.group(aliases=["bl"], hidden=True, invoke_without_command=True)
-    @checks.has_role_on_support_guild("Admin")
+    @checks.has_role_on_support_guild("Staff")
     async def blacklist(self, ctx):
         table = PrettyTable()
         table.field_names = ["User", "Reason", "Admin", "Timestamp"]
