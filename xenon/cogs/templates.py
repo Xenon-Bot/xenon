@@ -261,7 +261,7 @@ class Templates(cmd.Cog):
             raise cmd.CommandError(f"There is **no template** with the name `{template_name}`.")
 
         embed = self._template_info(template)
-        embed.add_field(name="Uses", value=template.get("used") or 0)
+        embed._fields.insert(1, {"name": "Uses", "value": str(template.get("used") or 0), "inline": True})
         await ctx.send(embed=embed)
 
     def _template_info(self, template):
@@ -276,6 +276,7 @@ class Templates(cmd.Cog):
         return embed
 
     @template.command(aliases=["ls", "search"])
+    @cmd.cooldown(1, 10, cmd.BucketType.user)
     async def list(self, ctx, *, keywords=""):
         """
         Get a list of public templates
@@ -356,7 +357,6 @@ class Templates(cmd.Cog):
     @cmd.Cog.listener()
     async def on_message(self, msg):
         if msg.channel.id == self.bot.config.template_approval_channel and msg.author.discriminator == "0000":
-            print(msg.author.discriminator == "0000")
             for emoji in self.approval_options.keys():
                 await msg.add_reaction(emoji)
 

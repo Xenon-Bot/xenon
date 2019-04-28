@@ -17,7 +17,7 @@ extensions = [
     "cogs.users",
     "cogs.basics",
     "cogs.sharding",
-    "cogs.stats"
+    "cogs.botlist"
 ]
 
 db_host = env.get('DB_HOST') or 'localhost'

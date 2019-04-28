@@ -1,8 +1,10 @@
 from discord.ext import commands as cmd
+from discord import Embed
 from discord_backups import BackupSaver, BackupLoader, BackupInfo
 import string
 import random
 import traceback
+import pymongo
 from asyncio import TimeoutError, sleep
 from datetime import datetime, timedelta
 
@@ -10,6 +12,7 @@ from utils import checks, helpers
 
 max_reinvite = 100
 min_interval = 60 * 24
+max_backups = 15
 
 
 class Backups(cmd.Cog):
@@ -52,11 +55,18 @@ class Backups(cmd.Cog):
     @cmd.guild_only()
     @cmd.has_permissions(administrator=True)
     @cmd.bot_has_permissions(administrator=True)
-    @cmd.cooldown(1, 1 * 60, cmd.BucketType.guild)
+    @cmd.cooldown(1, 3 * 60, cmd.BucketType.guild)
     async def create(self, ctx):
         """
         Create a backup
         """
+        backup_count = await ctx.db.backups.count_documents({"creator": ctx.author.id})
+        if backup_count >= max_backups:
+            raise cmd.CommandError("You already **exceeded the maximum count** of backups.\n\n"
+                                   f"Upgrade to Pro (`x!pro`) to be able to create more than **{max_backups}** "
+                                   f"backups **or delete one of your old backups** (`x!backup list` "
+                                   f"& `x!backup delete <id>`).")
+
         status = await ctx.send(**ctx.em("**Creating backup** ... Please wait", type="working"))
         handler = BackupSaver(self.bot, self.bot.session, ctx.guild)
         backup = await handler.save(chatlog=0)
@@ -150,6 +160,75 @@ class Backups(cmd.Cog):
 
         await self._delete_backup(backup_id)
         await ctx.send(**ctx.em("Successfully **deleted backup**.", type="success"))
+
+    @backup.command(aliases=["ls"])
+    @cmd.cooldown(1, 30, cmd.BucketType.user)
+    async def list(self, ctx):
+        """
+        Get a list of your backups
+        """
+        args = {
+            "limit": 10,
+            "skip": 0,
+            "sort": [("timestamp", pymongo.DESCENDING)],
+            "filter": {
+                "creator": ctx.author.id,
+            }
+        }
+
+        msg = await ctx.send(embed=await self.create_list(args))
+        options = ["◀", "❎", "▶"]
+        for option in options:
+            await msg.add_reaction(option)
+
+        try:
+            while True:
+                reaction, user = await self.bot.wait_for(
+                    "reaction_add",
+                    check=lambda r, u: u.id == ctx.author.id and r.message.id == msg.id and str(r.emoji) in options,
+                    timeout=60
+                )
+
+                emoji = reaction.emoji
+                await msg.remove_reaction(emoji, user)
+
+                if str(emoji) == options[0]:
+                    if args["skip"] > 0:
+                        args["skip"] -= args["limit"]
+                        await msg.edit(embed=await self.create_list(args))
+
+                elif str(emoji) == options[2]:
+                    args["skip"] += args["limit"]
+                    await msg.edit(embed=await self.create_list(args))
+
+                else:
+                    raise TimeoutError
+
+        except TimeoutError:
+            try:
+                await msg.clear_reactions()
+
+            except:
+                pass
+
+    async def create_list(self, args):
+        emb = Embed(
+            title="Your Backups",
+            description="",
+            color=0x36393e
+        )
+        emb.set_footer(text=f"Page {args['skip'] // args['limit'] + 1}")
+
+        backups = self.bot.db.backups.find(**args)
+        async for backup in backups:
+            emb.add_field(name=backup["_id"],
+                          value=f"{backup['backup']['name']} (`{helpers.datetime_to_string(backup['timestamp'])}`)",
+                          inline=False)
+
+        if len(emb.fields) == 0:
+            emb.description += "\nNo backups to display"
+
+        return emb
 
     @backup.command(aliases=["i", "inf"])
     @cmd.cooldown(1, 5, cmd.BucketType.user)
