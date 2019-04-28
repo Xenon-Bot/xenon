@@ -2,6 +2,7 @@ from discord.ext import commands as cmd
 from aioinflux import InfluxDBClient
 import traceback
 import asyncio
+import discord
 
 
 class Botlist(cmd.Cog):
@@ -27,12 +28,20 @@ class Botlist(cmd.Cog):
 
     @cmd.Cog.listener()
     async def on_message(self, msg):
-        shard_id = msg.channel.guild.shard_id
+        if not isinstance(msg.channel, discord.TextChannel):
+            shard_id = msg.channel.guild.shard_id
+        else:
+            shard_id = 0
+
         self.stats[shard_id]["messagesPerMinute"] += 1
 
     @cmd.Cog.listener()
     async def on_command(self, ctx):
-        shard_id = ctx.guild.shard_id
+        if not isinstance(ctx.channel, discord.TextChannel):
+            shard_id = ctx.channel.guild.shard_id
+        else:
+            shard_id = 0
+
         self.stats[shard_id]["commandsPerMinute"] += 1
 
     @cmd.Cog.listener()
