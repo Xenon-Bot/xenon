@@ -133,7 +133,7 @@ class Backups(cmd.Cog):
                 "channels": True,
                 "roles": True,
                 "bans": True,
-                "members": False,
+                "members": True,
                 "settings": True
             }
 
