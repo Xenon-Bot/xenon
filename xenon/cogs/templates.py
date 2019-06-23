@@ -62,7 +62,7 @@ class Templates(cmd.Cog):
         warning = await ctx.send(**ctx.em(
             "Are you sure you want to turn this backup into a template?\n\n"
             "Templates must not be a copy of your server, they are for **public use** and must be generic. "
-            "Use `x!backup load` if you just want to load or clone your server.**",
+            "Use `x!backup load` if you just want to load or clone your server.",
             type="warning"
         ))
         await warning.add_reaction("✅")
