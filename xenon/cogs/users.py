@@ -44,7 +44,8 @@ class Users(cmd.Cog):
 
     @blacklist.command()
     @checks.has_role_on_support_guild("Admin")
-    async def add(self, ctx, user: discord.User, *, reason):
+    async def add(self, ctx, user_id: int, *, reason):
+        user = await ctx.bot.fetch_user(user_id)
         await ctx.db.users.update_one({"id": user.id}, {"$set": {
             "_id": user.id,
             "blacklist": {
