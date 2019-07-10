@@ -114,7 +114,10 @@ class Backups(cmd.Cog):
             )
 
         warning = await ctx.send(
-            **ctx.em("Are you sure you want to load this backup? **All channels and roles will get replaced!**",
+            **ctx.em("Are you sure you want to load this backup? "
+                     "**All channels and roles will get deleted** and reconstructed from the backup!\n"
+                     "**Messages will not get loaded** and will be lost, use "
+                     "[Xenon Pro](https://www.patreon.com/merlinfuchs) to load up to 25 messages per channel.",
                      type="warning"))
         await warning.add_reaction("✅")
         await warning.add_reaction("❌")
