@@ -57,6 +57,9 @@ class Templates(cmd.Cog):
                 f"There is **already a template with that name**, please choose another one."
             )
 
+        if len(description) < 30:
+            raise cmd.CommandError("The template description must be **at least 30 characters** long.")
+
         backup["backup"]["members"] = []
 
         warning = await ctx.send(**ctx.em(
