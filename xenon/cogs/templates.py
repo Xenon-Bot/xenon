@@ -25,7 +25,8 @@ class Templates(cmd.Cog):
         self.approval_options = {
             "✅": self._approve,
             "⭐": self._feature,
-            "⛔": self._delete
+            "⛔": self._delete,
+            "❔": self._delete_insufficient
         }
 
     @cmd.group(aliases=["temp"], invoke_without_command=True)
@@ -205,6 +206,19 @@ class Templates(cmd.Cog):
                     **self.bot.em(f"Your **template `{template['_id']}` got denied**.\n{reason}",
                                   type="info"))
 
+        except:
+            pass
+
+        finally:
+            await self.bot.db.templates.delete_one({"_id": template["_id"]})
+
+    async def _delete_insufficient(self, template, user, channel):
+        try:
+            creator = await self.bot.fetch_user(template["creator"])
+            reason = "Insufficient name and/or description, please fill them in and resubmit again."
+            await creator.send(
+                **self.bot.em(f"Your **template `{template['_id']}` got denied**.```\n{reason}```",
+                              type="info"))
         except:
             pass
 
