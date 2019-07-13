@@ -43,9 +43,11 @@ class Basics(cmd.Cog):
     @cmd.command()
     async def invite(self, ctx):
         """Invite Xenon"""
-        await ctx.send(**ctx.em(
-            "**Invite Xenon**\n\n[Xenon](https://discord.club/invite/xenon)\n[Xenon Pro](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot) Use `x!pro` to get more information.",
-            type="info"))
+        await ctx.send(**ctx.em("**Invite Xenon**\n\n"
+                                "[Xenon](https://discord.club/invite/xenon)\n"
+                                "[Xenon Pro](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot) Use `x!pro` to get more information.\n"
+                                "[Xenon Turbo](https://discordapp.com/api/oauth2/authorize?client_id=598534174894194719&permissions=8&scope=bot)",
+                                type="info"))
 
     @cmd.command(aliases=["i", "stats", "status"])
     @cmd.cooldown(1, 10, cmd.BucketType.user)
