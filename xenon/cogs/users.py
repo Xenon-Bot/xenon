@@ -23,8 +23,12 @@ class Users(cmd.Cog):
     @checks.has_role_on_support_guild("Staff")
     async def blacklist(self, ctx):
         embed = ctx.em("", type="info", title="Blacklist")["embed"]
-        blacklist = ctx.db.blacklist.find({"blacklist.state": True})
-        async for entry in blacklist:
+        count = await ctx.db.users.count_documents({"blacklist.state": True})
+        blacklist = await ctx.db.users.find({"blacklist.state": True}).to_list(count)
+        if len(blacklist) == 0:
+            await ctx.send(**ctx.em("The blacklist is empty", type="info"))
+
+        for entry in blacklist:
             user = await self.bot.fetch_user(entry["_id"])
             embed.add_field(name=f"{user} ({user.id})", value=f"```{entry['blacklist']['reason']}```")
             if len(embed.fields) == 10:
