@@ -3,7 +3,6 @@ from discord_backups import BackupInfo, BackupLoader
 import pymongo
 from discord import Embed, Webhook, AsyncWebhookAdapter
 from asyncio import TimeoutError
-import traceback
 
 from utils import checks
 
@@ -26,7 +25,9 @@ class Templates(cmd.Cog):
             "✅": self._approve,
             "⭐": self._feature,
             "⛔": self._delete,
-            "❔": self._delete_insufficient
+            "❔": self._delete_because("Insufficient name and/or description, please fill them in and resubmit again."),
+            "🙅": self._delete_because("Not a template, just a copy of your server, use a backup instead. "
+                                      "Templates are for everyone, not specifically for you, they must be generic.")
         }
 
     @cmd.group(aliases=["temp"], invoke_without_command=True)
@@ -212,18 +213,20 @@ class Templates(cmd.Cog):
         finally:
             await self.bot.db.templates.delete_one({"_id": template["_id"]})
 
-    async def _delete_insufficient(self, template, user, channel):
-        try:
-            creator = await self.bot.fetch_user(template["creator"])
-            reason = "Insufficient name and/or description, please fill them in and resubmit again."
-            await creator.send(
-                **self.bot.em(f"Your **template `{template['_id']}` got denied**.```\n{reason}```",
-                              type="info"))
-        except:
-            pass
+    def _delete_because(self, reason):
+        async def predicate(self, template, user, channel):
+            try:
+                creator = await self.bot.fetch_user(template["creator"])
+                await creator.send(
+                    **self.bot.em(f"Your **template `{template['_id']}` got denied**.```\n{reason}```",
+                                  type="info"))
+            except:
+                pass
 
-        finally:
-            await self.bot.db.templates.delete_one({"_id": template["_id"]})
+            finally:
+                await self.bot.db.templates.delete_one({"_id": template["_id"]})
+
+        return predicate
 
     @template.command(aliases=["l"])
     @cmd.guild_only()
