@@ -214,7 +214,7 @@ class Templates(cmd.Cog):
             await self.bot.db.templates.delete_one({"_id": template["_id"]})
 
     def _delete_because(self, reason):
-        async def predicate(self, template, user, channel):
+        async def predicate(template, user, channel):
             try:
                 creator = await self.bot.fetch_user(template["creator"])
                 await creator.send(
