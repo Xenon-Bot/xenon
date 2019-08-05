@@ -106,12 +106,7 @@ class Backups(cmd.Cog):
         backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
         if backup is None or backup.get("creator") != ctx.author.id:
-            raise cmd.CommandError(
-                f"You have **no backup** with the id `{backup_id}`.\n\n"
-                f"If you created the backup **before 11th April 2019** please join the [support server]"
-                f"(https://discord.club/discord) and dm **Merlintor#6111** to get your backup converted"
-                f" to the new database"
-            )
+            raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
 
         warning = await ctx.send(
             **ctx.em("Are you sure you want to load this backup? "
@@ -249,12 +244,7 @@ class Backups(cmd.Cog):
         backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
         if backup is None or backup.get("creator") != ctx.author.id:
-            raise cmd.CommandError(
-                f"You have **no backup** with the id `{backup_id}`.\n\n"
-                f"If you created the backup **before 11th April 2019** please join the [support server]"
-                f"(https://discord.club/discord) and dm **Merlintor#6111** to get your backup converted"
-                f" to the new database"
-            )
+            raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
 
         handler = BackupInfo(self.bot, backup["backup"])
         embed = ctx.em("")["embed"]
