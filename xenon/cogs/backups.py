@@ -19,9 +19,10 @@ class Backups(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.to_backup = []
+        self.interval_task = bot.loop.create_task(self.interval_loop())
 
-        if getattr(bot, "backup_interval", None) is None:
-            bot.backup_interval = bot.loop.create_task(self.interval_loop())
+    def cog_unload(self):
+        self.interval_task.cancel()
 
     async def _get_backup(self, id):
         return await self.bot.db.backups.find_one({"_id": id})
