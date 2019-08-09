@@ -6,6 +6,7 @@ spec:
   selector:
     matchLabels:
       app: xenon
+  serviceName: "xenon"
   replicas: 4
   template:
     metadata:
