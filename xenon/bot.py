@@ -17,7 +17,11 @@ class Xenon(cmd.AutoShardedBot):
                          owner_id=self.config.owner_id)
 
         self.session = ClientSession(loop=self.loop)
-        self.db = AsyncIOMotorClient(host=self.config.db_host).xenon
+        self.db = AsyncIOMotorClient(
+            host=self.config.db_host,
+            username=self.config.db_user,
+            password=self.config.db_password
+        ).xenon
         for ext in self.config.extensions:
             self.load_extension(ext)
 

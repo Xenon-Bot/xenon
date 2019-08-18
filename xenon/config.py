@@ -1,5 +1,8 @@
 from os import environ as env
 
+db_host = env.get('DB_HOST') or "localhost"
+db_user = env.get('DB_USER')
+db_password = env.get('DB_PASSWORD')
 
 token = env.get('TOKEN')
 # shard_count and shard_ids can be overridden by Command Line Arguments
@@ -19,8 +22,6 @@ extensions = [
     "cogs.sharding",
     "cogs.botlist"
 ]
-
-db_host = env.get('DB_HOST') or 'localhost'
 
 support_guild = 410488579140354049
 owner_id = 386861188891279362
