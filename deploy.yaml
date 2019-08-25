@@ -31,7 +31,7 @@ spec:
         - secretRef:
             name: dbcred
         env:
-        - name: SHARD
+        - name: POD_ID
           value: ${HOSTNAME##*-}
         ports:
         - name: api

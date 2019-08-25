@@ -10,11 +10,17 @@ class Xenon(cmd.AutoShardedBot):
     session = None
     db = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(command_prefix=self._prefix_callable,
-                         shard_count=kwargs.get("shard_count") or self.config.shard_count,
-                         shard_ids=kwargs.get("shard_ids") or self.config.shard_ids,
-                         owner_id=self.config.owner_id)
+                         shard_count=self.config.shard_count,
+                         shard_ids=[
+                             i for i in range(
+                                 self.config.pod_id * self.config.shards_per_pod,
+                                 (self.config.pod_id + 1) * self.config.shards_per_pod
+                             )
+                         ],
+                         owner_id=self.config.owner_id,
+                         *args, **kwargs)
 
         self.session = ClientSession(loop=self.loop)
         self.db = AsyncIOMotorClient(

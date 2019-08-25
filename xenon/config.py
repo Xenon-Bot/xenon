@@ -5,9 +5,9 @@ db_user = env.get('DB_USER')
 db_password = env.get('DB_PASSWORD')
 
 token = env.get('TOKEN')
-# shard_count and shard_ids can be overridden by Command Line Arguments
-shard_count = None  # ~ guilds // 1000
-shard_ids = None
+shard_count = int(env.get('SHARD_COUNT') or 1)
+shards_per_pod = int(env.get('SHARDS_PER_POD') or 1)
+pod_id = int(env.get("POD_ID") or 0)
 
 prefix = "#!"
 

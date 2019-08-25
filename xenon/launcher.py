@@ -1,27 +1,10 @@
 import asyncio
-import sys
-import getopt
 
 from bot import Xenon
 
 
-async def prepare_bot(loop):
-    opts, args = getopt.getopt(sys.argv[1:], "", ["shard_count=", "shard_ids="])
-
-    arguments = {}
-    for opt, arg in opts:
-        opt = opt.strip("-")
-        if opt == "shard_count":
-            arg = int(arg)
-
-        if opt == "shard_ids":
-            arg = [int(id) for id in arg.split(",")]
-
-        arguments[opt] = arg
-
-    bot = Xenon(loop=loop, **arguments)
-
-    return bot
+async def prepare_bot(_loop):
+    return Xenon(loop=_loop)
 
 
 if __name__ == "__main__":
