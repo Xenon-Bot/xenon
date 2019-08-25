@@ -27,6 +27,17 @@ spec:
         image: alpine:3.8
         command: ["/bin/sh","-c"]
         args: ["echo shard ${HOSTNAME##*-}; sleep 3000"]
+        ports:
+        - name: api
+          containerPort: 8080
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: api
+            initialDelaySeconds: 1800
+            periodSeconds: 60
+            failureThreshold: 3
         resources:
           requests:
             memory: 512Mi
