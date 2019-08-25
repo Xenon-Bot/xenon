@@ -30,9 +30,6 @@ spec:
             name: xenon
         - secretRef:
             name: dbcred
-        env:
-        - name: POD_ID
-          value: ${{HOSTNAME##*-}}
         ports:
         - name: api
           containerPort: 9090

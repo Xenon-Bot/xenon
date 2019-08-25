@@ -8,6 +8,7 @@ token = env.get('TOKEN')
 shard_count = int(env.get('SHARD_COUNT') or 1)
 shards_per_pod = int(env.get('SHARDS_PER_POD') or 1)
 pod_id = int(env.get("POD_ID") or 0)
+print(env.get("HOSTNAME"))
 
 prefix = "#!"
 
