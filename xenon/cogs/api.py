@@ -17,7 +17,7 @@ class Api(cmd.Cog):
 
     async def start_app(self):
         await self.runner.setup()
-        site = web.TCPSite(self.runner, host='localhost', port=80)
+        site = web.TCPSite(self.runner, host='localhost', port=8080)
         await site.start()
 
     async def health(self, request):
