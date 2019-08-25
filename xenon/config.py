@@ -20,7 +20,8 @@ extensions = [
     "cogs.users",
     "cogs.basics",
     "cogs.sharding",
-    "cogs.botlist"
+    "cogs.botlist",
+    "cogs.api"
 ]
 
 support_guild = 410488579140354049
