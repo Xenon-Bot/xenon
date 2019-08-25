@@ -32,7 +32,7 @@ spec:
             name: dbcred
         env:
         - name: POD_ID
-          value: ${HOSTNAME##*-}
+          value: ${{HOSTNAME##*-}}
         ports:
         - name: api
           containerPort: 9090
