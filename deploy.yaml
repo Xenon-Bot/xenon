@@ -24,9 +24,15 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: xenon
-        image: alpine:3.8
-        command: ["/bin/sh","-c"]
-        args: ["echo shard ${HOSTNAME##*-}; sleep 3000"]
+        image: r.cfcr.io/{{CF_ACCOUNT}}/{{CF_REPO_NAME}}:{{CF_SHORT_REVISION}}
+        envFrom:
+        - configMapRef:
+            name: xenon
+        - secretRef:
+            name: dbcred
+        env:
+        - name: SHARD
+          value: ${HOSTNAME##*-}
         ports:
         - name: api
           containerPort: 8080
