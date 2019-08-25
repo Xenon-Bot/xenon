@@ -30,14 +30,13 @@ spec:
         ports:
         - name: api
           containerPort: 8080
-        
         livenessProbe:
+          initialDelaySeconds: 1800
+          periodSeconds: 60
+          failureThreshold: 3
           httpGet:
             path: /health
             port: api
-            initialDelaySeconds: 1800
-            periodSeconds: 60
-            failureThreshold: 3
         resources:
           requests:
             memory: 512Mi
