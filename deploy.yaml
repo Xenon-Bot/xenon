@@ -35,7 +35,7 @@ spec:
           value: ${HOSTNAME##*-}
         ports:
         - name: api
-          containerPort: 8080
+          containerPort: 9090
         livenessProbe:
           initialDelaySeconds: 1800
           periodSeconds: 60
