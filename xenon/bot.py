@@ -22,7 +22,7 @@ class Xenon(cmd.AutoShardedBot):
                          owner_id=self.config.owner_id,
                          *args, **kwargs)
 
-        self.log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_id]))
+        self.log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
 
         self.session = ClientSession(loop=self.loop)
         self.db = AsyncIOMotorClient(
