@@ -48,3 +48,5 @@ spec:
             memory: 512Mi
           limits:
             memory: 1Gi
+      imagePullSecrets:
+      - name: regcred
