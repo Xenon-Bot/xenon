@@ -15,7 +15,7 @@ spec:
     matchLabels:
       app: xenon
   serviceName: "xenon"
-  replicas: 4
+  replicas: 2
   template:
     metadata:
       labels:
@@ -42,8 +42,8 @@ spec:
             port: api
         resources:
           requests:
-            memory: 512Mi
+            memory: 2Gi
           limits:
-            memory: 1Gi
+            memory: 3Gi
       imagePullSecrets:
       - name: regcred

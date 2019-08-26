@@ -11,7 +11,7 @@ shards_per_pod = int(env.get('SHARDS_PER_POD') or 1)
 _hostname = env.get("HOSTNAME")
 pod_id = int(_hostname.split("-")[-1]) if _hostname is not None else 0
 
-prefix = "#!"
+prefix = "x!"
 
 extensions = [
     "cogs.errors",
