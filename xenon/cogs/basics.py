@@ -1,6 +1,5 @@
 from discord.ext import commands as cmd
 from prettytable import PrettyTable
-import psutil
 from datetime import datetime, timedelta
 
 from utils import formatter, helpers
@@ -62,8 +61,6 @@ class Basics(cmd.Cog):
         embed.add_field(name="Guilds", value=helpers.format_number(await self.bot.get_guild_count()))
         embed.add_field(name="Shards", value=self.bot.shard_count or 1)
         embed.add_field(name="Users", value=helpers.format_number(await self.bot.get_user_count()))
-        embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent()}%")
-        embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
 
         await ctx.send(embed=embed)
 
