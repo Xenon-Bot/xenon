@@ -42,7 +42,6 @@ spec:
             port: api
         resources:
           requests:
-            cpu: 256m
             memory: 512Mi
           limits:
             memory: 768Mi
