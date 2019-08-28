@@ -1,12 +1,17 @@
 from os import environ as env
 
+db_host = env.get('DB_HOST') or "localhost"
+db_user = env.get('DB_USER')
+db_password = env.get('DB_PASSWORD')
 
 token = env.get('TOKEN')
-# shard_count and shard_ids can be overridden by Command Line Arguments
-shard_count = None  # ~ guilds // 1000
-shard_ids = None
+shard_count = int(env.get('SHARD_COUNT') or 1)
+shards_per_pod = int(env.get('SHARDS_PER_POD') or 1)
 
-prefix = "#!"
+_hostname = env.get("HOSTNAME")
+pod_id = int(_hostname.split("-")[-1]) if _hostname is not None else 0
+
+prefix = "x!"
 
 extensions = [
     "cogs.errors",
@@ -17,10 +22,9 @@ extensions = [
     "cogs.users",
     "cogs.basics",
     "cogs.sharding",
-    "cogs.botlist"
+    "cogs.botlist",
+    "cogs.api"
 ]
-
-db_host = env.get('DB_HOST') or 'localhost'
 
 support_guild = 410488579140354049
 owner_id = 386861188891279362

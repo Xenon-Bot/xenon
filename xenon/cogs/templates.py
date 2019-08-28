@@ -2,8 +2,8 @@ from discord.ext import commands as cmd
 from discord_backups import BackupInfo, BackupLoader
 import pymongo
 from discord import Embed, Webhook, AsyncWebhookAdapter
+import discord
 from asyncio import TimeoutError
-import traceback
 
 from utils import checks
 
@@ -25,7 +25,10 @@ class Templates(cmd.Cog):
         self.approval_options = {
             "✅": self._approve,
             "⭐": self._feature,
-            "⛔": self._delete
+            "⛔": self._delete,
+            "❔": self._delete_because("Insufficient name and/or description, please fill them in and resubmit again."),
+            "🙅": self._delete_because("Not a template, just a copy of your server, use a backup instead. "
+                                      "Templates are for everyone, not specifically for you, they must be generic.")
         }
 
     @cmd.group(aliases=["temp"], invoke_without_command=True)
@@ -57,11 +60,17 @@ class Templates(cmd.Cog):
                 f"There is **already a template with that name**, please choose another one."
             )
 
+        if len(description) < 30:
+            raise cmd.CommandError("The template description must be **at least 30 characters** long.")
+
         backup["backup"]["members"] = []
 
-        warning = await ctx.send(
-            **ctx.em("Are you sure you want to turn this backup into a template? **All templates are public!**",
-                     type="warning"))
+        warning = await ctx.send(**ctx.em(
+            "Are you sure you want to turn this backup into a template?\n\n"
+            "Templates must not be a copy of your server, they are for **public use** and must be generic. "
+            "Use `x!backup load` if you just want to load or clone your server.",
+            type="warning"
+        ))
         await warning.add_reaction("✅")
         await warning.add_reaction("❌")
         try:
@@ -182,9 +191,11 @@ class Templates(cmd.Cog):
             reason = ""
 
             try:
-                msg = await self.bot.wait_for("message",
-                                              check=lambda m: question.channel.id == m.channel.id and user.id == m.author.id,
-                                              timeout=120)
+                msg = await self.bot.wait_for(
+                    "message",
+                    check=lambda m: question.channel.id == m.channel.id and user.id == m.author.id,
+                    timeout=120
+                )
                 reason = f"```{msg.content}```"
                 await msg.delete()
 
@@ -202,6 +213,21 @@ class Templates(cmd.Cog):
 
         finally:
             await self.bot.db.templates.delete_one({"_id": template["_id"]})
+
+    def _delete_because(self, reason):
+        async def predicate(template, user, channel):
+            try:
+                creator = await self.bot.fetch_user(template["creator"])
+                await creator.send(
+                    **self.bot.em(f"Your **template `{template['_id']}` got denied**.```\n{reason}```",
+                                  type="info"))
+            except:
+                pass
+
+            finally:
+                await self.bot.db.templates.delete_one({"_id": template["_id"]})
+
+        return predicate
 
     @template.command(aliases=["l"])
     @cmd.guild_only()
@@ -356,6 +382,9 @@ class Templates(cmd.Cog):
 
     @cmd.Cog.listener()
     async def on_message(self, msg):
+        if not isinstance(msg.channel, discord.TextChannel):
+            return
+
         if msg.channel.id == self.bot.config.template_approval_channel and msg.author.discriminator == "0000":
             for emoji in self.approval_options.keys():
                 await msg.add_reaction(emoji)

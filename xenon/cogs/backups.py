@@ -19,9 +19,10 @@ class Backups(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.to_backup = []
+        self.interval_task = bot.loop.create_task(self.interval_loop())
 
-        if getattr(bot, "backup_interval", None) is None:
-            bot.backup_interval = bot.loop.create_task(self.interval_loop())
+    def cog_unload(self):
+        self.interval_task.cancel()
 
     async def _get_backup(self, id):
         return await self.bot.db.backups.find_one({"_id": id})
@@ -109,7 +110,10 @@ class Backups(cmd.Cog):
             raise cmd.CommandError(f"You have **no backup** with the id `{backup_id}`.")
 
         warning = await ctx.send(
-            **ctx.em("Are you sure you want to load this backup? **All channels and roles will get replaced!**",
+            **ctx.em("Are you sure you want to load this backup? "
+                     "**All channels and roles will get deleted** and reconstructed from the backup!\n"
+                     "**Messages will not get loaded** and will be lost, use "
+                     "[Xenon Pro](https://www.patreon.com/merlinfuchs) to load up to 25 messages per channel.",
                      type="warning"))
         await warning.add_reaction("✅")
         await warning.add_reaction("❌")
@@ -133,7 +137,7 @@ class Backups(cmd.Cog):
                 "channels": True,
                 "roles": True,
                 "bans": True,
-                "members": False,
+                "members": True,
                 "settings": True
             }
 
@@ -318,7 +322,7 @@ class Backups(cmd.Cog):
         }}, upsert=True)
 
         embed = ctx.em("Successfully updated the backup interval.\n"
-                       f"Use `x!backup load {ctx.guild.id}` to load the latest automated backup.", type="success")[
+                       f"Use `{ctx.config.prefix}backup load {ctx.guild.id}` to load the latest automated backup.", type="success")[
             "embed"]
         embed.add_field(name="Interval", value=str(timedelta(minutes=minutes)).split(".")[0])
         embed.add_field(

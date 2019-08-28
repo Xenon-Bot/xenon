@@ -1,5 +1,4 @@
 # Project Specific
-xenon/logs/*
 xenon.env
 
 # Byte-compiled / optimized / DLL files

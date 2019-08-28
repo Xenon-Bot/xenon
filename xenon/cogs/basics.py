@@ -1,6 +1,5 @@
 from discord.ext import commands as cmd
 from prettytable import PrettyTable
-import psutil
 from datetime import datetime, timedelta
 
 from utils import formatter, helpers
@@ -43,9 +42,11 @@ class Basics(cmd.Cog):
     @cmd.command()
     async def invite(self, ctx):
         """Invite Xenon"""
-        await ctx.send(**ctx.em(
-            "**Invite Xenon**\n\n[Xenon](https://discord.club/invite/xenon)\n[Xenon Pro](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot) Use `x!pro` to get more information.",
-            type="info"))
+        await ctx.send(**ctx.em("**Invite Xenon**\n\n"
+                                "[Xenon](https://discord.club/invite/xenon)\n"
+                                "[Xenon Pro](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot) Use `x!pro` to get more information.\n"
+                                "[Xenon Turbo](https://discordapp.com/api/oauth2/authorize?client_id=598534174894194719&permissions=8&scope=bot)",
+                                type="info"))
 
     @cmd.command(aliases=["i", "stats", "status"])
     @cmd.cooldown(1, 10, cmd.BucketType.user)
@@ -60,8 +61,6 @@ class Basics(cmd.Cog):
         embed.add_field(name="Guilds", value=helpers.format_number(await self.bot.get_guild_count()))
         embed.add_field(name="Shards", value=self.bot.shard_count or 1)
         embed.add_field(name="Users", value=helpers.format_number(await self.bot.get_user_count()))
-        embed.add_field(name="CPU Usage", value=f"{psutil.cpu_percent()}%")
-        embed.add_field(name="RAM Usage", value=f"{psutil.virtual_memory().percent}%")
 
         await ctx.send(embed=embed)
 

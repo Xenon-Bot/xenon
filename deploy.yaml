@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xenon
+  
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: xenon
+  namespace: xenon
+spec:
+  selector:
+    matchLabels:
+      app: xenon
+  serviceName: "xenon"
+  replicas: 48
+  template:
+    metadata:
+      labels:
+        app: xenon
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: xenon
+        image: r.cfcr.io/{{CF_ACCOUNT}}/{{CF_REPO_NAME}}:{{CF_SHORT_REVISION}}
+        envFrom:
+        - configMapRef:
+            name: xenon
+        - secretRef:
+            name: dbcred
+        ports:
+        - name: api
+          containerPort: 9090
+        livenessProbe:
+          initialDelaySeconds: 1800
+          periodSeconds: 60
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: api
+        resources:
+          requests:
+            cpu: 128m
+            memory: 512Mi
+          limits:
+            cpu: 256m
+            memory: 768Mi
+      imagePullSecrets:
+      - name: regcred
