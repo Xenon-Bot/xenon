@@ -42,8 +42,10 @@ spec:
             port: api
         resources:
           requests:
+            cpu: 128m
             memory: 512Mi
           limits:
-            memory: 1Gi
+            cpu: 256m
+            memory: 768Mi
       imagePullSecrets:
       - name: regcred
