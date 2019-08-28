@@ -45,7 +45,6 @@ spec:
             cpu: 256m
             memory: 512Mi
           limits:
-            cpu: 512m
             memory: 768Mi
       imagePullSecrets:
       - name: regcred
