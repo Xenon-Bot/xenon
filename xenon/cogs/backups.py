@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 from utils import checks, helpers
 from utils.backups import BackupSaver, BackupLoader, BackupInfo
 
-max_reinvite = 100
 min_interval = 60 * 24
 max_backups = 15
 
@@ -322,7 +321,8 @@ class Backups(cmd.Cog):
         }}, upsert=True)
 
         embed = ctx.em("Successfully updated the backup interval.\n"
-                       f"Use `{ctx.config.prefix}backup load {ctx.guild.id}` to load the latest automated backup.", type="success")[
+                       f"Use `{ctx.config.prefix}backup load {ctx.guild.id}` to load the latest automated backup.",
+                       type="success")[
             "embed"]
         embed.add_field(name="Interval", value=str(timedelta(minutes=minutes)).split(".")[0])
         embed.add_field(

@@ -1,10 +1,8 @@
 import discord
 import traceback
 
-from . import utils
 
-
-class BackupSaver():
+class BackupSaver:
     def __init__(self, bot, session, guild):
         self.session = session
         self.bot = bot
@@ -41,26 +39,7 @@ class BackupSaver():
                     "topic": tchannel.topic,
                     "slowmode_delay": tchannel.slowmode_delay,
                     "nsfw": tchannel.is_nsfw(),
-                    "messages": [{
-                        "id": str(message.id),
-                        "content": message.system_content,
-                        "author": {
-                            "id": str(message.author.id),
-                            "name": message.author.name,
-                            "discriminator": message.author.discriminator,
-                            "avatar_url": str(message.author.avatar_url)
-                        },
-                        "pinned": message.pinned,
-                        "attachments": [attach.url for attach in message.attachments],
-                        "embeds": [embed.to_dict() for embed in message.embeds],
-                        "reactions": [
-                            str(reaction.emoji.name)
-                            if isinstance(reaction.emoji, discord.Emoji) else str(reaction.emoji)
-                            for reaction in message.reactions
-                        ],
-
-                    } for message in reversed(await tchannel.history(limit=self.chatlog).flatten())],
-
+                    "messages": [],
                     "webhooks": [{
                         "channel": str(webhook.channel.id),
                         "name": webhook.name,
@@ -263,29 +242,6 @@ class BackupLoader:
                     topic=tchannel["topic"],
                     nsfw=tchannel["nsfw"],
                 )
-
-                if self.chatlog != 0:
-                    webh = await created.create_webhook(name="chatlog")
-                    for message in tchannel["messages"][-self.chatlog:]:
-                        attachments = []
-                        for attachment in message["attachments"]:
-                            emb = discord.Embed()
-                            emb.set_image(url=attachment)
-                            attachments.append(emb)
-
-                        try:
-                            await webh.send(
-                                username=message["author"]["name"],
-                                avatar_url=message["author"]["avatar_url"],
-                                content=utils.clean_content(message["content"]),
-                                embeds=[discord.Embed.from_dict(embed)
-                                        for embed in message["embeds"]] + attachments
-                            )
-                        except:
-                            # Content and embeds are probably empty
-                            traceback.print_exc()
-
-                    await webh.delete()
 
                 self.id_translator[tchannel["id"]] = created.id
             except:
