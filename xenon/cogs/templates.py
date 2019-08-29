@@ -4,7 +4,7 @@ from discord import Embed, Webhook, AsyncWebhookAdapter
 import discord
 from asyncio import TimeoutError
 
-from utils import checks
+from utils import checks, helpers
 from utils.backups import BackupInfo, BackupLoader
 
 
@@ -38,7 +38,7 @@ class Templates(cmd.Cog):
 
     @template.command(aliases=["c"])
     @cmd.cooldown(1, 30, cmd.BucketType.user)
-    async def create(self, ctx, backup_id, name, *, description):
+    async def create(self, ctx, backup_id=None, name=None, *, description=None):
         """
         Turn a private backup into a PUBLIC template.
 
@@ -49,6 +49,17 @@ class Templates(cmd.Cog):
 
         description ::      A description for the template
         """
+
+        backup_id = backup_id or await helpers.ask_question(
+            ctx,
+            "Please respond with the **id of the backup** that you want to turn into a template."
+        )
+        name = name or await helpers.ask_question(ctx, "Please respond with your desired **name for template**.")
+        description = description or await helpers.ask_question(
+            ctx,
+            "Please respond with a **meaningful description** for the template."
+        )
+
         name = name.lower().replace(" ", "_")
         backup = await ctx.db.backups.find_one(backup_id)
         if backup is None or backup.get("creator") != ctx.author.id:
