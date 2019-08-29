@@ -69,7 +69,7 @@ class Backups(cmd.Cog):
 
         status = await ctx.send(**ctx.em("**Creating backup** ... Please wait", type="working"))
         handler = BackupSaver(self.bot, self.bot.session, ctx.guild)
-        backup = await handler.save(chatlog=0)
+        backup = await handler.save()
         id = await self._save_backup(ctx.author.id, backup)
 
         await status.edit(**ctx.em("Successfully **created backup**.", type="success"))
@@ -146,7 +146,7 @@ class Backups(cmd.Cog):
                 options[opt.lower()] = True
 
         handler = BackupLoader(self.bot, self.bot.session, backup["backup"])
-        await handler.load(ctx.guild, ctx.author, chatlog=0, **options)
+        await handler.load(ctx.guild, ctx.author, **options)
         await ctx.guild.text_channels[0].send(**ctx.em("Successfully loaded backup.", type="success"))
 
     @backup.command(aliases=["del", "remove", "rm"])

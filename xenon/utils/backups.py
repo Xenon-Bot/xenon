@@ -9,8 +9,6 @@ class BackupSaver:
         self.guild = guild
         self.data = {}
 
-        self.chatlog = 0
-
     @staticmethod
     def _overwrites_to_json(overwrites):
         try:
@@ -110,8 +108,7 @@ class BackupSaver:
             except Exception:
                 pass
 
-    async def save(self, chatlog=20):
-        self.chatlog = chatlog
+    async def save(self):
         self.data = {
             "id": str(self.guild.id),
             "name": self.guild.name,
@@ -303,9 +300,8 @@ class BackupLoader:
             except Exception:
                 pass
 
-    async def load(self, guild, loader: discord.User, chatlog, **options):
+    async def load(self, guild, loader: discord.User, **options):
         self.guild = guild
-        self.chatlog = chatlog
         if len(options) != 0:
             self.options = options
 
