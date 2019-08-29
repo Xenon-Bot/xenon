@@ -7,7 +7,7 @@ import pymongo
 from asyncio import TimeoutError, sleep
 from datetime import datetime, timedelta
 
-from utils import checks, helpers
+from utils import checks, helpers, types
 from utils.backups import BackupSaver, BackupLoader, BackupInfo
 
 min_interval = 60 * 24
@@ -96,7 +96,7 @@ class Backups(cmd.Cog):
     @cmd.bot_has_permissions(administrator=True)
     @checks.bot_has_managed_top_role()
     @cmd.cooldown(1, 5 * 60, cmd.BucketType.guild)
-    async def load(self, ctx, backup_id, *load_options):
+    async def load(self, ctx, backup_id, *options):
         """
         Load a backup
 
@@ -131,22 +131,10 @@ class Backups(cmd.Cog):
             await warning.delete()
             return
 
-        if len(load_options) == 0:
-            options = {
-                "channels": True,
-                "roles": True,
-                "bans": True,
-                "members": True,
-                "settings": True
-            }
-
-        else:
-            options = {}
-            for opt in load_options:
-                options[opt.lower()] = True
-
         handler = BackupLoader(self.bot, self.bot.session, backup["backup"])
-        await handler.load(ctx.guild, ctx.author, **options)
+        await handler.load(ctx.guild, ctx.author, types.BooleanArgs(
+            ["channels", "roles", "bans", "members", "settings"] + list(options)
+        ))
         await ctx.guild.text_channels[0].send(**ctx.em("Successfully loaded backup.", type="success"))
 
     @backup.command(aliases=["del", "remove", "rm"])

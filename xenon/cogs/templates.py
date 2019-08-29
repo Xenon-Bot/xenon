@@ -281,7 +281,7 @@ class Templates(cmd.Cog):
 
         await ctx.db.templates.update_one({"_id": template_name}, {"$inc": {"used": 1}})
         handler = BackupLoader(self.bot, self.bot.session, template["template"])
-        await handler.load(ctx.guild, ctx.author, 0)
+        await handler.load(ctx.guild, ctx.author)
 
     @template.command(aliases=["i", "inf"])
     @cmd.cooldown(1, 5, cmd.BucketType.user)

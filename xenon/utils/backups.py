@@ -1,6 +1,8 @@
 import discord
 import traceback
 
+from . import types
+
 
 class BackupSaver:
     def __init__(self, bot, session, guild):
@@ -152,7 +154,7 @@ class BackupLoader:
         self.data = data
         self.bot = bot
         self.id_translator = {}
-        self.options = {"settings": True, "channels": True, "roles": True}
+        self.options = types.BooleanArgs([])
 
     def _overwrites_from_json(self, json):
         overwrites = {}
@@ -171,7 +173,7 @@ class BackupLoader:
         return overwrites
 
     async def _prepare_guild(self):
-        if self.options.get("roles"):
+        if self.options.roles:
             for role in self.guild.roles:
                 if not role.managed and not role.is_default():
                     try:
@@ -179,7 +181,7 @@ class BackupLoader:
                     except Exception:
                         pass
 
-        if self.options.get("channels"):
+        if self.options.channels:
             for channel in self.guild.channels:
                 try:
                     await channel.delete(reason=self.reason)
@@ -300,40 +302,38 @@ class BackupLoader:
             except Exception:
                 pass
 
-    async def load(self, guild, loader: discord.User, **options):
+    async def load(self, guild, loader: discord.User, options: types.BooleanArgs = None):
+        self.options = options or self.options
         self.guild = guild
-        if len(options) != 0:
-            self.options = options
-
         self.loader = loader
         self.reason = f"Backup loaded by {loader}"
 
         await self._prepare_guild()
-        if self.options.get("roles"):
+        if self.options.roles:
             try:
                 await self._load_roles()
             except Exception:
                 traceback.print_exc()
 
-        if self.options.get("channels"):
+        if self.options.channels:
             try:
                 await self._load_channels()
             except Exception:
                 traceback.print_exc()
 
-        if self.options.get("settings"):
+        if self.options.settings:
             try:
                 await self._load_settings()
             except Exception:
                 traceback.print_exc()
 
-        if self.options.get("bans"):
+        if self.options.bans:
             try:
                 await self._load_bans()
             except Exception:
                 traceback.print_exc()
 
-        if self.options.get("members"):
+        if self.options.members:
             try:
                 await self._load_member()
             except Exception:
