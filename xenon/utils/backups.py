@@ -9,10 +9,13 @@ class BackupSaver:
         self.guild = guild
         self.data = {}
 
-    def _overwrites_to_json(self, overwrites):
+        self.chatlog = 0
+
+    @staticmethod
+    def _overwrites_to_json(overwrites):
         try:
             return {str(target.id): overwrite._values for target, overwrite in overwrites.items()}
-        except:
+        except Exception:
             return {}
 
     async def _save_channels(self):
@@ -25,8 +28,8 @@ class BackupSaver:
                     "id": str(category.id),
                     "overwrites": self._overwrites_to_json(category.overwrites)
                 })
-            except:
-                traceback.print_exc()
+            except Exception:
+                pass
 
         for tchannel in self.guild.text_channels:
             try:
@@ -48,8 +51,8 @@ class BackupSaver:
 
                     } for webhook in await tchannel.webhooks()]
                 })
-            except:
-                traceback.print_exc()
+            except Exception:
+                pass
 
         for vchannel in self.guild.voice_channels:
             try:
@@ -62,8 +65,8 @@ class BackupSaver:
                     "bitrate": vchannel.bitrate,
                     "user_limit": vchannel.user_limit,
                 })
-            except:
-                traceback.print_exc()
+            except Exception:
+                pass
 
     async def _save_roles(self):
         for role in self.guild.roles:
@@ -81,8 +84,8 @@ class BackupSaver:
                     "position": role.position,
                     "mentionable": role.mentionable
                 })
-            except:
-                traceback.print_exc()
+            except Exception:
+                pass
 
     async def _save_members(self):
         for member in sorted(self.guild.members, key=lambda m: len(m.roles), reverse=True)[:1000]:
@@ -94,8 +97,8 @@ class BackupSaver:
                     "nick": member.nick,
                     "roles": [str(role.id) for role in member.roles[1:] if not role.managed]
                 })
-            except:
-                traceback.print_exc()
+            except Exception:
+                pass
 
     async def _save_bans(self):
         for reason, user in await self.guild.bans():
@@ -104,9 +107,8 @@ class BackupSaver:
                     "user": str(user.id),
                     "reason": reason
                 })
-            except:
-                # User probably doesn't exist anymore
-                traceback.print_exc()
+            except Exception:
+                pass
 
     async def save(self, chatlog=20):
         self.chatlog = chatlog
@@ -138,7 +140,7 @@ class BackupSaver:
         for method in execution_order:
             try:
                 await method()
-            except:
+            except Exception:
                 traceback.print_exc()
 
         return self.data
@@ -177,15 +179,15 @@ class BackupLoader:
                 if not role.managed and not role.is_default():
                     try:
                         await role.delete(reason=self.reason)
-                    except:
-                        traceback.print_exc()
+                    except Exception:
+                        pass
 
         if self.options.get("channels"):
             for channel in self.guild.channels:
                 try:
                     await channel.delete(reason=self.reason)
-                except:
-                    traceback.print_exc()
+                except Exception:
+                    pass
 
     async def _load_settings(self):
         await self.guild.edit(
@@ -216,8 +218,8 @@ class BackupLoader:
                     )
 
                 self.id_translator[role["id"]] = created.id
-            except:
-                traceback.print_exc()
+            except Exception:
+                pass
 
     async def _load_categories(self):
         for category in self.data["categories"]:
@@ -227,8 +229,8 @@ class BackupLoader:
                     overwrites=self._overwrites_from_json(category["overwrites"])
                 )
                 self.id_translator[category["id"]] = created.id
-            except:
-                traceback.print_exc()
+            except Exception:
+                pass
 
     async def _load_text_channels(self):
         for tchannel in self.data["text_channels"]:
@@ -244,8 +246,8 @@ class BackupLoader:
                 )
 
                 self.id_translator[tchannel["id"]] = created.id
-            except:
-                traceback.print_exc()
+            except Exception:
+                pass
 
     async def _load_voice_channels(self):
         for vchannel in self.data["voice_channels"]:
@@ -260,8 +262,8 @@ class BackupLoader:
                     user_limit=vchannel["user_limit"]
                 )
                 self.id_translator[vchannel["id"]] = created.id
-            except:
-                traceback.print_exc()
+            except Exception:
+                pass
 
     async def _load_channels(self):
         await self._load_categories()
@@ -272,9 +274,8 @@ class BackupLoader:
         for ban in self.data["bans"]:
             try:
                 await self.guild.ban(user=discord.Object(int(ban["user"])), reason=ban["reason"])
-            except:
-                # User probably doesn't exist anymore
-                traceback.print_exc()
+            except Exception:
+                pass
 
     async def _load_member(self):
         for member in self.guild.members:
@@ -299,8 +300,8 @@ class BackupLoader:
                 except discord.Forbidden:
                     await member.add_roles(*roles)
 
-            except:
-                traceback.print_exc()
+            except Exception:
+                pass
 
     async def load(self, guild, loader: discord.User, chatlog, **options):
         self.guild = guild
@@ -315,35 +316,35 @@ class BackupLoader:
         if self.options.get("roles"):
             try:
                 await self._load_roles()
-            except:
+            except Exception:
                 traceback.print_exc()
 
         if self.options.get("channels"):
             try:
                 await self._load_channels()
-            except:
+            except Exception:
                 traceback.print_exc()
 
         if self.options.get("settings"):
             try:
                 await self._load_settings()
-            except:
+            except Exception:
                 traceback.print_exc()
 
         if self.options.get("bans"):
             try:
                 await self._load_bans()
-            except:
+            except Exception:
                 traceback.print_exc()
 
         if self.options.get("members"):
             try:
                 await self._load_member()
-            except:
+            except Exception:
                 traceback.print_exc()
 
 
-class BackupInfo():
+class BackupInfo:
     def __init__(self, bot, data):
         self.bot = bot
         self.data = data
