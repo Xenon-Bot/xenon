@@ -2,5 +2,4 @@ asyncio>=3.4.3
 motor==2.0.0
 prettytable
 pytz>=2017.3
-git+https://github.com/Merlintor/discord-backups.git
 discord.py==1.2.3

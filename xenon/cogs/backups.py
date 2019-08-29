@@ -1,6 +1,5 @@
 from discord.ext import commands as cmd
 from discord import Embed
-from discord_backups import BackupSaver, BackupLoader, BackupInfo
 import string
 import random
 import traceback
@@ -9,6 +8,7 @@ from asyncio import TimeoutError, sleep
 from datetime import datetime, timedelta
 
 from utils import checks, helpers
+from utils.backups import BackupSaver, BackupLoader, BackupInfo
 
 max_reinvite = 100
 min_interval = 60 * 24

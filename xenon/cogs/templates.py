@@ -1,11 +1,11 @@
 from discord.ext import commands as cmd
-from discord_backups import BackupInfo, BackupLoader
 import pymongo
 from discord import Embed, Webhook, AsyncWebhookAdapter
 import discord
 from asyncio import TimeoutError
 
 from utils import checks
+from utils.backups import BackupInfo, BackupLoader
 
 
 class Templates(cmd.Cog):
