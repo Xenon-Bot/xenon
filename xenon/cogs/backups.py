@@ -326,7 +326,7 @@ class Backups(cmd.Cog):
             raise ValueError
 
         handler = BackupSaver(self.bot, self.bot.session, guild)
-        data = await handler.save(0)
+        data = await handler.save()
         await self._save_backup(guild.owner.id, data, id=str(guild_id))
 
     async def interval_loop(self):
