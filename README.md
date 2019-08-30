@@ -1,5 +1,7 @@
 # Xenon
 
+[![Codefresh build status]( https://g.codefresh.io/api/badges/pipeline/merlintor/Xenon%2Fdeploy?type=cf-1)]( https://g.codefresh.io/public/accounts/merlintor/pipelines/5d4d4cc311b8859327cf24e0)
+
 ## Disclaimer
 
 You might need basic knowledge of python, pip, git and the console of your operating system to run this bot.  
