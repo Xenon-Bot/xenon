@@ -34,7 +34,7 @@ spec:
         - name: api
           containerPort: 9090
         livenessProbe:
-          initialDelaySeconds: 1800
+          initialDelaySeconds: 1200
           periodSeconds: 60
           failureThreshold: 3
           httpGet:
