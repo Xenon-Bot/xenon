@@ -195,8 +195,8 @@ class BackupLoader:
             afk_channel=self.guild.get_channel(self.id_translator.get(self.data["afk_channel"])),
             afk_timeout=self.data["afk_timeout"],
             # verification_level=discord.VerificationLevel(self.data["verification_level"]),
-            system_channel=self.guild.get_channel(
-                self.id_translator.get(self.data["system_channel"]))
+            system_channel=self.guild.get_channel(self.id_translator.get(self.data["system_channel"])),
+            reason=self.reason
         )
 
     async def _load_roles(self):
@@ -213,7 +213,8 @@ class BackupLoader:
                         hoist=role["hoist"],
                         mentionable=role["mentionable"],
                         color=discord.Color(role["color"]),
-                        permissions=discord.Permissions(role["permissions"])
+                        permissions=discord.Permissions(role["permissions"]),
+                        reason=self.reason
                     )
 
                 self.id_translator[role["id"]] = created.id
@@ -225,7 +226,8 @@ class BackupLoader:
             try:
                 created = await self.guild.create_category_channel(
                     name=category["name"],
-                    overwrites=self._overwrites_from_json(category["overwrites"])
+                    overwrites=self._overwrites_from_json(category["overwrites"]),
+                    reason=self.reason
                 )
                 self.id_translator[category["id"]] = created.id
             except Exception:
@@ -237,7 +239,8 @@ class BackupLoader:
                 created = await self.guild.create_text_channel(
                     name=tchannel["name"],
                     overwrites=self._overwrites_from_json(tchannel["overwrites"]),
-                    category=discord.Object(self.id_translator.get(tchannel["category"]))
+                    category=discord.Object(self.id_translator.get(tchannel["category"])),
+                    reason=self.reason
                 )
                 await created.edit(
                     topic=tchannel["topic"],
@@ -254,7 +257,8 @@ class BackupLoader:
                 created = await self.guild.create_voice_channel(
                     name=vchannel["name"],
                     overwrites=self._overwrites_from_json(vchannel["overwrites"]),
-                    category=discord.Object(self.id_translator.get(vchannel["category"]))
+                    category=discord.Object(self.id_translator.get(vchannel["category"])),
+                    reason=self.reason
                 )
                 await created.edit(
                     bitrate=vchannel["bitrate"],
