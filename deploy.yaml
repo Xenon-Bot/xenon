@@ -25,6 +25,10 @@ spec:
       containers:
       - name: xenon
         image: r.cfcr.io/{{CF_ACCOUNT}}/{{CF_REPO_NAME}}:{{CF_SHORT_REVISION}}
+        env:
+          - name: SHARD_COUNT
+            valueFrom:
+              fieldPath: spec.replicas
         envFrom:
         - configMapRef:
             name: xenon
