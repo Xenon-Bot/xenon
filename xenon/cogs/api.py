@@ -8,8 +8,8 @@ class Api(cmd.Cog):
         self.connected = False
         self.app = web.Application()
         self.app.add_routes([
-            web.get("/health", self.ready),
-            web.get("/ready", self.connected)
+            web.get("/health", self.is_ready),
+            web.get("/ready", self.is_connected)
         ])
         self.runner = web.AppRunner(self.app)
         self.bot.loop.create_task(self.start_app())
@@ -26,13 +26,13 @@ class Api(cmd.Cog):
         site = web.TCPSite(self.runner, port=9090)
         await site.start()
 
-    async def ready(self, request):
+    async def is_ready(self, request):
         if self.bot.is_ready():
             raise web.HTTPOk()
 
         raise web.HTTPNotAcceptable()
 
-    async def connected(self, request):
+    async def is_connected(self, request):
         if self.connected:
             raise web.HTTPOk()
 
