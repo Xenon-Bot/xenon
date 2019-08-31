@@ -28,7 +28,8 @@ spec:
         env:
           - name: SHARD_COUNT
             valueFrom:
-              fieldPath: spec.replicas
+              fieldRef:
+                fieldPath: spec.replicas
         envFrom:
         - configMapRef:
             name: xenon
