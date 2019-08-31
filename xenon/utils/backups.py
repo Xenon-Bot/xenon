@@ -175,7 +175,7 @@ class BackupLoader:
     async def _prepare_guild(self):
         if self.options.roles:
             for role in self.guild.roles:
-                if not role.managed and not role.is_default():
+                if not role.managed and not role.is_default() and self.guild.me.top_role.position > role.position:
                     try:
                         await role.delete(reason=self.reason)
                     except Exception:
@@ -294,13 +294,17 @@ class BackupLoader:
                     if role in self.id_translator and role not in current_roles
                 ]
 
-                try:
-                    await member.edit(
-                        nick=fits[0].get("nick"),
-                        roles=member.roles + roles,
-                        reason=self.reason
-                    )
-                except discord.Forbidden:
+                if self.guild.me.top_role.position > member.top_role.position and member != self.guild.owner:
+                    try:
+                        await member.edit(
+                            nick=fits[0].get("nick"),
+                            roles=member.roles + roles,
+                            reason=self.reason
+                        )
+                    except discord.Forbidden:
+                        await member.add_roles(*roles)
+
+                else:
                     await member.add_roles(*roles)
 
             except Exception:
