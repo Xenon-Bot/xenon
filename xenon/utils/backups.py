@@ -280,7 +280,7 @@ class BackupLoader:
             except Exception:
                 pass
 
-    async def _load_member(self):
+    async def _load_members(self):
         for member in self.guild.members:
             try:
                 fits = list(filter(lambda m: m["id"] == str(member.id), self.data["members"]))
@@ -343,7 +343,7 @@ class BackupLoader:
 
         if self.options.members:
             try:
-                await self._load_member()
+                await self._load_members()
             except Exception:
                 traceback.print_exc()
 
