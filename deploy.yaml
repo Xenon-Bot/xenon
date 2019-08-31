@@ -44,6 +44,12 @@ spec:
           httpGet:
             path: /health
             port: api
+        readinessProbe:
+        initialDelaySeconds: 5
+          periodSeconds: 5
+          httpGet:
+            path: /ready
+            port: api
         resources:
           requests:
             memory: 512Mi
