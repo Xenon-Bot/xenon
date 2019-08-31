@@ -42,7 +42,7 @@ class Botlist(cmd.Cog):
             except:
                 traceback.print_exc()
 
-            await asyncio.sleep(3 * 60)
+            await asyncio.sleep(10 * 60)
 
 
 def setup(bot):

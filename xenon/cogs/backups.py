@@ -1,6 +1,5 @@
 from discord.ext import commands as cmd
 from discord import Embed
-from discord_backups import BackupSaver, BackupLoader, BackupInfo
 import string
 import random
 import traceback
@@ -8,9 +7,9 @@ import pymongo
 from asyncio import TimeoutError, sleep
 from datetime import datetime, timedelta
 
-from utils import checks, helpers
+from utils import checks, helpers, types
+from utils.backups import BackupSaver, BackupLoader, BackupInfo
 
-max_reinvite = 100
 min_interval = 60 * 24
 max_backups = 15
 
@@ -70,7 +69,7 @@ class Backups(cmd.Cog):
 
         status = await ctx.send(**ctx.em("**Creating backup** ... Please wait", type="working"))
         handler = BackupSaver(self.bot, self.bot.session, ctx.guild)
-        backup = await handler.save(chatlog=0)
+        backup = await handler.save()
         id = await self._save_backup(ctx.author.id, backup)
 
         await status.edit(**ctx.em("Successfully **created backup**.", type="success"))
@@ -97,7 +96,7 @@ class Backups(cmd.Cog):
     @cmd.bot_has_permissions(administrator=True)
     @checks.bot_has_managed_top_role()
     @cmd.cooldown(1, 5 * 60, cmd.BucketType.guild)
-    async def load(self, ctx, backup_id, *load_options):
+    async def load(self, ctx, backup_id, *options):
         """
         Load a backup
 
@@ -132,22 +131,10 @@ class Backups(cmd.Cog):
             await warning.delete()
             return
 
-        if len(load_options) == 0:
-            options = {
-                "channels": True,
-                "roles": True,
-                "bans": True,
-                "members": True,
-                "settings": True
-            }
-
-        else:
-            options = {}
-            for opt in load_options:
-                options[opt.lower()] = True
-
         handler = BackupLoader(self.bot, self.bot.session, backup["backup"])
-        await handler.load(ctx.guild, ctx.author, chatlog=0, **options)
+        await handler.load(ctx.guild, ctx.author, types.BooleanArgs(
+            ["channels", "roles", "bans", "members", "settings"] + list(options)
+        ))
         await ctx.guild.text_channels[0].send(**ctx.em("Successfully loaded backup.", type="success"))
 
     @backup.command(aliases=["del", "remove", "rm"])
@@ -322,7 +309,8 @@ class Backups(cmd.Cog):
         }}, upsert=True)
 
         embed = ctx.em("Successfully updated the backup interval.\n"
-                       f"Use `{ctx.config.prefix}backup load {ctx.guild.id}` to load the latest automated backup.", type="success")[
+                       f"Use `{ctx.config.prefix}backup load {ctx.guild.id}` to load the latest automated backup.",
+                       type="success")[
             "embed"]
         embed.add_field(name="Interval", value=str(timedelta(minutes=minutes)).split(".")[0])
         embed.add_field(
@@ -338,7 +326,7 @@ class Backups(cmd.Cog):
             raise ValueError
 
         handler = BackupSaver(self.bot, self.bot.session, guild)
-        data = await handler.save(0)
+        data = await handler.save()
         await self._save_backup(guild.owner.id, data, id=str(guild_id))
 
     async def interval_loop(self):

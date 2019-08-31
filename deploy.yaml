@@ -25,6 +25,10 @@ spec:
       containers:
       - name: xenon
         image: r.cfcr.io/{{CF_ACCOUNT}}/{{CF_REPO_NAME}}:{{CF_SHORT_REVISION}}
+        env:
+          - name: SHARD_COUNT
+            valueFrom:
+              fieldPath: spec.replicas
         envFrom:
         - configMapRef:
             name: xenon
@@ -34,11 +38,17 @@ spec:
         - name: api
           containerPort: 9090
         livenessProbe:
-          initialDelaySeconds: 1800
+          initialDelaySeconds: 1200
           periodSeconds: 60
           failureThreshold: 3
           httpGet:
             path: /health
+            port: api
+        readinessProbe:
+        initialDelaySeconds: 5
+          periodSeconds: 5
+          httpGet:
+            path: /ready
             port: api
         resources:
           requests:
