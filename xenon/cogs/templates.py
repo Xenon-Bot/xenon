@@ -4,7 +4,7 @@ from discord import Embed, Webhook, AsyncWebhookAdapter
 import discord
 from asyncio import TimeoutError
 
-from utils import checks, helpers
+from utils import checks, helpers, types
 from utils.backups import BackupInfo, BackupLoader
 
 
@@ -281,7 +281,9 @@ class Templates(cmd.Cog):
 
         await ctx.db.templates.update_one({"_id": template_name}, {"$inc": {"used": 1}})
         handler = BackupLoader(self.bot, self.bot.session, template["template"])
-        await handler.load(ctx.guild, ctx.author)
+        await handler.load(ctx.guild, ctx.author, types.BooleanArgs(
+            ["channels", "roles"]
+        ))
 
     @template.command(aliases=["i", "inf"])
     @cmd.cooldown(1, 5, cmd.BucketType.user)
