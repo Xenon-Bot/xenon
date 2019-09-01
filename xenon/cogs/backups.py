@@ -85,7 +85,6 @@ class Backups(cmd.Cog):
                 await ctx.author.send(embed=embed)
 
         except:
-            traceback.print_exc()
             await status.edit(
                 **ctx.em("I was **unable to send you the backup-id**. Please make sure you have dm's enabled.",
                          type="error"))
