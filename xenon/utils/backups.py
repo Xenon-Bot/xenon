@@ -324,12 +324,12 @@ class BackupLoader:
                 pass
 
     async def load(self, guild, loader: discord.User, options: types.BooleanArgs = None):
-        logger.debug(f"Loading backup on {self.guild.id}")
         self.options = options or self.options
         self.guild = guild
         self.loader = loader
         self.reason = f"Backup loaded by {loader}"
 
+        logger.debug(f"Loading backup on {self.guild.id}")
         try:
             await self._prepare_guild()
         except Exception:
