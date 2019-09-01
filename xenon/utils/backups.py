@@ -2,6 +2,7 @@ import discord
 import traceback
 
 from . import types
+from .logger import logger
 
 
 class BackupSaver:
@@ -173,6 +174,7 @@ class BackupLoader:
         return overwrites
 
     async def _prepare_guild(self):
+        logger.debug(f"Deleting roles on {self.guild.id}")
         if self.options.roles:
             for role in self.guild.roles:
                 if not role.managed and not role.is_default() and self.guild.me.top_role.position > role.position:
@@ -182,6 +184,7 @@ class BackupLoader:
                         pass
 
         if self.options.channels:
+            logger.debug(f"Deleting channels on {self.guild.id}")
             for channel in self.guild.channels:
                 try:
                     await channel.delete(reason=self.reason)
@@ -189,6 +192,7 @@ class BackupLoader:
                     pass
 
     async def _load_settings(self):
+        logger.debug(f"Loading settings on {self.guild.id}")
         await self.guild.edit(
             name=self.data["name"],
             region=discord.VoiceRegion(self.data["region"]),
@@ -200,6 +204,7 @@ class BackupLoader:
         )
 
     async def _load_roles(self):
+        logger.debug(f"Loading roles on {self.guild.id}")
         for role in reversed(self.data["roles"]):
             try:
                 if role["default"]:
@@ -222,6 +227,7 @@ class BackupLoader:
                 pass
 
     async def _load_categories(self):
+        logger.debug(f"Loading categories on {self.guild.id}")
         for category in self.data["categories"]:
             try:
                 created = await self.guild.create_category_channel(
@@ -234,6 +240,7 @@ class BackupLoader:
                 pass
 
     async def _load_text_channels(self):
+        logger.debug(f"Loading text channels on {self.guild.id}")
         for tchannel in self.data["text_channels"]:
             try:
                 created = await self.guild.create_text_channel(
@@ -252,6 +259,7 @@ class BackupLoader:
                 pass
 
     async def _load_voice_channels(self):
+        logger.debug(f"Loading voice channels on {self.guild.id}")
         for vchannel in self.data["voice_channels"]:
             try:
                 created = await self.guild.create_voice_channel(
@@ -274,6 +282,7 @@ class BackupLoader:
         await self._load_voice_channels()
 
     async def _load_bans(self):
+        logger.debug(f"Loading bans on {self.guild.id}")
         for ban in self.data["bans"]:
             try:
                 await self.guild.ban(user=discord.Object(int(ban["user"])), reason=ban["reason"])
@@ -281,6 +290,7 @@ class BackupLoader:
                 pass
 
     async def _load_members(self):
+        logger.debug(f"Loading members on {self.guild.id}")
         for member in self.guild.members:
             try:
                 fits = list(filter(lambda m: m["id"] == str(member.id), self.data["members"]))
@@ -311,6 +321,7 @@ class BackupLoader:
                 pass
 
     async def load(self, guild, loader: discord.User, options: types.BooleanArgs = None):
+        logger.debug(f"Loading backup on {self.guild.id}")
         self.options = options or self.options
         self.guild = guild
         self.loader = loader
@@ -350,6 +361,8 @@ class BackupLoader:
                 await self._load_members()
             except Exception:
                 traceback.print_exc()
+
+        logger.debug(f"Finished loading backup on {self.guild.id}")
 
 
 class BackupInfo:
