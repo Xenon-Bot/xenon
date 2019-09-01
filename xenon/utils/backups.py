@@ -316,7 +316,11 @@ class BackupLoader:
         self.loader = loader
         self.reason = f"Backup loaded by {loader}"
 
-        await self._prepare_guild()
+        try:
+            await self._prepare_guild()
+        except Exception:
+            traceback.print_exc()
+
         if self.options.roles:
             try:
                 await self._load_roles()
