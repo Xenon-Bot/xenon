@@ -1,4 +1,5 @@
 from discord.ext import commands as cmd
+import asyncio
 
 
 def bot_has_managed_top_role():
@@ -19,7 +20,7 @@ def bot_has_managed_top_role():
                     "reaction_add",
                     check=lambda r, u: r.message.id == sended.id and u.id == ctx.author.id,
                     timeout=60)
-            except TimeoutError:
+            except asyncio.TimeoutError:
                 try:
                     ctx.command.reset_cooldown(ctx)
                 except:
