@@ -3,9 +3,9 @@ from logging.handlers import TimedRotatingFileHandler
 
 fh = TimedRotatingFileHandler(f"logs/bot.log", when="midnight", interval=1)
 fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s : %(message)s'))
-fh.setLevel(logging.INFO)
+fh.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(logging.INFO)
 ch.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s : %(message)s'))
 
 # Internal
@@ -18,3 +18,4 @@ logger.addHandler(ch)
 discord_logger = logging.getLogger("discord")
 discord_logger.setLevel(logging.INFO)
 discord_logger.addHandler(fh)
+discord_logger.addHandler(ch)

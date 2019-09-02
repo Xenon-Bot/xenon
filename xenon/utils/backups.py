@@ -206,7 +206,6 @@ class BackupLoader:
     async def _load_roles(self):
         logger.debug(f"Loading roles on {self.guild.id}")
         for role in reversed(self.data["roles"]):
-            logger.debug(f"Loading role {role['name']} on {self.guild.id}")
             try:
                 if role["default"]:
                     await self.guild.default_role.edit(
@@ -223,10 +222,8 @@ class BackupLoader:
                         reason=self.reason
                     )
 
-                logger.debug(f"Done loading role {role['name']} on {self.guild.id}")
                 self.id_translator[role["id"]] = created.id
             except Exception as e:
-                logger.debug(f"Loading role {role['name']} failed on {self.guild.id}")
                 traceback.print_exc()
 
     async def _load_categories(self):
