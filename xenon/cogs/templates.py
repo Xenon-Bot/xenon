@@ -352,7 +352,11 @@ class Templates(cmd.Cog):
                 )
 
                 emoji = reaction.emoji
-                await msg.remove_reaction(emoji, user)
+                if isinstance(ctx.channel, discord.TextChannel):
+                    try:
+                        await msg.remove_reaction(emoji, user)
+                    except Exception:
+                        pass
 
                 if str(emoji) == options[0]:
                     if args["skip"] > 0:
@@ -367,11 +371,11 @@ class Templates(cmd.Cog):
                     raise TimeoutError
 
         except TimeoutError:
-            try:
-                await msg.clear_reactions()
-
-            except:
-                pass
+            if isinstance(ctx.channel, discord.TextChannel):
+                try:
+                    await msg.clear_reactions()
+                except Exception:
+                    pass
 
     async def create_list(self, args):
         emb = Embed(
