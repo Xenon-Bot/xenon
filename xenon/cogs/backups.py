@@ -1,5 +1,5 @@
 from discord.ext import commands as cmd
-from discord import Embed
+from discord import Embed, TextChannel
 import string
 import random
 import traceback
@@ -180,7 +180,11 @@ class Backups(cmd.Cog):
                 )
 
                 emoji = reaction.emoji
-                await msg.remove_reaction(emoji, user)
+                if isinstance(ctx.channel, TextChannel):
+                    try:
+                        await msg.remove_reaction(emoji, user)
+                    except Exception:
+                        pass
 
                 if str(emoji) == options[0]:
                     if args["skip"] > 0:
@@ -195,11 +199,11 @@ class Backups(cmd.Cog):
                     raise TimeoutError
 
         except TimeoutError:
-            try:
-                await msg.clear_reactions()
-
-            except:
-                pass
+            if isinstance(ctx.channel, TextChannel):
+                try:
+                    await msg.clear_reactions()
+                except Exception:
+                    pass
 
     async def create_list(self, args):
         emb = Embed(

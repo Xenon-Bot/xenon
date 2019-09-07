@@ -176,12 +176,23 @@ class BackupLoader:
     async def _prepare_guild(self):
         logger.debug(f"Deleting roles on {self.guild.id}")
         if self.options.roles:
-            for role in self.guild.roles:
-                if not role.managed and not role.is_default() and self.guild.me.top_role.position > role.position:
+            existing_roles = list(filter(
+                lambda r: not r.managed and self.guild.me.top_role.position > r.position,
+                self.guild.roles
+            ))
+            difference = len(self.data["roles"]) - len(existing_roles)
+            if difference < 0:
+                i = 0
+                while difference < 0:
+                    role = existing_roles[i]
                     try:
                         await role.delete(reason=self.reason)
                     except Exception:
                         pass
+                    else:
+                        difference += 1
+                    finally:
+                        i += 1
 
         if self.options.channels:
             logger.debug(f"Deleting channels on {self.guild.id}")
@@ -205,15 +216,25 @@ class BackupLoader:
 
     async def _load_roles(self):
         logger.debug(f"Loading roles on {self.guild.id}")
+        existing_roles = list(reversed(list(filter(
+            lambda r: not r.managed and not r.is_default()
+                      and self.guild.me.top_role.position > r.position,
+            self.guild.roles
+        ))))
         for role in reversed(self.data["roles"]):
             try:
                 if role["default"]:
                     await self.guild.default_role.edit(
                         permissions=discord.Permissions(role["permissions"])
                     )
-                    created = self.guild.default_role
+                    edited = self.guild.default_role
                 else:
-                    created = await self.guild.create_role(
+                    if len(existing_roles) == 0:
+                        edited = await self.guild.create_role(name="dummy")
+                    else:
+                        edited = existing_roles.pop(0)
+
+                    await edited.edit(
                         name=role["name"],
                         hoist=role["hoist"],
                         mentionable=role["mentionable"],
@@ -222,8 +243,8 @@ class BackupLoader:
                         reason=self.reason
                     )
 
-                self.id_translator[role["id"]] = created.id
-            except Exception as e:
+                self.id_translator[role["id"]] = edited.id
+            except Exception:
                 traceback.print_exc()
 
     async def _load_categories(self):
@@ -308,7 +329,7 @@ class BackupLoader:
                     try:
                         await member.edit(
                             nick=fits[0].get("nick"),
-                            roles=member.roles + roles,
+                            roles=[r for r in member.roles if r.managed] + roles,
                             reason=self.reason
                         )
                     except discord.Forbidden:
