@@ -326,7 +326,6 @@ class BackupLoader:
                 ]
 
                 if self.guild.me.top_role.position > member.top_role.position and member != self.guild.owner:
-                    print(member)
                     try:
                         await member.edit(
                             nick=fits[0].get("nick"),
@@ -334,7 +333,6 @@ class BackupLoader:
                             reason=self.reason
                         )
                     except discord.Forbidden:
-                        traceback.print_exc()
                         await member.add_roles(*roles)
 
                 else:
