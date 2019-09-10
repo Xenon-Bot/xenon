@@ -72,7 +72,10 @@ class Backups(cmd.Cog):
         backup = await handler.save()
         id = await self._save_backup(ctx.author.id, backup)
 
-        await status.edit(**ctx.em("Successfully **created backup**.", type="success"))
+        embed = ctx.em(f"Successfully **created backup** with the id `{id}`.\n", type="success")["embed"]
+        embed.add_field(name="Usage",
+                        value=f"```{ctx.prefix}backup load {id}```\n```{ctx.prefix}backup info {id}```")
+        await status.edit(embed=embed)
         try:
             if ctx.author.is_on_mobile():
                 await ctx.author.send(f"{ctx.prefix}backup load {id}")
@@ -84,10 +87,8 @@ class Backups(cmd.Cog):
                                 value=f"```{ctx.prefix}backup load {id}```\n```{ctx.prefix}backup info {id}```")
                 await ctx.author.send(embed=embed)
 
-        except:
-            await status.edit(
-                **ctx.em("I was **unable to send you the backup-id**. Please make sure you have dm's enabled.",
-                         type="error"))
+        except Exception:
+            pass
 
     @backup.command(aliases=["l"])
     @cmd.guild_only()
