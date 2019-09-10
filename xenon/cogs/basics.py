@@ -64,14 +64,15 @@ class Basics(cmd.Cog):
 
         await ctx.send(embed=embed)
 
-    @cmd.command()
-    async def pro(self, ctx):
-        """Shows information about Xenon Pro"""
+    @cmd.command(aliases=["pro", "turbo"])
+    async def tiers(self, ctx):
+        """Shows information about Xenon Pro & Turbo"""
         await ctx.send(**ctx.em(
-            "**Xenon Pro** is the **paid version** of xenon. It includes some **exclusive features**.\n"
-            "You can buy it [here](https://www.patreon.com/merlinfuchs).\n"
-            "Invite it [here](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot)\n\n"
-            "You can find **more information** about the subscription and a **detailed list of perks** [here](https://docs.discord.club/xenon/how-to/xenon-pro).",
+            "**Xenon Pro** and **Xenon Turbo** are the **paid versions** of Xenon. "
+            "They extend the existing features of Xenon and add new ones.\n"
+            "You can buy them [here](https://www.patreon.com/merlinfuchs) "
+            "and find **more information** and a **detailed list of perks** "
+            "[here](https://docs.discord.club/xenon/tiers).",
             type="info"
         ))
 
