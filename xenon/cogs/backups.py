@@ -152,6 +152,37 @@ class Backups(cmd.Cog):
         await self._delete_backup(backup_id)
         await ctx.send(**ctx.em("Successfully **deleted backup**.", type="success"))
 
+    @backup.command(aliases=["pg"])
+    @cmd.cooldown(1, 60 * 60, cmd.BucketType.user)
+    async def purge(self, ctx):
+        """
+        Delete all your backups
+        __**This cannot be undone**__
+        """
+        warning = await ctx.send(
+            **ctx.em("Are you sure that you want to delete all your backups?\n"
+                     "__**This cannot be undone!**__",
+                     type="warning"))
+        await warning.add_reaction("✅")
+        await warning.add_reaction("❌")
+        try:
+            reaction, user = await self.bot.wait_for(
+                "reaction_add",
+                check=lambda r, u: r.message.id == warning.id and u.id == ctx.author.id,
+                timeout=60)
+        except TimeoutError:
+            await warning.delete()
+            raise cmd.CommandError(
+                "Please make sure to **click the ✅ reaction** in order to delete all your backups.")
+
+        if str(reaction.emoji) != "✅":
+            ctx.command.reset_cooldown(ctx)
+            await warning.delete()
+            return
+
+        await ctx.db.backups.delete_many({"creator": ctx.author.id})
+        await ctx.send(**ctx.em("Deleted all your backups.", type="success"))
+
     @backup.command(aliases=["ls"])
     @cmd.cooldown(1, 30, cmd.BucketType.user)
     async def list(self, ctx):
