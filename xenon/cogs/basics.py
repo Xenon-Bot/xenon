@@ -76,12 +76,6 @@ class Basics(cmd.Cog):
             type="info"
         ))
 
-    @cmd.Cog.listener()
-    async def on_guild_join(self, guild):
-        embed = self.bot.em("**Hello and thank you for inviting Xenon!** 😋\n"
-                            f"Use `{self.bot.config.prefix}help` to get a list of commands.\n"
-                            "For updates and further help, you can join the [support discord](https://discord.club/discord)!\n\n")
-
 
 def setup(bot):
     bot.add_cog(Basics(bot))
