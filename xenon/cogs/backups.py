@@ -101,7 +101,7 @@ class Backups(cmd.Cog):
         Load a backup
 
 
-        backup_id ::    The id of the backup or the guild id to for latest automated backup
+        **backup_id**: The id of the backup or the guild id to for latest automated backup
         """
         backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
@@ -143,7 +143,7 @@ class Backups(cmd.Cog):
         """
         Delete a backup
 
-        backup_id::    The id of the backup
+        **backup_id**:  The id of the backup
         """
         backup = await self._get_backup(backup_id)
         if backup is None or backup.get("creator") != ctx.author.id:
@@ -262,7 +262,7 @@ class Backups(cmd.Cog):
         """
         Get information about a backup
 
-        backup_id::    The id of the backup or the guild id to for latest automated backup
+        **backup_id**: The id of the backup or the guild id to for latest automated backup
         """
         backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
@@ -291,9 +291,9 @@ class Backups(cmd.Cog):
         """
         Setup automated backups
 
-        interval ::     The time between every backup or "off".
-                        Supported units: minutes(m), hours(h), days(d), weeks(w), month(m)
-                        Example: 1d 12h
+        **interval**: The time between every backup or "off".
+                    Supported units: minutes(m), hours(h), days(d), weeks(w), month(m)
+                    Example: 1d 12h
         """
         if len(interval) == 0:
             interval = await ctx.db.intervals.find_one({"_id": ctx.guild.id})
