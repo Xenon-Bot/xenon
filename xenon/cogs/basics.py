@@ -48,7 +48,7 @@ class Basics(cmd.Cog):
                                 "[Xenon Turbo](https://discordapp.com/api/oauth2/authorize?client_id=598534174894194719&permissions=8&scope=bot)",
                                 type="info"))
 
-    @cmd.command(aliases=["i", "stats", "status"])
+    @cmd.command(aliases=["i", "stats", "status", "about"])
     @cmd.cooldown(1, 10, cmd.BucketType.user)
     async def info(self, ctx):
         embed = ctx.em("")["embed"]
@@ -61,6 +61,9 @@ class Basics(cmd.Cog):
         embed.add_field(name="Guilds", value=helpers.format_number(await self.bot.get_guild_count()))
         embed.add_field(name="Shards", value=self.bot.shard_count or 1)
         embed.add_field(name="Users", value=helpers.format_number(await self.bot.get_user_count()))
+
+        app_info = await ctx.bot.application_info()
+        embed.set_footer(text=f"Owned by {app_info.owner}")
 
         await ctx.send(embed=embed)
 
