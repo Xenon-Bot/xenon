@@ -14,6 +14,12 @@ class Basics(cmd.Cog):
         """Pong"""
         await ctx.send(**ctx.em(f"I have a **latency** of **{round(self.bot.latency * 1000, 1)} ms**.", type="info"))
 
+    @cmd.command()
+    @cmd.has_permissions(administrator=True)
+    async def leave(self, ctx):
+        await ctx.send("bye ;(")
+        await ctx.guild.leave()
+
     @cmd.command(aliases=['shardid'])
     async def shard(self, ctx, guild_id: int = None):
         guild_id = guild_id or ctx.guild.id
