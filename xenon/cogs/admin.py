@@ -21,6 +21,8 @@ class Admin(cmd.Cog):
         Execute a command in place of another user
 
 
+        __Arguments__
+
         **member**: The user (must be a member of this guild)
         **msg**: The message. Doesn't need to be command
         """
@@ -42,6 +44,8 @@ class Admin(cmd.Cog):
         """
         Reload a cog
 
+
+        __Arguments__
 
         **cog**: The name of the cod
         """
@@ -78,6 +82,9 @@ class Admin(cmd.Cog):
     async def _exec(self, ctx, *, body: str):
         """
         Executes something, uses exec not eval -> returns None
+
+
+        __Arguments__
 
         **body**: The code to get executed
         """
@@ -138,6 +145,14 @@ class Admin(cmd.Cog):
     @cmd.command(hidden=True)
     @cmd.is_owner()
     async def eval(self, ctx, *, code: str):
+        """
+        Evaluate a single expression and return the result
+
+
+        __Arguments__
+
+        **code**: The expression
+        """
         to_eval = code.replace("await ", "")
         try:
             result = eval(to_eval)
