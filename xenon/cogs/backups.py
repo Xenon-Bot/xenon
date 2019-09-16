@@ -358,7 +358,7 @@ class Backups(cmd.Cog):
     async def run_backup(self, guild_id):
         guild = self.bot.get_guild(guild_id)
         if guild is None:
-            raise ValueError
+            return
 
         handler = BackupSaver(self.bot, self.bot.session, guild)
         data = await handler.save()
