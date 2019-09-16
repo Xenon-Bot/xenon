@@ -122,7 +122,7 @@ class HelpCommand(cmd.HelpCommand):
 
         if command.help:
             try:
-                self.paginator.add_line(command.help, empty=True)
+                self.paginator.add_line(command.help.format(c=__import__("config")), empty=True)
             except RuntimeError:
                 for line in command.help.splitlines():
                     self.paginator.add_line(line)
