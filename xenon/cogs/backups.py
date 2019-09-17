@@ -303,7 +303,7 @@ class Backups(cmd.Cog):
 
         __Examples__
 
-        ```{c.prefix}backup delete oj1xky11871fzrbu```
+        ```{c.prefix}backup info oj1xky11871fzrbu```
         """
         backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
