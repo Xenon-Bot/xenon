@@ -59,6 +59,11 @@ class Backups(cmd.Cog):
     async def create(self, ctx):
         """
         Create a backup
+
+
+        __Examples__
+
+        ```{c.prefix}backup create```
         """
         backup_count = await ctx.db.backups.count_documents({"creator": ctx.author.id})
         if backup_count >= max_backups:
@@ -72,7 +77,10 @@ class Backups(cmd.Cog):
         backup = await handler.save()
         id = await self._save_backup(ctx.author.id, backup)
 
-        await status.edit(**ctx.em("Successfully **created backup**.", type="success"))
+        embed = ctx.em(f"Successfully **created backup** with the id `{id}`.\n", type="success")["embed"]
+        embed.add_field(name="Usage",
+                        value=f"```{ctx.prefix}backup load {id}```\n```{ctx.prefix}backup info {id}```")
+        await status.edit(embed=embed)
         try:
             if ctx.author.is_on_mobile():
                 await ctx.author.send(f"{ctx.prefix}backup load {id}")
@@ -84,10 +92,8 @@ class Backups(cmd.Cog):
                                 value=f"```{ctx.prefix}backup load {id}```\n```{ctx.prefix}backup info {id}```")
                 await ctx.author.send(embed=embed)
 
-        except:
-            await status.edit(
-                **ctx.em("I was **unable to send you the backup-id**. Please make sure you have dm's enabled.",
-                         type="error"))
+        except Exception:
+            pass
 
     @backup.command(aliases=["l"])
     @cmd.guild_only()
@@ -100,7 +106,17 @@ class Backups(cmd.Cog):
         Load a backup
 
 
-        backup_id ::    The id of the backup or the guild id to for latest automated backup
+        __Arguments__
+
+        **backup_id**: The id of the backup or the guild id to for latest automated backup
+        **options**: A list of options (See examples)
+
+
+        __Examples__
+
+        Default options: ```{c.prefix}backup load oj1xky11871fzrbu```
+        Only roles: ```{c.prefix}backup load oj1xky11871fzrbu - roles```
+        Everything but bans: ```{c.prefix}backup load oj1xky11871fzrbu !bans```
         """
         backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
@@ -140,9 +156,17 @@ class Backups(cmd.Cog):
     @cmd.cooldown(1, 5, cmd.BucketType.user)
     async def delete(self, ctx, backup_id):
         """
-        Delete a backup
+        Delete one of your backups
 
-        backup_id::    The id of the backup
+
+        __Arguments__
+
+        **backup_id**:  The id of the backup
+
+
+        __Examples__
+
+        ```{c.prefix}backup delete oj1xky11871fzrbu```
         """
         backup = await self._get_backup(backup_id)
         if backup is None or backup.get("creator") != ctx.author.id:
@@ -151,11 +175,52 @@ class Backups(cmd.Cog):
         await self._delete_backup(backup_id)
         await ctx.send(**ctx.em("Successfully **deleted backup**.", type="success"))
 
+    @backup.command(aliases=["pg"])
+    @cmd.cooldown(1, 60 * 60, cmd.BucketType.user)
+    async def purge(self, ctx):
+        """
+        Delete all your backups
+        __**This cannot be undone**__
+
+
+        __Examples__
+
+        ```{c.prefix}backup purge```
+        """
+        warning = await ctx.send(
+            **ctx.em("Are you sure that you want to delete all your backups?\n"
+                     "__**This cannot be undone!**__",
+                     type="warning"))
+        await warning.add_reaction("✅")
+        await warning.add_reaction("❌")
+        try:
+            reaction, user = await self.bot.wait_for(
+                "reaction_add",
+                check=lambda r, u: r.message.id == warning.id and u.id == ctx.author.id,
+                timeout=60)
+        except TimeoutError:
+            await warning.delete()
+            raise cmd.CommandError(
+                "Please make sure to **click the ✅ reaction** in order to delete all your backups.")
+
+        if str(reaction.emoji) != "✅":
+            ctx.command.reset_cooldown(ctx)
+            await warning.delete()
+            return
+
+        await ctx.db.backups.delete_many({"creator": ctx.author.id})
+        await ctx.send(**ctx.em("Deleted all your backups.", type="success"))
+
     @backup.command(aliases=["ls"])
     @cmd.cooldown(1, 30, cmd.BucketType.user)
     async def list(self, ctx):
         """
         Get a list of your backups
+
+
+        __Examples__
+
+        ```{c.prefix}backup list```
         """
         args = {
             "limit": 10,
@@ -230,7 +295,15 @@ class Backups(cmd.Cog):
         """
         Get information about a backup
 
-        backup_id::    The id of the backup or the guild id to for latest automated backup
+
+        __Arguments__
+
+        **backup_id**: The id of the backup or the guild id to for latest automated backup
+
+
+        __Examples__
+
+        ```{c.prefix}backup info oj1xky11871fzrbu```
         """
         backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
         backup = await self._get_backup(backup_id)
@@ -259,9 +332,17 @@ class Backups(cmd.Cog):
         """
         Setup automated backups
 
-        interval ::     The time between every backup or "off".
-                        Supported units: minutes(m), hours(h), days(d), weeks(w), month(m)
-                        Example: 1d 12h
+
+        __Arguments__
+
+        **interval**: The time between every backup or "off".
+                    Supported units: minutes(m), hours(h), days(d), weeks(w), month(m)
+                    Example: 1d 12h
+
+
+        __Examples__
+
+        ```{c.prefix}backup interval 24h```
         """
         if len(interval) == 0:
             interval = await ctx.db.intervals.find_one({"_id": ctx.guild.id})
@@ -326,7 +407,7 @@ class Backups(cmd.Cog):
     async def run_backup(self, guild_id):
         guild = self.bot.get_guild(guild_id)
         if guild is None:
-            raise ValueError
+            return
 
         handler = BackupSaver(self.bot, self.bot.session, guild)
         data = await handler.save()

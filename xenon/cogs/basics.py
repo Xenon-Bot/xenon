@@ -14,8 +14,29 @@ class Basics(cmd.Cog):
         """Pong"""
         await ctx.send(**ctx.em(f"I have a **latency** of **{round(self.bot.latency * 1000, 1)} ms**.", type="info"))
 
+    @cmd.command()
+    @cmd.has_permissions(administrator=True)
+    async def leave(self, ctx):
+        """Let the bot leave"""
+        await ctx.send("bye ;(")
+        await ctx.guild.leave()
+
     @cmd.command(aliases=['shardid'])
     async def shard(self, ctx, guild_id: int = None):
+        """
+        Get the shard id for this or any guild
+
+
+        __Arguments__
+
+        **guild_id**: The id of the guild
+
+
+        __Examples__
+
+        ```{c.prefix}shard```
+        ```{c.prefix}shard 410488579140354049```
+        """
         guild_id = guild_id or ctx.guild.id
         shard_id = (guild_id >> 22) % self.bot.shard_count
         await ctx.send(**ctx.em(f"The guild with the id **{guild_id}** is on **shard {shard_id}**.", type="info"))
@@ -23,7 +44,7 @@ class Basics(cmd.Cog):
     @cmd.command()
     @cmd.cooldown(1, 10, cmd.BucketType.user)
     async def shards(self, ctx):
-        """Show information about the virtual shards in this physical shard"""
+        """Get a list of shards"""
         table = PrettyTable()
         table.field_names = ["Shard-Id", "Latency", "Guilds", "Users"]
         shards = await self.bot.get_shards()
@@ -48,9 +69,10 @@ class Basics(cmd.Cog):
                                 "[Xenon Turbo](https://discordapp.com/api/oauth2/authorize?client_id=598534174894194719&permissions=8&scope=bot)",
                                 type="info"))
 
-    @cmd.command(aliases=["i", "stats", "status"])
+    @cmd.command(aliases=["i", "stats", "status", "about"])
     @cmd.cooldown(1, 10, cmd.BucketType.user)
     async def info(self, ctx):
+        """Get Information about Xenon"""
         embed = ctx.em("")["embed"]
         embed.description = "Server Backups, Templates and more"
         embed.title = "Xenon"
@@ -62,24 +84,22 @@ class Basics(cmd.Cog):
         embed.add_field(name="Shards", value=self.bot.shard_count or 1)
         embed.add_field(name="Users", value=helpers.format_number(await self.bot.get_user_count()))
 
+        app_info = await ctx.bot.application_info()
+        embed.set_footer(text=f"Owned by {app_info.owner}")
+
         await ctx.send(embed=embed)
 
-    @cmd.command()
-    async def pro(self, ctx):
-        """Shows information about Xenon Pro"""
+    @cmd.command(aliases=["pro", "turbo"])
+    async def tiers(self, ctx):
+        """Shows information about Xenon Pro & Turbo"""
         await ctx.send(**ctx.em(
-            "**Xenon Pro** is the **paid version** of xenon. It includes some **exclusive features**.\n"
-            "You can buy it [here](https://www.patreon.com/merlinfuchs).\n"
-            "Invite it [here](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot)\n\n"
-            "You can find **more information** about the subscription and a **detailed list of perks** [here](https://docs.discord.club/xenon/how-to/xenon-pro).",
+            "**Xenon Pro** and **Xenon Turbo** are the **paid versions** of Xenon. "
+            "They extend the existing features of Xenon and add new ones.\n"
+            "You can buy them [here](https://www.patreon.com/merlinfuchs) "
+            "and find **more information** and a **detailed list of perks** "
+            "[here](https://docs.discord.club/xenon/tiers).",
             type="info"
         ))
-
-    @cmd.Cog.listener()
-    async def on_guild_join(self, guild):
-        embed = self.bot.em("**Hello and thank you for inviting Xenon!** 😋\n"
-                            f"Use `{self.bot.config.prefix}help` to get a list of commands.\n"
-                            "For updates and further help, you can join the [support discord](https://discord.club/discord)!\n\n")
 
 
 def setup(bot):

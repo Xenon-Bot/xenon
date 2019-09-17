@@ -9,7 +9,12 @@ shard_count = int(env.get('SHARD_COUNT') or 1)
 shards_per_pod = int(env.get('SHARDS_PER_POD') or 1)
 
 _hostname = env.get("HOSTNAME")
-pod_id = int(_hostname.split("-")[-1]) if _hostname is not None else 0
+pod_id = 0
+if _hostname is not None:
+    try:
+        pod_id = int(_hostname.split("-")[-1])
+    except ValueError:
+        pass  # Probably using docker
 
 prefix = "x!"
 

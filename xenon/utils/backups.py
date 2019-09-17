@@ -245,7 +245,7 @@ class BackupLoader:
 
                 self.id_translator[role["id"]] = edited.id
             except Exception:
-                traceback.print_exc()
+                pass
 
     async def _load_categories(self):
         logger.debug(f"Loading categories on {self.guild.id}")

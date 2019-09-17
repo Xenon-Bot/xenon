@@ -43,11 +43,16 @@ class Templates(cmd.Cog):
         Turn a private backup into a PUBLIC template.
 
 
-        backup_id   ::      The id of the backup that you want to turn into a template
+        __Arguments__
 
-        name        ::      A name for the template
+        **backup_id**: The id of the backup that you want to turn into a template
+        **name**: A name for the template
+        **description**: A description for the template
 
-        description ::      A description for the template
+
+        __Examples__
+
+        ```{c.prefix}template create oj1xky11871fzrbu start-template A good start for new servers```
         """
 
         backup_id = backup_id or await helpers.ask_question(
@@ -125,7 +130,9 @@ class Templates(cmd.Cog):
         Approve a template
 
 
-        template_name ::    The name of the template
+        __Arguments__
+
+        **template_name**: The name of the template
         """
         template_name = template_name.lower().replace(" ", "_")
         template = await ctx.db.templates.find_one(template_name)
@@ -152,7 +159,9 @@ class Templates(cmd.Cog):
         Feature a template
 
 
-        template_name ::    The name of the template
+        __Arguments__
+
+        **template_name**: The name of the template
         """
         feature = True
         if ctx.invoked_with == "unfeature":
@@ -181,10 +190,12 @@ class Templates(cmd.Cog):
     @checks.has_role_on_support_guild("Staff")
     async def delete(self, ctx, *, template_name):
         """
-        Delete a template created by you
+        Delete a template
 
 
-        template_name ::    The name of the template
+        __Arguments__
+
+        **template_name**: The name of the template
         """
         template_name = template_name.lower().replace(" ", "_")
         template = await ctx.db.templates.find_one(template_name)
@@ -251,7 +262,14 @@ class Templates(cmd.Cog):
         Load a template
 
 
-        template_name ::    The name of the template
+        __Arguments__
+
+        **template_name**: The name of the template
+
+
+        __Examples__
+
+        ```{c.prefix}template load starter```
         """
         template_name = template_name.lower().replace(" ", "_")
         template = await ctx.db.templates.find_one(template_name)
@@ -292,7 +310,14 @@ class Templates(cmd.Cog):
         Get information about a template
 
 
-        template_name ::    The name of the template
+        __Arguments__
+
+        **template_name**: The name of the template
+
+
+        __Examples__
+
+        ```{c.prefix}template info starter```
         """
         template_name = template_name.lower().replace(" ", "_")
         template = await ctx.db.templates.find_one(template_name)
@@ -321,7 +346,15 @@ class Templates(cmd.Cog):
         Get a list of public templates
 
 
-        keywords ::    Keywords to search for. Make sure to include non stop-words
+        __Arguments__
+
+        **keywords**: Keywords to search for. Make sure to include non stop-words
+
+
+        __Examples__
+
+        List all backups: ```{c.prefix}template list```
+        Search for a template: ```{c.prefix}template search basic```
         """
         # await ctx.db.templates.create_index([("description", pymongo.TEXT), ("_id", pymongo.TEXT)])
         args = {
