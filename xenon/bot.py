@@ -13,6 +13,8 @@ class Xenon(cmd.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(command_prefix=self._prefix_callable,
                          shard_count=self.config.shard_count,
+                         fetch_offline_members=False,
+                         guild_subscriptions=False,
                          shard_ids=[
                              i for i in range(
                                  self.config.pod_id * self.config.shards_per_pod,
