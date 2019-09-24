@@ -76,9 +76,9 @@ spec:
         image: r.cfcr.io/{{CF_ACCOUNT}}/{{CF_REPO_NAME}}:{{CF_SHORT_REVISION}}
         env:
         - name: SHARD_COUNT
-          value: 64
+          value: "64"
         - name: SHARDS_PER_POD
-          value: 4
+          value: "4"
         envFrom:
         - configMapRef:
             name: xenon
