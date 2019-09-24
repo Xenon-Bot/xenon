@@ -9,6 +9,7 @@ import inspect
 from contextlib import redirect_stdout
 import io
 import textwrap
+import discord
 
 
 class PublishReturn:
@@ -86,49 +87,54 @@ class Sharding(cmd.Cog):
 
     async def _eval_reader(self, channel):
         async for msg in channel.iter(decoder=json.loads):
-            to_eval = msg["statement"].replace("await ", "")
             try:
-                result = eval(to_eval)
-                if inspect.isawaitable(result):
-                    result = await result
-            except Exception as e:
-                result = type(e).__name__ + ": " + str(e)
+                to_eval = msg["statement"].replace("await ", "")
+                try:
+                    result = eval(to_eval)
+                    if inspect.isawaitable(result):
+                        result = await result
+                except Exception as e:
+                    result = type(e).__name__ + ": " + str(e)
 
-            await self.pubre.respond(msg, {"result": result})
+                await self.pubre.respond(msg, {"result": result})
+            except Exception:
+                traceback.print_exc()
 
     async def _exec_reader(self, channel):
         async for msg in channel.iter(decoder=json.loads):
-            env = {
-                'bot': self.bot,
-                "self": self,
-                "config": self.bot.config
-            }
-
-            env.update(globals())
-            stdout = io.StringIO()
-            to_compile = f'async def func():\n{textwrap.indent(msg["body"], "  ")}'
-
             try:
-                exec(to_compile, env)
-            except Exception as e:
-                await self.pubre.respond(msg, {"success": 0, "result": str(e.__class__.__name__)})
-                return
+                env = {
+                    'bot': self.bot,
+                    "self": self,
+                    "config": self.bot.config
+                }
 
-            func = env['func']
-            try:
-                with redirect_stdout(stdout):
-                    ret = await func()
+                env.update(globals())
+                stdout = io.StringIO()
+                to_compile = f'async def func():\n{textwrap.indent(msg["body"], "  ")}'
 
-            except:
-                value = stdout.getvalue()
-                await self.pubre.respond(msg, {"success": 0, "result": str(traceback.format_exc())})
-            else:
-                value = stdout.getvalue()
+                try:
+                    exec(to_compile, env)
+                except Exception as e:
+                    await self.pubre.respond(msg, {"success": 0, "result": str(e.__class__.__name__)})
+                    return
 
-                if ret is None:
-                    await self.pubre.respond(msg, {"success": 1, "result": str(value)})
+                func = env['func']
+                try:
+                    with redirect_stdout(stdout):
+                        ret = await func()
+
+                except Exception:
+                    await self.pubre.respond(msg, {"success": 0, "result": str(traceback.format_exc())})
                 else:
-                    await self.pubre.respond(msg, {"success": 1, "result": str(value) + str(ret)})
+                    value = stdout.getvalue()
+
+                    if ret is None:
+                        await self.pubre.respond(msg, {"success": 1, "result": str(value)})
+                    else:
+                        await self.pubre.respond(msg, {"success": 1, "result": str(value) + str(ret)})
+            except Exception:
+                traceback.print_exc()
 
     async def subscribe(self):
         await self.bot.wait_until_ready()
@@ -152,7 +158,15 @@ class Sharding(cmd.Cog):
     async def geval(self, ctx, timeout: float, operator: str, *, statement):
         statement = statement.strip("`")
         results = await self.pubre.publish("eval", {"statement": statement}, timeout=timeout)
-        await ctx.send(f"__{len(results)} Results: __" + str(self._format_results(operator, [r["result"] for r in results])))
+        formatted_results = str(self._format_results(operator, [r['result'] for r in results]))
+        if len(formatted_results) > 1800:
+            fp = io.BytesIO(formatted_results.encode())
+            await ctx.send(files=[discord.File(fp, filename="results.txt")])
+
+        else:
+            await ctx.send(
+                f"__{len(results)} Results:__```{formatted_results}```"
+            )
 
     @cmd.command(hidden=True)
     @cmd.is_owner()
@@ -167,7 +181,15 @@ class Sharding(cmd.Cog):
             return content.strip('` \n')
 
         results = await self.pubre.publish("exec", {"body": cleanup_code(body)}, timeout=timeout)
-        await ctx.send(f"__{len(results)} Results:__\n" + str(self._format_results(operator, [r["result"] for r in results])))
+        formatted_results = str(self._format_results(operator, [r['result'] for r in results]))
+        if len(formatted_results) > 1800:
+            fp = io.BytesIO(formatted_results.encode())
+            await ctx.send(files=[discord.File(fp, filename="results.txt")])
+
+        else:
+            await ctx.send(
+                f"__{len(results)} Results:__```{formatted_results}```"
+            )
 
 
 def setup(bot):

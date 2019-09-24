@@ -4,6 +4,8 @@ db_host = env.get('DB_HOST') or "localhost"
 db_user = env.get('DB_USER')
 db_password = env.get('DB_PASSWORD')
 
+redis_host = env.get('REDIS_HOST') or "localhost"
+
 token = env.get('TOKEN')
 shard_count = int(env.get('SHARD_COUNT') or 1)
 shards_per_pod = int(env.get('SHARDS_PER_POD') or 1)
