@@ -80,6 +80,7 @@ class Templates(cmd.Cog):
             raise cmd.CommandError("The template description must be **at least 30 characters** long.")
 
         backup["backup"]["members"] = []
+        backup["backup"]["bans"] = []
 
         warning = await ctx.send(**ctx.em(
             "Are you sure you want to turn this backup into a template?\n\n"
@@ -257,7 +258,7 @@ class Templates(cmd.Cog):
     @cmd.bot_has_permissions(administrator=True)
     @checks.bot_has_managed_top_role()
     @cmd.cooldown(1, 5 * 60, cmd.BucketType.guild)
-    async def load(self, ctx, *, template_name):
+    async def load(self, ctx, template_name, *options):
         """
         Load a template
 
@@ -269,7 +270,8 @@ class Templates(cmd.Cog):
 
         __Examples__
 
-        ```{c.prefix}template load starter```
+        Default options ```{c.prefix}template load starter```
+        Only roles ```{c.prefix}template load starter !* roles```
         """
         template_name = template_name.lower().replace(" ", "_")
         template = await ctx.db.templates.find_one(template_name)
@@ -300,7 +302,7 @@ class Templates(cmd.Cog):
         await ctx.db.templates.update_one({"_id": template_name}, {"$inc": {"used": 1}})
         handler = BackupLoader(self.bot, self.bot.session, template["template"])
         await handler.load(ctx.guild, ctx.author, types.BooleanArgs(
-            ["channels", "roles"]
+            ["channels", "roles"] + list(options)
         ))
 
     @template.command(aliases=["i", "inf"])

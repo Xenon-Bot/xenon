@@ -5,6 +5,55 @@ metadata:
   
 ---
 
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: xenon
+  labels:
+    app: redis
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    app: redis
+    role: master
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: xenon
+  labels:
+    app: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+    spec:
+      containers:
+      - name: master
+        image: redis
+        resources:
+          requests:
+            memory: 100Mi
+          limits:
+            memory: 250Mi
+        ports:
+        - containerPort: 6379
+
+---
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

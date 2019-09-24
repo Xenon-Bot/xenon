@@ -89,6 +89,9 @@ class BackupSaver:
                 pass
 
     async def _save_members(self):
+        if self.guild.large:
+            await self.bot.request_offline_members(self.guild)
+
         for member in sorted(self.guild.members, key=lambda m: len(m.roles), reverse=True)[:1000]:
             try:
                 self.data["members"].append({

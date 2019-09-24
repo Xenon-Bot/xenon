@@ -115,7 +115,7 @@ class Backups(cmd.Cog):
         __Examples__
 
         Default options: ```{c.prefix}backup load oj1xky11871fzrbu```
-        Only roles: ```{c.prefix}backup load oj1xky11871fzrbu - roles```
+        Only roles: ```{c.prefix}backup load oj1xky11871fzrbu !* roles```
         Everything but bans: ```{c.prefix}backup load oj1xky11871fzrbu !bans```
         """
         backup_id = str(ctx.guild.id) if backup_id.lower() == "interval" else backup_id
