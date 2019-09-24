@@ -9,6 +9,7 @@ import inspect
 from contextlib import redirect_stdout
 import io
 import textwrap
+import discord
 
 
 class PublishReturn:
@@ -159,7 +160,8 @@ class Sharding(cmd.Cog):
         results = await self.pubre.publish("eval", {"statement": statement}, timeout=timeout)
         formatted_results = str(self._format_results(operator, [r['result'] for r in results]))
         if len(formatted_results) > 1800:
-            pass
+            fp = io.BytesIO(formatted_results.encode())
+            await ctx.send(files=[discord.File(fp, filename="results.txt")])
 
         else:
             await ctx.send(
@@ -181,7 +183,8 @@ class Sharding(cmd.Cog):
         results = await self.pubre.publish("exec", {"body": cleanup_code(body)}, timeout=timeout)
         formatted_results = str(self._format_results(operator, [r['result'] for r in results]))
         if len(formatted_results) > 1800:
-            pass
+            fp = io.BytesIO(formatted_results.encode())
+            await ctx.send(files=[discord.File(fp, filename="results.txt")])
 
         else:
             await ctx.send(
