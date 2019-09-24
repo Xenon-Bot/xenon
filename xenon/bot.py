@@ -95,7 +95,7 @@ class Xenon(cmd.AutoShardedBot):
         return __import__("config")
 
     async def start(self, *args, **kwargs):
-        self.redis = aioredis.Redis(await aioredis.create_pool("redis://redis"))
+        self.redis = aioredis.Redis(await aioredis.create_pool("redis://" + self.config.redis_host))
         return await super().start(*args, **kwargs)
 
     def run(self):
