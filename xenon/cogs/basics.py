@@ -48,7 +48,7 @@ class Basics(cmd.Cog):
         table = PrettyTable()
         table.field_names = ["Shard-Id", "Latency", "Guilds", "Users"]
         shards = await self.bot.get_shards()
-        for shard in shards:
+        for shard in sorted(shards, key=lambda s: s["id"]):
             latency = f"{round(shard['latency'] * 1000, 1)} ms"
             if (datetime.utcnow() - shard["seen"]) > timedelta(minutes=3):
                 latency = "offline?"
