@@ -1,6 +1,7 @@
 from aiohttp import ClientSession
 from discord.ext import commands as cmd
 from motor.motor_asyncio import AsyncIOMotorClient
+import aioredis
 
 from utils import formatter, logger
 from utils.extended import Context
@@ -9,6 +10,7 @@ from utils.extended import Context
 class Xenon(cmd.AutoShardedBot):
     session = None
     db = None
+    redis = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(command_prefix=self._prefix_callable,
@@ -92,8 +94,12 @@ class Xenon(cmd.AutoShardedBot):
     def config(self):
         return __import__("config")
 
+    async def start(self, *args, **kwargs):
+        self.redis = aioredis.Redis(await aioredis.create_pool("redis://redis"))
+        return await super().start(*args, **kwargs)
+
     def run(self):
-        super().run(self.config.token)
+        return super().run(self.config.token)
 
     async def close(self):
         await super().close()

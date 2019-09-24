@@ -3,3 +3,4 @@ motor==2.0.0
 prettytable
 pytz>=2017.3
 discord.py==1.2.3
+aioredis==1.2.0
