@@ -64,7 +64,7 @@ spec:
     matchLabels:
       app: xenon
   serviceName: "xenon"
-  replicas: 48
+  replicas: 16
   template:
     metadata:
       labels:
@@ -74,6 +74,11 @@ spec:
       containers:
       - name: xenon
         image: r.cfcr.io/{{CF_ACCOUNT}}/{{CF_REPO_NAME}}:{{CF_SHORT_REVISION}}
+        env:
+        - name: SHARD_COUNT
+          value: 64
+        - name: SHARDS_PER_POD
+          value: 4
         envFrom:
         - configMapRef:
             name: xenon
