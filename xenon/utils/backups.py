@@ -242,11 +242,20 @@ class BackupLoader:
                         hoist=role["hoist"],
                         mentionable=role["mentionable"],
                         color=discord.Color(role["color"]),
-                        permissions=discord.Permissions(role["permissions"]),
+                        permissions=discord.Permissions(),
                         reason=self.reason
                     )
 
                 self.id_translator[role["id"]] = edited.id
+            except Exception:
+                pass
+
+    async def _load_role_permissions(self):
+        for role in self.data["roles"]:
+            try:
+                to_edit = self.guild.get_role(self.id_translator.get(role["id"]))
+                if to_edit:
+                    await to_edit.edit(permissions=discord.Permissions(role["permissions"]))
             except Exception:
                 pass
 
@@ -383,6 +392,12 @@ class BackupLoader:
         if self.options.members:
             try:
                 await self._load_members()
+            except Exception:
+                traceback.print_exc()
+
+        if self.options.roles:
+            try:
+                await self._load_role_permissions()
             except Exception:
                 traceback.print_exc()
 
