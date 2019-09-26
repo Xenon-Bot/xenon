@@ -209,7 +209,7 @@ class BackupLoader:
         logger.debug(f"Loading settings on {self.guild.id}")
         await self.guild.edit(
             name=self.data["name"],
-            region=discord.VoiceRegion(self.data["region"]),
+            # region=discord.VoiceRegion(self.data["region"]),
             afk_channel=self.guild.get_channel(self.id_translator.get(self.data["afk_channel"])),
             afk_timeout=self.data["afk_timeout"],
             # verification_level=discord.VerificationLevel(self.data["verification_level"]),
