@@ -73,17 +73,3 @@ def check_role_on_support_guild(role_name):
 def has_role_on_support_guild(role_name):
     pred = check_role_on_support_guild(role_name)
     return cmd.check(pred)
-
-
-def is_pro():
-    async def predicate(ctx):
-        try:
-            await check_role_on_support_guild("Xenon Pro")(ctx)
-        except cmd.CommandError:
-            raise cmd.CommandError(
-                f"This command is only for **Xenon Pro** users. Use `{ctx.config.prefix}pro` for more information."
-            )
-
-        return True
-
-    return cmd.check(predicate)
