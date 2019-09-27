@@ -385,46 +385,26 @@ class BackupLoader:
         self.reason = f"Backup loaded by {loader}"
 
         logger.debug(f"Loading backup on {self.guild.id}")
+
         try:
             await self._prepare_guild()
         except Exception:
             traceback.print_exc()
 
-        if self.options.roles:
-            try:
-                await self._load_roles()
-            except Exception:
-                traceback.print_exc()
-
-        if self.options.channels:
-            try:
-                await self._load_channels()
-            except Exception:
-                traceback.print_exc()
-
-        if self.options.settings:
-            try:
-                await self._load_settings()
-            except Exception:
-                traceback.print_exc()
-
-        if self.options.bans:
-            try:
-                await self._load_bans()
-            except Exception:
-                traceback.print_exc()
-
-        if self.options.members:
-            try:
-                await self._load_members()
-            except Exception:
-                traceback.print_exc()
-
-        if self.options.roles:
-            try:
-                await self._load_role_permissions()
-            except Exception:
-                traceback.print_exc()
+        steps = [
+            ("roles", self._load_roles()),
+            ("channels", self._load_channels()),
+            ("settings", self._load_settings()),
+            ("bans", self._load_bans()),
+            ("members", self._load_members()),
+            ("roles", self._load_role_permissions())
+        ]
+        for option, coro in steps:
+            if self.options.get(option):
+                try:
+                    await coro
+                except Exception:
+                    traceback.print_exc()
 
         logger.debug(f"Finished loading backup on {self.guild.id}")
 
