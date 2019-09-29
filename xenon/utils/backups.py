@@ -1,5 +1,6 @@
 import discord
 import traceback
+import asyncio
 
 from . import types
 from .logger import logger
@@ -159,6 +160,7 @@ class BackupLoader:
         self.bot = bot
         self.id_translator = {}
         self.options = types.BooleanArgs([])
+        self.semaphore = asyncio.Semaphore(10)
 
     def _overwrites_from_json(self, json):
         overwrites = {}
@@ -175,6 +177,25 @@ class BackupLoader:
             overwrites[union] = discord.PermissionOverwrite(**overwrite)
 
         return overwrites
+
+    async def run_tasks(self, coros, wait=True):
+        async def executor(_coro):
+            try:
+                await _coro
+
+            except Exception:
+                pass
+
+            finally:
+                self.semaphore.release()
+
+        tasks = []
+        for coro in coros:
+            await self.semaphore.acquire()
+            tasks.append(self.bot.loop.create_task(executor(coro)))
+
+        if wait:
+            await asyncio.wait(tasks)
 
     async def _prepare_guild(self):
         logger.debug(f"Deleting roles on {self.guild.id}")
@@ -200,16 +221,13 @@ class BackupLoader:
         if self.options.channels:
             logger.debug(f"Deleting channels on {self.guild.id}")
             for channel in self.guild.channels:
-                try:
-                    await channel.delete(reason=self.reason)
-                except Exception:
-                    pass
+                await channel.delete(reason=self.reason)
 
     async def _load_settings(self):
         logger.debug(f"Loading settings on {self.guild.id}")
         await self.guild.edit(
             name=self.data["name"],
-            region=discord.VoiceRegion(self.data["region"]),
+            # region=discord.VoiceRegion(self.data["region"]),
             afk_channel=self.guild.get_channel(self.id_translator.get(self.data["afk_channel"])),
             afk_timeout=self.data["afk_timeout"],
             # verification_level=discord.VerificationLevel(self.data["verification_level"]),
@@ -251,13 +269,13 @@ class BackupLoader:
                 pass
 
     async def _load_role_permissions(self):
+        tasks = []
         for role in self.data["roles"]:
-            try:
-                to_edit = self.guild.get_role(self.id_translator.get(role["id"]))
-                if to_edit:
-                    await to_edit.edit(permissions=discord.Permissions(role["permissions"]))
-            except Exception:
-                pass
+            to_edit = self.guild.get_role(self.id_translator.get(role["id"]))
+            if to_edit:
+                tasks.append(to_edit.edit(permissions=discord.Permissions(role["permissions"])))
+
+        await self.run_tasks(tasks)
 
     async def _load_categories(self):
         logger.debug(f"Loading categories on {self.guild.id}")
@@ -316,42 +334,49 @@ class BackupLoader:
 
     async def _load_bans(self):
         logger.debug(f"Loading bans on {self.guild.id}")
-        for ban in self.data["bans"]:
-            try:
-                await self.guild.ban(user=discord.Object(int(ban["user"])), reason=ban["reason"])
-            except Exception:
-                pass
+
+        tasks = [
+            self.guild.ban(user=discord.Object(int(ban["user"])), reason=ban["reason"])
+            for ban in self.data["bans"]
+        ]
+        await self.run_tasks(tasks)
 
     async def _load_members(self):
         logger.debug(f"Loading members on {self.guild.id}")
+
+        async def edit_member(member, member_data):
+            current_roles = [r.id for r in member.roles]
+            roles = [
+                discord.Object(self.id_translator.get(role))
+                for role in member_data["roles"]
+                if role in self.id_translator and role not in current_roles
+            ]
+
+            if self.guild.me.top_role.position > member.top_role.position and member != self.guild.owner:
+                try:
+                    await member.edit(
+                        nick=member_data.get("nick"),
+                        roles=[r for r in member.roles if r.managed] + roles,
+                        reason=self.reason
+                    )
+                except discord.Forbidden:
+                    await member.add_roles(*roles)
+
+            else:
+                await member.add_roles(*roles)
+
+        tasks = []
         for member in self.guild.members:
             try:
                 fits = list(filter(lambda m: m["id"] == str(member.id), self.data["members"]))
                 if len(fits) == 0:
                     continue
 
-                current_roles = [r.id for r in member.roles]
-                roles = [
-                    discord.Object(self.id_translator.get(role))
-                    for role in fits[0]["roles"]
-                    if role in self.id_translator and role not in current_roles
-                ]
-
-                if self.guild.me.top_role.position > member.top_role.position and member != self.guild.owner:
-                    try:
-                        await member.edit(
-                            nick=fits[0].get("nick"),
-                            roles=[r for r in member.roles if r.managed] + roles,
-                            reason=self.reason
-                        )
-                    except discord.Forbidden:
-                        await member.add_roles(*roles)
-
-                else:
-                    await member.add_roles(*roles)
-
+                tasks.append(edit_member(member, fits[0]))
             except Exception:
                 pass
+
+        await self.run_tasks(tasks)
 
     async def load(self, guild, loader: discord.User, options: types.BooleanArgs = None):
         self.options = options or self.options
@@ -360,46 +385,26 @@ class BackupLoader:
         self.reason = f"Backup loaded by {loader}"
 
         logger.debug(f"Loading backup on {self.guild.id}")
+
         try:
             await self._prepare_guild()
         except Exception:
             traceback.print_exc()
 
-        if self.options.roles:
-            try:
-                await self._load_roles()
-            except Exception:
-                traceback.print_exc()
-
-        if self.options.channels:
-            try:
-                await self._load_channels()
-            except Exception:
-                traceback.print_exc()
-
-        if self.options.settings:
-            try:
-                await self._load_settings()
-            except Exception:
-                traceback.print_exc()
-
-        if self.options.bans:
-            try:
-                await self._load_bans()
-            except Exception:
-                traceback.print_exc()
-
-        if self.options.members:
-            try:
-                await self._load_members()
-            except Exception:
-                traceback.print_exc()
-
-        if self.options.roles:
-            try:
-                await self._load_role_permissions()
-            except Exception:
-                traceback.print_exc()
+        steps = [
+            ("roles", self._load_roles()),
+            ("channels", self._load_channels()),
+            ("settings", self._load_settings()),
+            ("bans", self._load_bans()),
+            ("members", self._load_members()),
+            ("roles", self._load_role_permissions())
+        ]
+        for option, coro in steps:
+            if self.options.get(option):
+                try:
+                    await coro
+                except Exception:
+                    traceback.print_exc()
 
         logger.debug(f"Finished loading backup on {self.guild.id}")
 
