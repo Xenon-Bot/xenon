@@ -392,17 +392,17 @@ class BackupLoader:
             traceback.print_exc()
 
         steps = [
-            ("roles", self._load_roles()),
-            ("channels", self._load_channels()),
-            ("settings", self._load_settings()),
-            ("bans", self._load_bans()),
-            ("members", self._load_members()),
-            ("roles", self._load_role_permissions())
+            ("roles", self._load_roles),
+            ("channels", self._load_channels),
+            ("settings", self._load_settings),
+            ("bans", self._load_bans),
+            ("members", self._load_members),
+            ("roles", self._load_role_permissions)
         ]
         for option, coro in steps:
             if self.options.get(option):
                 try:
-                    await coro
+                    await coro()
                 except Exception:
                     traceback.print_exc()
 
