@@ -194,7 +194,7 @@ class BackupLoader:
             await self.semaphore.acquire()
             tasks.append(self.bot.loop.create_task(executor(coro)))
 
-        if wait:
+        if wait and tasks:
             await asyncio.wait(tasks)
 
     async def _prepare_guild(self):
