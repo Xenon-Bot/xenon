@@ -1,22 +1,19 @@
-from discord.ext import commands as cmd, tasks
+from discord.ext import commands as cmd
 import sys
 from datetime import datetime
-import traceback
-import asyncio
-import aiohttp
-
-
-LOG_URL = "http://logstalgia.discord.club/log/"
+import logging
 
 
 class Logstalgia(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.events = []
-        self.post_loop.start()
 
-    def cog_unload(self):
-        self.post_loop.cancel()
+        handler = logging.FileHandler("logs/logstalgia.log")
+        handler.setLevel(logging.INFO)
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(handler)
 
     def get_initiator(self, data):
         if data.get("id"):
@@ -51,31 +48,12 @@ class Logstalgia(cmd.Cog):
 
     @cmd.Cog.listener()
     async def on_socket_response(self, msg):
-        self.events.append({
-            "initiator": self.get_initiator(msg) or 0,
-            "timestamp": datetime.utcnow().timestamp(),
-            "event": msg.get("t") or "UNDEFINED",
-            "size": self.get_size(msg)
-        })
-
-    @tasks.loop(minutes=1, reconnect=True)
-    async def post_loop(self):
-        self.bot.log.debug("Posting %s events to logstalgia" % len(self.events))
-        try:
-            try:
-                await self.bot.session.post(
-                    LOG_URL,
-                    headers={"Authorization": self.bot.config.logstalgia_token},
-                    json=self.events,
-                    timeout=aiohttp.ClientTimeout(total=30)
-                )
-            except asyncio.TimeoutError:
-                pass
-        except Exception:
-            traceback.print_exc()
-
-        finally:
-            self.events = []
+        self.logger.info("%s - - [%s] \"GET /%s  HTTP/1.0\" 200 %s" % (
+            self.get_initiator(msg) or 0,
+            datetime.utcnow().timestamp(),
+            msg.get("t") or "UNDEFINED",
+            self.get_size(msg)
+        ))
 
 
 def setup(bot):
