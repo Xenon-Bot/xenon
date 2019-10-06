@@ -194,7 +194,7 @@ class BackupLoader:
             await self.semaphore.acquire()
             tasks.append(self.bot.loop.create_task(executor(coro)))
 
-        if wait:
+        if wait and tasks:
             await asyncio.wait(tasks)
 
     async def _prepare_guild(self):
@@ -248,23 +248,24 @@ class BackupLoader:
                     await self.guild.default_role.edit(
                         permissions=discord.Permissions(role["permissions"])
                     )
-                    edited = self.guild.default_role
+                    new_role = self.guild.default_role
                 else:
+                    kwargs = {
+                        "name": role["name"],
+                        "hoist": role["hoist"],
+                        "mentionable": role["mentionable"],
+                        "color": discord.Color(role["color"]),
+                        "permissions": discord.Permissions(),
+                        "reason": self.reason
+                    }
+
                     if len(existing_roles) == 0:
-                        edited = await self.guild.create_role(name="dummy")
+                        new_role = await self.guild.create_role(**kwargs)
                     else:
-                        edited = existing_roles.pop(0)
+                        new_role = existing_roles.pop(0)
+                        await new_role.edit(**kwargs)
 
-                    await edited.edit(
-                        name=role["name"],
-                        hoist=role["hoist"],
-                        mentionable=role["mentionable"],
-                        color=discord.Color(role["color"]),
-                        permissions=discord.Permissions(),
-                        reason=self.reason
-                    )
-
-                self.id_translator[role["id"]] = edited.id
+                self.id_translator[role["id"]] = new_role.id
             except Exception:
                 pass
 
@@ -392,17 +393,17 @@ class BackupLoader:
             traceback.print_exc()
 
         steps = [
-            ("roles", self._load_roles()),
-            ("channels", self._load_channels()),
-            ("settings", self._load_settings()),
-            ("bans", self._load_bans()),
-            ("members", self._load_members()),
-            ("roles", self._load_role_permissions())
+            ("roles", self._load_roles),
+            ("channels", self._load_channels),
+            ("settings", self._load_settings),
+            ("bans", self._load_bans),
+            ("members", self._load_members),
+            ("roles", self._load_role_permissions)
         ]
         for option, coro in steps:
             if self.options.get(option):
                 try:
-                    await coro
+                    await coro()
                 except Exception:
                     traceback.print_exc()
 

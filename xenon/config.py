@@ -5,6 +5,7 @@ db_user = env.get('DB_USER')
 db_password = env.get('DB_PASSWORD')
 
 redis_host = env.get('REDIS_HOST') or "localhost"
+logstalgia_token = env.get("LOGSTALGIA_TOKEN")
 
 token = env.get('TOKEN')
 shard_count = int(env.get('SHARD_COUNT') or 1)
