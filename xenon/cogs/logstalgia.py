@@ -50,7 +50,7 @@ class Logstalgia(cmd.Cog):
     async def on_socket_response(self, msg):
         self.logger.info("%s - - [%s] \"GET /%s  HTTP/1.0\" 200 %s" % (
             self.get_initiator(msg) or 0,
-            datetime.utcnow().timestamp(),
+            datetime.utcnow().strftime("%d/%b/%Y:%H:%M:%S") + " +0000",
             msg.get("t") or "UNDEFINED",
             self.get_size(msg)
         ))
