@@ -248,23 +248,24 @@ class BackupLoader:
                     await self.guild.default_role.edit(
                         permissions=discord.Permissions(role["permissions"])
                     )
-                    edited = self.guild.default_role
+                    new_role = self.guild.default_role
                 else:
+                    kwargs = {
+                        "name": role["name"],
+                        "hoist": role["hoist"],
+                        "mentionable": role["mentionable"],
+                        "color": discord.Color(role["color"]),
+                        "permissions": discord.Permissions(),
+                        "reason": self.reason
+                    }
+
                     if len(existing_roles) == 0:
-                        edited = await self.guild.create_role(name="dummy")
+                        new_role = await self.guild.create_role(**kwargs)
                     else:
-                        edited = existing_roles.pop(0)
+                        new_role = existing_roles.pop(0)
+                        await new_role.edit(**kwargs)
 
-                    await edited.edit(
-                        name=role["name"],
-                        hoist=role["hoist"],
-                        mentionable=role["mentionable"],
-                        color=discord.Color(role["color"]),
-                        permissions=discord.Permissions(),
-                        reason=self.reason
-                    )
-
-                self.id_translator[role["id"]] = edited.id
+                self.id_translator[role["id"]] = new_role.id
             except Exception:
                 pass
 
