@@ -31,7 +31,7 @@ extensions = [
     "cogs.sharding",
     "cogs.botlist",
     "cogs.api",
-    "cogs.logstalgia"
+    "cogs.builder"
 ]
 
 support_guild = 410488579140354049
