@@ -51,3 +51,16 @@ async def ask_question(ctx, question, converter=str):
 
     finally:
         await question_msg.delete()
+
+
+class IterWaitFor:
+    def __init__(self, bot, *args, **kwargs):
+        self.bot = bot
+        self.args = args
+        self.kwargs = kwargs
+
+    async def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        return await self.bot.wait_for(*self.args, **self.kwargs)

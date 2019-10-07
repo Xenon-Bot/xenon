@@ -237,13 +237,12 @@ class Backups(cmd.Cog):
             await msg.add_reaction(option)
 
         try:
-            while True:
-                reaction, user = await self.bot.wait_for(
-                    "reaction_add",
+            async for reaction, user in helpers.IterWaitFor(
+                    self.bot,
+                    event="reaction_add",
                     check=lambda r, u: u.id == ctx.author.id and r.message.id == msg.id and str(r.emoji) in options,
                     timeout=60
-                )
-
+            ):
                 emoji = reaction.emoji
                 if isinstance(ctx.channel, TextChannel):
                     try:
