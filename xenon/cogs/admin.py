@@ -5,8 +5,9 @@ import inspect
 from contextlib import redirect_stdout
 import textwrap
 import io
+from prettytable import PrettyTable
 
-from utils import checks
+from utils import checks, formatter
 
 
 class Admin(cmd.Cog):
@@ -144,16 +145,16 @@ class Admin(cmd.Cog):
 
     @cmd.command(hidden=True)
     @cmd.is_owner()
-    async def eval(self, ctx, *, code: str):
+    async def eval(self, ctx, *, expression: str):
         """
         Evaluate a single expression and return the result
 
 
         __Arguments__
 
-        **code**: The expression
+        **expressions**: The expression
         """
-        to_eval = code.replace("await ", "")
+        to_eval = expression.replace("await ", "")
         try:
             result = eval(to_eval)
             if inspect.isawaitable(result):
@@ -165,10 +166,31 @@ class Admin(cmd.Cog):
 
         embed = ctx.em("")["embed"]
         embed.title = "Eval Result"
-        embed.add_field(name="Input 📥", value=f"```Python\n{code}```", inline=False)
+        embed.add_field(name="Input 📥", value=f"```Python\n{expression}```", inline=False)
         embed.add_field(name="Output 📤", value=f"```Python\n{result}```", inline=False)
 
         await ctx.send(embed=embed)
+
+    @cmd.command(hidden=True)
+    @cmd.is_owner()
+    async def query(self, ctx, timeout: float = 0.5, *, expression: str):
+        """
+        Evaluate a single expression on all shards and return the results
+
+
+        __Arguments__
+
+        **expressions**: The expression
+        """
+        results = await self.bot.query(expression, timeout=timeout)
+        table = PrettyTable()
+        table.field_names = ["Shard-Id", "Result"]
+        for shards, result in sorted(results, key=lambda r: sum(r[0])):
+            table.add_row([", ".join([str(s) for s in shards]), result])
+
+        pages = formatter.paginate(str(table))
+        for page in pages:
+            await ctx.send(f"```diff\n{page}```")
 
 
 def setup(bot):

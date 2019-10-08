@@ -6,6 +6,7 @@ import json
 import uuid
 import asyncio
 import traceback
+import inspect
 
 from utils import formatter, logger, helpers
 from utils.extended import Context
@@ -47,6 +48,7 @@ class Xenon(cmd.AutoShardedBot):
 
     async def on_message(self, message):
         if message.author.bot:
+
             return
 
         await self.process_commands(message)
@@ -88,7 +90,15 @@ class Xenon(cmd.AutoShardedBot):
                     self.dispatch("broadcast", author, data)
 
                 elif _type == "q":
-                    result = eval(data["e"])
+                    to_eval = data["e"].replace("await ", "")
+                    try:
+                        result = eval(to_eval)
+                        if inspect.isawaitable(result):
+                            result = await result
+
+                    except Exception as e:
+                        result = type(e).__name__ + ": " + str(e)
+
                     await self.redis.publish_json("shards", {
                         "t": "r",
                         "a": self.shard_ids,
@@ -96,7 +106,7 @@ class Xenon(cmd.AutoShardedBot):
                     })
 
                 elif _type == "r":
-                    self.dispatch("shard_response", author, data)
+                    self.dispatch("query_response", author, data)
 
             except Exception:
                 traceback.print_exc()
@@ -120,7 +130,7 @@ class Xenon(cmd.AutoShardedBot):
         try:
             async for author, data in helpers.IterWaitFor(
                     self,
-                    event="shard_response",
+                    event="query_response",
                     check=lambda a, d: d["n"] == nonce,
                     timeout=timeout
             ):
