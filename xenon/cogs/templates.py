@@ -124,7 +124,7 @@ class Templates(cmd.Cog):
                                 type="success"))
         await self.approval_webhook.send(embed=self._template_info(template))
 
-    @template.command()
+    @template.command(hidden=True)
     @checks.has_role_on_support_guild("Staff")
     async def approve(self, ctx, *, template_name):
         """
@@ -153,7 +153,7 @@ class Templates(cmd.Cog):
         except:
             pass
 
-    @template.command(aliases=["unfeature"])
+    @template.command(aliases=["unfeature"], hidden=True)
     @checks.has_role_on_support_guild("Staff")
     async def feature(self, ctx, *, template_name):
         """
@@ -187,7 +187,7 @@ class Templates(cmd.Cog):
         except:
             pass
 
-    @template.command(aliases=["del", "rm", "remove", "deny"])
+    @template.command(aliases=["del", "rm", "remove", "deny"], hidden=True)
     @checks.has_role_on_support_guild("Staff")
     async def delete(self, ctx, *, template_name):
         """
