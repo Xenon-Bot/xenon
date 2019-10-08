@@ -22,6 +22,7 @@ class BuildMenu:
                 "options": [
                     ["delete_old_roles", True],
                     ["staff_roles", True],
+                    ["bot_role", True],
                     ["muted_role", True],
                     ["color_roles", False],
                     ["game_specific_roles", False]
@@ -36,7 +37,8 @@ class BuildMenu:
                     ["general_channels", True],
                     ["development_channels", False],
                     ["gaming_channels", False],
-                    ["afk_channel", False]
+                    ["afk_channel", False],
+                    ["log_channels", False]
                 ]
             }
         ]
@@ -141,7 +143,7 @@ class Builder(cmd.Cog):
         menu = BuildMenu(ctx)
         options = await menu.run()
 
-        roles = {"staff": [], "muted": []}
+        roles = {"staff": [], "muted": [], "bot": []}
 
         if options["delete_old_channels"]:
             for channel in ctx.guild.channels:
@@ -155,12 +157,12 @@ class Builder(cmd.Cog):
             staff_roles = [
                 {
                     "name": "Owner",
-                    "color": discord.Color.blurple(),
+                    "color": discord.Color.dark_red(),
                     "permissions": discord.Permissions.all()
                 },
                 {
                     "name": "Admin",
-                    "color": discord.Color.dark_red(),
+                    "color": discord.Color.red(),
                     "permissions": discord.Permissions.all()
                 },
                 {
@@ -181,6 +183,22 @@ class Builder(cmd.Cog):
 
             for kwargs in staff_roles:
                 roles["staff"].append(await ctx.guild.create_role(**kwargs))
+
+        if options["bot_role"]:
+            roles["bot"].append(await ctx.guild.create_role(
+                name="Bot",
+                color=discord.Color.blurple(),
+                permissions=create_permissions(
+                    kick_members=True,
+                    ban_members=True,
+                    view_audit_log=True,
+                    priority_speaker=True,
+                    mute_members=True,
+                    deafen_members=True,
+                    move_members=True,
+                    manage_nicknames=True
+                )
+            ))
 
         if options["muted_role"]:
             roles["muted"].append(await ctx.guild.create_role(
@@ -225,7 +243,7 @@ class Builder(cmd.Cog):
                 await ctx.guild.create_role(**kwargs)
 
         if options["game_specific_roles"]:
-            game_roles = ["minecraft", "fortnite", "pubg", "roblox"]
+            game_roles = ["minecraft", "fortnite", "apex", "pubg", "roblox", "destiny", "rainbow 6"]
             for name in game_roles:
                 await ctx.guild.create_role(name=name)
 
@@ -259,7 +277,12 @@ class Builder(cmd.Cog):
                         read_messages=True,
                         send_messages=True,
                         connect=True
-                    ) for role in roles["staff"]}
+                    ) for role in roles["staff"]},
+                    **{role: discord.PermissionOverwrite(
+                        read_messages=True,
+                        send_messages=True,
+                        connect=True
+                    ) for role in roles["bot"]}
                 }
             )
 
@@ -360,6 +383,35 @@ class Builder(cmd.Cog):
 
             afk_channel = await afk_category.create_voice_channel(name="Afk")
             await ctx.guild.edit(afk_channel=afk_channel)
+
+        if options["log_channels"]:
+            log_category = await ctx.guild.create_category(
+                name="Logs",
+                overwrites={
+                    ctx.guild.default_role: discord.PermissionOverwrite(
+                        read_messages=False,
+                        send_messages=False,
+                        connect=False
+                    ),
+                    **{role: discord.PermissionOverwrite(
+                        read_messages=True,
+                        send_messages=False,
+                        connect=True
+                    ) for role in roles["staff"]},
+                    **{role: discord.PermissionOverwrite(
+                        read_messages=True,
+                        send_messages=True,
+                        connect=True
+                    ) for role in roles["bot"]}
+                }
+            )
+
+            await log_category.create_text_channel(name="bot logs")
+            member_logs = await log_category.create_text_channel(name="members")
+            await ctx.guild.edit(
+                system_channel=member_logs,
+                system_channel_flags=discord.SystemChannelFlags(join_notifications=True)
+            )
 
 
 def setup(bot):
