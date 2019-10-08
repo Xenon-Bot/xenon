@@ -2,7 +2,7 @@ from discord.ext import commands as cmd
 import asyncio
 import discord
 
-from utils import helpers
+from utils import helpers, checks
 
 
 def create_permissions(**kwargs):
@@ -139,6 +139,11 @@ class Builder(cmd.Cog):
         self.bot = bot
 
     @cmd.command(aliases=["builder", "bld", "bd"], hidden=True)
+    @cmd.guild_only()
+    @cmd.has_permissions(administrator=True)
+    @cmd.bot_has_permissions(administrator=True)
+    @checks.bot_has_managed_top_role()
+    @cmd.cooldown(1, 5 * 60, cmd.BucketType.guild)
     async def build(self, ctx):
         menu = BuildMenu(ctx)
         options = await menu.run()
