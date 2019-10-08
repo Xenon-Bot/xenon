@@ -35,7 +35,8 @@ class BuildMenu:
                     ["staff_channels", True],
                     ["general_channels", True],
                     ["development_channels", False],
-                    ["gaming_channels", False]
+                    ["gaming_channels", False],
+                    ["afk_channel", False]
                 ]
             }
         ]
@@ -346,6 +347,19 @@ class Builder(cmd.Cog):
             ]
             for kwargs in voice_channels:
                 await game_category.create_voice_channel(**kwargs)
+
+        if options["afk_channel"]:
+            afk_category = await ctx.guild.create_category(
+                name="AFK",
+                overwrites={role: discord.PermissionOverwrite(
+                    read_messages=False,
+                    send_messages=False,
+                    connect=False
+                ) for role in roles["muted"]}
+            )
+
+            afk_channel = await afk_category.create_voice_channel(name="Afk")
+            await ctx.guild.edit(afk_channel=afk_channel)
 
 
 def setup(bot):
