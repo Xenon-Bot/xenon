@@ -6,6 +6,7 @@ from contextlib import redirect_stdout
 import textwrap
 import io
 from prettytable import PrettyTable
+import asyncio
 
 from utils import checks, formatter, extended
 
@@ -15,9 +16,10 @@ class Admin(cmd.Cog):
         self.bot = bot
         self._last_result = None
 
-    @cmd.command(aliases=["su"], hidden=True)
+    @cmd.command(hidden=True)
     @checks.has_role_on_support_guild("Staff")
-    async def sudo(self, ctx, member: discord.Member, *, msg):
+    @checks.has_role_on_support_guild("Staff")
+    async def su(self, ctx, member: discord.Member, *, msg):
         """
         Execute a command in place of another user
 
