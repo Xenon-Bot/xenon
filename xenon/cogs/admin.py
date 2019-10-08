@@ -5,8 +5,10 @@ import inspect
 from contextlib import redirect_stdout
 import textwrap
 import io
+from prettytable import PrettyTable
+import asyncio
 
-from utils import checks
+from utils import checks, formatter, extended
 
 
 class Admin(cmd.Cog):
@@ -14,9 +16,10 @@ class Admin(cmd.Cog):
         self.bot = bot
         self._last_result = None
 
-    @cmd.command(aliases=["su"], hidden=True)
+    @cmd.command(hidden=True)
     @checks.has_role_on_support_guild("Staff")
-    async def sudo(self, ctx, member: discord.Member, *, msg):
+    @checks.has_role_on_support_guild("Staff")
+    async def su(self, ctx, member: discord.Member, *, msg):
         """
         Execute a command in place of another user
 
@@ -33,10 +36,34 @@ class Admin(cmd.Cog):
         await webhook.send(content=msg, username=member.name, avatar_url=member.avatar_url)
         await webhook.delete()
 
+        await asyncio.sleep(1)  # Webhooks are slow
+
         message = ctx.message
         message.author = member
         message.content = msg
         await self.bot.process_commands(message)
+
+    @cmd.command(hidden=True)
+    @cmd.is_owner()
+    async def sudo(self, ctx, *, command):
+        """
+        Execute a command and bypasses cooldown
+
+
+        __Arguments__
+
+        **command**: The command
+        """
+        message = ctx.message
+        message.content = command
+
+        new_ctx = await self.bot.get_context(message, cls=extended.Context)
+        new_ctx.command.reset_cooldown(new_ctx)
+        if isinstance(new_ctx.command, cmd.Group):
+            for command in new_ctx.command.all_commands.values():
+                command.reset_cooldown(new_ctx)
+
+        await self.bot.invoke(new_ctx)
 
     @cmd.command(aliases=["rl"], hidden=True)
     @cmd.is_owner()
@@ -144,16 +171,16 @@ class Admin(cmd.Cog):
 
     @cmd.command(hidden=True)
     @cmd.is_owner()
-    async def eval(self, ctx, *, code: str):
+    async def eval(self, ctx, *, expression: str):
         """
         Evaluate a single expression and return the result
 
 
         __Arguments__
 
-        **code**: The expression
+        **expressions**: The expression
         """
-        to_eval = code.replace("await ", "")
+        to_eval = expression.replace("await ", "")
         try:
             result = eval(to_eval)
             if inspect.isawaitable(result):
@@ -165,10 +192,31 @@ class Admin(cmd.Cog):
 
         embed = ctx.em("")["embed"]
         embed.title = "Eval Result"
-        embed.add_field(name="Input 📥", value=f"```Python\n{code}```", inline=False)
+        embed.add_field(name="Input 📥", value=f"```Python\n{expression}```", inline=False)
         embed.add_field(name="Output 📤", value=f"```Python\n{result}```", inline=False)
 
         await ctx.send(embed=embed)
+
+    @cmd.command(hidden=True)
+    @cmd.is_owner()
+    async def query(self, ctx, timeout: float = 0.5, *, expression: str):
+        """
+        Evaluate a single expression on all shards and return the results
+
+
+        __Arguments__
+
+        **expressions**: The expression
+        """
+        results = await self.bot.query(expression, timeout=timeout)
+        table = PrettyTable()
+        table.field_names = ["Shard-Id", "Result"]
+        for shards, result in sorted(results, key=lambda r: sum(r[0])):
+            table.add_row([", ".join([str(s) for s in shards]), result])
+
+        pages = formatter.paginate(str(table))
+        for page in pages:
+            await ctx.send(f"```diff\n{page}```")
 
 
 def setup(bot):
