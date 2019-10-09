@@ -139,7 +139,9 @@ class Builder(cmd.Cog):
     @cmd.command(aliases=["builder", "bld", "bd"], hidden=True)
     async def build(self, ctx):
         """
-        Choose between different options and build your discord server less than a minute
+        Choose between different options and build your discord server in less than a minute
+        Enable and disable options by clicking the associated number and change the page
+        by clicking the arrows. Click on the check to start the apply the build.
 
 
         __Examples__
