@@ -18,7 +18,7 @@ if _hostname is not None:
     except ValueError:
         pass  # Probably using docker
 
-prefix = "x!"
+prefix = env.get('PREFIX') or "x!"
 
 extensions = [
     "cogs.errors",
