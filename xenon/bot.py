@@ -38,11 +38,12 @@ class Xenon(cmd.AutoShardedBot):
         log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
 
         self.session = ClientSession(loop=self.loop)
-        self.db = AsyncIOMotorClient(
+        db_connection = AsyncIOMotorClient(
             host=self.config.db_host,
             username=self.config.db_user,
             password=self.config.db_password
-        ).xenon
+        )
+        self.db = getattr(db_connection, self.config.db_name)
         for ext in self.config.extensions:
             self.load_extension(ext)
 

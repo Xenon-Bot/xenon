@@ -1,6 +1,7 @@
 from os import environ as env
 
 db_host = env.get('DB_HOST') or "localhost"
+db_name = env.get('DB_NAME') or "xenon"
 db_user = env.get('DB_USER')
 db_password = env.get('DB_PASSWORD')
 
