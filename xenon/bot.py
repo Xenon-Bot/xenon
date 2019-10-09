@@ -7,6 +7,7 @@ import uuid
 import asyncio
 import traceback
 import inspect
+from aioredis_lock import RedisLock
 
 from utils import formatter, logger, helpers
 from utils.extended import Context
@@ -140,6 +141,16 @@ class Xenon(cmd.AutoShardedBot):
             pass
 
         return responses
+
+    async def launch_shard(self, gateway, shard_id):
+        async with RedisLock(
+            self.redis,
+            key="identify",
+            timeout=200,  # More than the connect timeout
+            wait_timeout=None
+        ):
+            self.log.info("Shard ID %s acquired IDENTIFY lock." % shard_id)
+            return await super().launch_shard(gateway, shard_id)
 
     @property
     def em(self):
