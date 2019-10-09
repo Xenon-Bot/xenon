@@ -140,6 +140,14 @@ class Builder(cmd.Cog):
 
     @cmd.command(aliases=["builder", "bld", "bd"], hidden=True)
     async def build(self, ctx):
+        """
+        Choose between different options and build your discord server less than a minute
+
+
+        __Examples__
+
+        ```{c.prefix}build```
+        """
         menu = BuildMenu(ctx)
         options = await menu.run()
 
