@@ -15,3 +15,5 @@ def setup():
 
     logger.addHandler(fh)
     logger.addHandler(ch)
+
+    logging.getLogger("aiohttp.access").parent = None  # Disable access log
