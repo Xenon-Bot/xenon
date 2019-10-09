@@ -1,9 +1,11 @@
 import discord
 import traceback
 import asyncio
+import logging
 
 from . import types
-from .logger import logger
+
+log = logging.getLogger(__name__)
 
 
 class BackupSaver:
@@ -198,7 +200,7 @@ class BackupLoader:
             await asyncio.wait(tasks)
 
     async def _prepare_guild(self):
-        logger.debug(f"Deleting roles on {self.guild.id}")
+        log.debug(f"Deleting roles on {self.guild.id}")
         if self.options.roles:
             existing_roles = list(filter(
                 lambda r: not r.managed and self.guild.me.top_role.position > r.position,
@@ -219,12 +221,12 @@ class BackupLoader:
                         i += 1
 
         if self.options.channels:
-            logger.debug(f"Deleting channels on {self.guild.id}")
+            log.debug(f"Deleting channels on {self.guild.id}")
             for channel in self.guild.channels:
                 await channel.delete(reason=self.reason)
 
     async def _load_settings(self):
-        logger.debug(f"Loading settings on {self.guild.id}")
+        log.debug(f"Loading settings on {self.guild.id}")
         await self.guild.edit(
             name=self.data["name"],
             # region=discord.VoiceRegion(self.data["region"]),
@@ -236,7 +238,7 @@ class BackupLoader:
         )
 
     async def _load_roles(self):
-        logger.debug(f"Loading roles on {self.guild.id}")
+        log.debug(f"Loading roles on {self.guild.id}")
         existing_roles = list(reversed(list(filter(
             lambda r: not r.managed and not r.is_default()
                       and self.guild.me.top_role.position > r.position,
@@ -279,7 +281,7 @@ class BackupLoader:
         await self.run_tasks(tasks)
 
     async def _load_categories(self):
-        logger.debug(f"Loading categories on {self.guild.id}")
+        log.debug(f"Loading categories on {self.guild.id}")
         for category in self.data["categories"]:
             try:
                 created = await self.guild.create_category_channel(
@@ -292,7 +294,7 @@ class BackupLoader:
                 pass
 
     async def _load_text_channels(self):
-        logger.debug(f"Loading text channels on {self.guild.id}")
+        log.debug(f"Loading text channels on {self.guild.id}")
         for tchannel in self.data["text_channels"]:
             try:
                 created = await self.guild.create_text_channel(
@@ -311,7 +313,7 @@ class BackupLoader:
                 pass
 
     async def _load_voice_channels(self):
-        logger.debug(f"Loading voice channels on {self.guild.id}")
+        log.debug(f"Loading voice channels on {self.guild.id}")
         for vchannel in self.data["voice_channels"]:
             try:
                 created = await self.guild.create_voice_channel(
@@ -334,7 +336,7 @@ class BackupLoader:
         await self._load_voice_channels()
 
     async def _load_bans(self):
-        logger.debug(f"Loading bans on {self.guild.id}")
+        log.debug(f"Loading bans on {self.guild.id}")
 
         tasks = [
             self.guild.ban(user=discord.Object(int(ban["user"])), reason=ban["reason"])
@@ -343,7 +345,7 @@ class BackupLoader:
         await self.run_tasks(tasks)
 
     async def _load_members(self):
-        logger.debug(f"Loading members on {self.guild.id}")
+        log.debug(f"Loading members on {self.guild.id}")
 
         async def edit_member(member, member_data):
             current_roles = [r.id for r in member.roles]
@@ -385,7 +387,7 @@ class BackupLoader:
         self.loader = loader
         self.reason = f"Backup loaded by {loader}"
 
-        logger.debug(f"Loading backup on {self.guild.id}")
+        log.debug(f"Loading backup on {self.guild.id}")
 
         try:
             await self._prepare_guild()
@@ -407,7 +409,7 @@ class BackupLoader:
                 except Exception:
                     traceback.print_exc()
 
-        logger.debug(f"Finished loading backup on {self.guild.id}")
+        log.debug(f"Finished loading backup on {self.guild.id}")
 
 
 class BackupInfo:

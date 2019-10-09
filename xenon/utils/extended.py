@@ -6,10 +6,6 @@ class Context(cmd.Context):
         super().__init__(**attrs)
 
     @property
-    def log(self):
-        return self.bot.log
-
-    @property
     def db(self):
         return self.bot.db
 

@@ -2,8 +2,11 @@ from discord.ext import commands as cmd
 import discord
 import asyncio
 import traceback
+import logging
 
 from utils import helpers
+
+log = logging.getLogger(__name__)
 
 
 class Botlist(cmd.Cog):
@@ -24,7 +27,7 @@ class Botlist(cmd.Cog):
             }
         ) as resp:
             if resp.status != 200:
-                self.bot.log.error(resp)
+                log.error("Error posting stats to botlist: %s" % resp.status)
 
     async def update_loop(self):
         await self.bot.wait_until_ready()

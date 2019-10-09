@@ -1,21 +1,17 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
+import sys
 
-fh = TimedRotatingFileHandler(f"logs/bot.log", when="midnight", interval=1)
-fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s : %(message)s'))
-fh.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-ch.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s : %(message)s'))
 
-# Internal
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(fh)
-logger.addHandler(ch)
+def setup():
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
 
-# Discord
-discord_logger = logging.getLogger("discord")
-discord_logger.setLevel(logging.INFO)
-discord_logger.addHandler(fh)
-discord_logger.addHandler(ch)
+    fh = TimedRotatingFileHandler(f"logs/bot.log", when="midnight", interval=1)
+    fh.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(name)s > %(message)s'))
+
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
+
+    logger.addHandler(fh)
+    logger.addHandler(ch)

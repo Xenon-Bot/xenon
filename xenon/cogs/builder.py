@@ -69,10 +69,7 @@ class BuildMenu:
                                        str(r.emoji) in options.keys(),
                     timeout=3 * 60
             ):
-                try:
-                    await self.msg.remove_reaction(reaction.emoji, user)
-                except Exception:
-                    pass
+                self.ctx.bot.loop.create_task(self.msg.remove_reaction(reaction.emoji, user))
 
                 if not await options[str(reaction.emoji)]():
                     try:
@@ -89,7 +86,7 @@ class BuildMenu:
             except Exception:
                 pass
 
-            raise cmd.CommandError("timeout")
+            raise cmd.CommandError("**Canceled build process**, because you didn't do anything.")
 
     async def _next_page(self):
         if self.page < len(self.pages):
@@ -119,7 +116,7 @@ class BuildMenu:
             await self.msg.clear_reactions()
         except Exception:
             pass
-        raise cmd.CommandError("canceled")
+        raise cmd.CommandError("You canceled the build process.")
 
     async def _finish(self):
         return False
@@ -128,6 +125,7 @@ class BuildMenu:
         page_options = self.pages[self.page - 1]
         embed = self.ctx.em("", title="Server Builder")["embed"]
         embed.title = page_options["name"].title()
+        embed.set_footer(text="Enable / Disable options with the reactions and click ✅ when you are done")
         for i, (name, value) in enumerate(page_options["options"]):
             embed.description += f"{i + 1}\u20e3 **{name.replace('_', ' ').title()}** -> {'✅' if value else '❌'}\n"
 
@@ -145,6 +143,16 @@ class Builder(cmd.Cog):
     @checks.bot_has_managed_top_role()
     @cmd.cooldown(1, 5 * 60, cmd.BucketType.guild)
     async def build(self, ctx):
+        """
+        Choose between different options and build your discord server in less than a minute
+        Enable and disable options by clicking the associated number and change the page
+        by clicking the arrows. Click on the check to start the apply the build.
+
+
+        __Examples__
+
+        ```{c.prefix}build```
+        """
         menu = BuildMenu(ctx)
         options = await menu.run()
 
@@ -160,6 +168,9 @@ class Builder(cmd.Cog):
 
         if options["staff_roles"]:
             staff_roles = [
+                {
+                    "name": "─────────────"
+                },
                 {
                     "name": "Owner",
                     "color": discord.Color.dark_red(),
@@ -219,6 +230,9 @@ class Builder(cmd.Cog):
         if options["color_roles"]:
             color_roles = [
                 {
+                    "name": "──── Colors ────"
+                },
+                {
                     "name": "Green",
                     "color": discord.Color.green()
                 },
@@ -248,7 +262,7 @@ class Builder(cmd.Cog):
                 await ctx.guild.create_role(**kwargs)
 
         if options["game_specific_roles"]:
-            game_roles = ["minecraft", "fortnite", "apex", "pubg", "roblox", "destiny", "rainbow 6"]
+            game_roles = ["──── Games ────", "minecraft", "fortnite", "apex", "pubg", "roblox", "destiny", "rainbow 6"]
             for name in game_roles:
                 await ctx.guild.create_role(name=name)
 
