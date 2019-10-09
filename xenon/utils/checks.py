@@ -1,5 +1,8 @@
 from discord.ext import commands as cmd
 import asyncio
+import logging
+
+log = logging.getLogger(__name__)
 
 
 def bot_has_managed_top_role():
@@ -50,7 +53,7 @@ def check_role_on_support_guild(role_name):
     async def predicate(ctx):
         support_guild = ctx.bot.get_guild(ctx.config.support_guild)
         if support_guild is None:
-            ctx.log.warning("Support Guild is unavailable")
+            log.warning("Support Guild is unavailable")
             raise cmd.CommandError(
                 "The support guild is currently unavailable. Please try again later."
             )

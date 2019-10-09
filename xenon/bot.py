@@ -8,9 +8,12 @@ import asyncio
 import traceback
 import inspect
 from aioredis_lock import RedisLock
+import logging
 
 from utils import formatter, logger, helpers
 from utils.extended import Context
+
+log = logging.getLogger(__name__)
 
 
 class Xenon(cmd.AutoShardedBot):
@@ -31,7 +34,8 @@ class Xenon(cmd.AutoShardedBot):
                          owner_id=self.config.owner_id,
                          *args, **kwargs)
 
-        self.log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
+        logger.setup()
+        log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
 
         self.session = ClientSession(loop=self.loop)
         self.db = AsyncIOMotorClient(
@@ -42,14 +46,13 @@ class Xenon(cmd.AutoShardedBot):
         for ext in self.config.extensions:
             self.load_extension(ext)
 
-        self.log.info(f"Loaded {len(self.cogs)} cogs")
+        log.info(f"Loaded {len(self.cogs)} cogs")
 
     async def on_ready(self):
-        self.log.info(f"Fetched {sum([g.member_count for g in self.guilds])} members on {len(self.guilds)} guilds")
+        log.info(f"Fetched {sum([g.member_count for g in self.guilds])} members on {len(self.guilds)} guilds")
 
     async def on_message(self, message):
         if message.author.bot:
-
             return
 
         await self.process_commands(message)
@@ -144,21 +147,17 @@ class Xenon(cmd.AutoShardedBot):
 
     async def launch_shard(self, gateway, shard_id):
         async with RedisLock(
-            self.redis,
-            key="identify",
-            timeout=200,  # More than the connect timeout
-            wait_timeout=None
+                self.redis,
+                key="identify",
+                timeout=200,  # More than the connect timeout
+                wait_timeout=None
         ):
-            self.log.info("Shard ID %s acquired IDENTIFY lock." % shard_id)
+            log.info("Shard ID %s has acquired the IDENTIFY lock." % shard_id)
             return await super().launch_shard(gateway, shard_id)
 
     @property
     def em(self):
         return formatter.embed_message
-
-    @property
-    def log(self):
-        return logger.logger
 
     @property
     def config(self):
