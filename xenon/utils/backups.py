@@ -348,11 +348,10 @@ class BackupLoader:
         log.debug(f"Loading members on {self.guild.id}")
 
         async def edit_member(member, member_data):
-            current_roles = [r.id for r in member.roles]
             roles = [
                 discord.Object(self.id_translator.get(role))
                 for role in member_data["roles"]
-                if role in self.id_translator and role not in current_roles
+                if role in self.id_translator
             ]
 
             if self.guild.me.top_role.position > member.top_role.position and member != self.guild.owner:
