@@ -12,6 +12,7 @@ import logging
 
 from utils import formatter, logger, helpers
 from utils.extended import Context
+from config import Config
 
 log = logging.getLogger(__name__)
 
@@ -22,17 +23,20 @@ class Xenon(cmd.AutoShardedBot):
     redis = None
 
     def __init__(self, *args, **kwargs):
-        super().__init__(command_prefix=self._prefix_callable,
-                         shard_count=self.config.shard_count,
-                         fetch_offline_members=False,
-                         shard_ids=[
-                             i for i in range(
-                                 self.config.pod_id * self.config.shards_per_pod,
-                                 (self.config.pod_id + 1) * self.config.shards_per_pod
-                             )
-                         ],
-                         owner_id=self.config.owner_id,
-                         *args, **kwargs)
+        self.config = Config()
+        super().__init__(
+            command_prefix=self._prefix_callable,
+            shard_count=self.config.shard_count,
+            fetch_offline_members=False,
+            shard_ids=[
+                i for i in range(
+                    self.config.pod_id * self.config.shards_per_pod,
+                    (self.config.pod_id + 1) * self.config.shards_per_pod
+                )
+            ],
+            owner_id=self.config.owner_id,
+            *args, **kwargs
+        )
 
         logger.setup()
         log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
@@ -159,10 +163,6 @@ class Xenon(cmd.AutoShardedBot):
     @property
     def em(self):
         return formatter.embed_message
-
-    @property
-    def config(self):
-        return __import__("config")
 
     async def start(self, *args, **kwargs):
         self.redis = aioredis.Redis(await aioredis.create_pool("redis://" + self.config.redis_host))

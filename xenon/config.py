@@ -1,46 +1,67 @@
 from os import environ as env
 
-db_host = env.get('DB_HOST') or "localhost"
-db_name = env.get('DB_NAME') or "xenon"
-db_user = env.get('DB_USER')
-db_password = env.get('DB_PASSWORD')
-
-redis_host = env.get('REDIS_HOST') or "localhost"
-
-token = env.get('TOKEN')
-shard_count = int(env.get('SHARD_COUNT') or 1)
-shards_per_pod = int(env.get('SHARDS_PER_POD') or 1)
-
 _hostname = env.get("HOSTNAME")
-pod_id = 0
+_pod_id = 0
 if _hostname is not None:
     try:
-        pod_id = int(_hostname.split("-")[-1])
+        _pod_id = int(_hostname.split("-")[-1])
     except ValueError:
         pass  # Probably using docker
 
-prefix = env.get('PREFIX') or "x!"
 
-extensions = [
-    "cogs.errors",
-    "cogs.help",
-    "cogs.admin",
-    "cogs.backups",
-    "cogs.templates",
-    "cogs.users",
-    "cogs.basics",
-    "cogs.sharding",
-    "cogs.botlist",
-    "cogs.api",
-    "cogs.builder"
-]
+class Config:
+    token = None
+    shard_count = 1
+    shards_per_pod = 1
+    pod_id = _pod_id
 
-support_guild = 410488579140354049
-owner_id = 386861188891279362
+    prefix = "x!"
 
-template_approval_channel = 565845836529926144
-template_list = env.get('TEMPLATE_LIST')
-template_approval = env.get('TEMPLATE_APPROVAL')
-template_featured = env.get('TEMPLATE_FEATURED')
+    dbl_token = None
 
-dbl_token = env.get('DBL_TOKEN')
+    support_guild = 410488579140354049
+    owner_id = 386861188891279362
+
+    db_host = "localhost"
+    db_name = "xenon"
+    db_user = None
+    db_password = None
+
+    redis_host = "localhost"
+
+    template_approval_channel = 565845836529926144
+    template_list = None
+    template_approval = None
+    template_featured = None
+
+    extensions = [
+        "cogs.errors",
+        "cogs.help",
+        "cogs.admin",
+        "cogs.backups",
+        "cogs.templates",
+        "cogs.users",
+        "cogs.basics",
+        "cogs.sharding",
+        "cogs.botlist",
+        "cogs.api",
+        "cogs.builder"
+    ]
+
+    def __getattribute__(self, item):
+        default = getattr(Config, item, None)
+        value = env.get(item.upper())
+
+        if value is not None:
+            if isinstance(default, int):
+                return int(value)
+
+            if isinstance(default, float):
+                return float(value)
+
+            if isinstance(default, list):
+                return value.split(",")
+
+            return value
+
+        return default
