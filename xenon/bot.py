@@ -33,6 +33,12 @@ class Xenon(cmd.AutoShardedBot):
                 )
             ],
             owner_id=self.config.owner_id,
+            disabled_events=[
+                "VOICE_STATE_UPDATE",
+                "PRESENCE_UPDATE",
+                "TYPING_START",
+                "GUILD_EMOJIS_UPDATE"
+            ],
             *args, **kwargs
         )
 

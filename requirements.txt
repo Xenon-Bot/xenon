@@ -2,6 +2,6 @@ asyncio>=3.4.3
 motor==2.0.0
 prettytable
 pytz>=2017.3
-git+git://github.com/Rapptz/discord.py.git
+git+https://github.com/Magic-Bots/discord.py.git
 aioredis==1.2.0
 aioredis-lock>=0.0.3
