@@ -22,29 +22,32 @@ class Xenon(cmd.AutoShardedBot):
     redis = None
 
     def __init__(self, *args, **kwargs):
-        super().__init__(command_prefix=self._prefix_callable,
-                         shard_count=self.config.shard_count,
-                         fetch_offline_members=False,
-                         shard_ids=[
-                             i for i in range(
-                                 self.config.pod_id * self.config.shards_per_pod,
-                                 (self.config.pod_id + 1) * self.config.shards_per_pod
-                             )
-                         ],
-                         owner_id=self.config.owner_id,
-                         *args, **kwargs)
+        super().__init__(
+            command_prefix=self._prefix_callable,
+            shard_count=self.config.shard_count,
+            fetch_offline_members=False,
+            shard_ids=[
+                i for i in range(
+                    self.config.pod_id * self.config.shards_per_pod,
+                    (self.config.pod_id + 1) * self.config.shards_per_pod
+                )
+            ],
+            owner_id=self.config.owner_id,
+            *args, **kwargs
+        )
 
         logger.setup()
         log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
 
         self.session = ClientSession(loop=self.loop)
-        self.db = AsyncIOMotorClient(
+        db_connection = AsyncIOMotorClient(
             host=self.config.db_host,
             username=self.config.db_user,
             password=self.config.db_password
-        ).xenon
+        )
+        self.db = getattr(db_connection, self.config.db_name)
         for ext in self.config.extensions:
-            self.load_extension(ext)
+            self.load_extension("cogs." + ext)
 
         log.info(f"Loaded {len(self.cogs)} cogs")
 
@@ -156,12 +159,12 @@ class Xenon(cmd.AutoShardedBot):
             return await super().launch_shard(gateway, shard_id)
 
     @property
-    def em(self):
-        return formatter.embed_message
-
-    @property
     def config(self):
         return __import__("config")
+
+    @property
+    def em(self):
+        return formatter.embed_message
 
     async def start(self, *args, **kwargs):
         self.redis = aioredis.Redis(await aioredis.create_pool("redis://" + self.config.redis_host))

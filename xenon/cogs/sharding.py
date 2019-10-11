@@ -24,7 +24,6 @@ class Sharding(cmd.Cog):
             await self.bot.db.shards.update_one({"_id": id}, {"$set": shard}, upsert=True)
 
     async def update_loop(self):
-        await self.bot.wait_until_ready()
         while not self.bot.is_closed():
             try:
                 await self.update_database()

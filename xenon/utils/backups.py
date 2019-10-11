@@ -257,7 +257,7 @@ class BackupLoader:
                         "hoist": role["hoist"],
                         "mentionable": role["mentionable"],
                         "color": discord.Color(role["color"]),
-                        "permissions": discord.Permissions(),
+                        "permissions": discord.Permissions.none(),
                         "reason": self.reason
                     }
 
@@ -348,22 +348,30 @@ class BackupLoader:
         log.debug(f"Loading members on {self.guild.id}")
 
         async def edit_member(member, member_data):
-            current_roles = [r.id for r in member.roles]
             roles = [
                 discord.Object(self.id_translator.get(role))
                 for role in member_data["roles"]
-                if role in self.id_translator and role not in current_roles
+                if role in self.id_translator.keys()
             ]
 
-            if self.guild.me.top_role.position > member.top_role.position and member != self.guild.owner:
+            if self.guild.me.top_role.position > member.top_role.position:
                 try:
-                    await member.edit(
-                        nick=member_data.get("nick"),
-                        roles=[r for r in member.roles if r.managed] + roles,
-                        reason=self.reason
-                    )
+                    if member != self.guild.owner:
+                        await member.edit(
+                            nick=member_data.get("nick"),
+                            roles=[r for r in member.roles if r.managed] + roles,
+                            reason=self.reason
+                        )
+
                 except discord.Forbidden:
-                    await member.add_roles(*roles)
+                    try:
+                        await member.edit(
+                            roles=[r for r in member.roles if r.managed] + roles,
+                            reason=self.reason
+                        )
+
+                    except discord.Forbidden:
+                        await member.add_roles(*roles)
 
             else:
                 await member.add_roles(*roles)
