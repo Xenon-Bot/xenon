@@ -12,7 +12,6 @@ import logging
 
 from utils import formatter, logger, helpers
 from utils.extended import Context
-from config import Config
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +22,6 @@ class Xenon(cmd.AutoShardedBot):
     redis = None
 
     def __init__(self, *args, **kwargs):
-        self.config = Config()
         super().__init__(
             command_prefix=self._prefix_callable,
             shard_count=self.config.shard_count,
@@ -49,7 +47,7 @@ class Xenon(cmd.AutoShardedBot):
         )
         self.db = getattr(db_connection, self.config.db_name)
         for ext in self.config.extensions:
-            self.load_extension(ext)
+            self.load_extension("cogs." + ext)
 
         log.info(f"Loaded {len(self.cogs)} cogs")
 
@@ -159,6 +157,10 @@ class Xenon(cmd.AutoShardedBot):
         ):
             log.info("Shard ID %s has acquired the IDENTIFY lock." % shard_id)
             return await super().launch_shard(gateway, shard_id)
+
+    @property
+    def config(self):
+        return __import__("config")
 
     @property
     def em(self):

@@ -35,33 +35,38 @@ class Config:
     template_featured = None
 
     extensions = [
-        "cogs.errors",
-        "cogs.help",
-        "cogs.admin",
-        "cogs.backups",
-        "cogs.templates",
-        "cogs.users",
-        "cogs.basics",
-        "cogs.sharding",
-        "cogs.botlist",
-        "cogs.api",
-        "cogs.builder"
+        "errors",
+        "help",
+        "admin",
+        "backups",
+        "templates",
+        "users",
+        "basics",
+        "sharding",
+        "botlist",
+        "api",
+        "builder"
     ]
 
-    def __getattribute__(self, item):
-        default = getattr(Config, item, None)
-        value = env.get(item.upper())
 
-        if value is not None:
-            if isinstance(default, int):
-                return int(value)
+def __getattr__(name):
+    default = getattr(Config, name, None)
+    value = env.get(name.upper())
 
-            if isinstance(default, float):
-                return float(value)
+    if value is not None:
+        if isinstance(default, int):
+            return int(value)
 
-            if isinstance(default, list):
-                return value.split(",")
+        if isinstance(default, float):
+            return float(value)
 
-            return value
+        if isinstance(default, bool):
+            valid = ["y", "yes", "true"]
+            return value.lower() in valid
 
-        return default
+        if isinstance(default, list):
+            return value.split(",")
+
+        return value
+
+    return default
