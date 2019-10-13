@@ -62,7 +62,7 @@ class Api(cmd.Cog):
             prometheus.push_to_gateway(
                 gateway="prometheus-pushgateway.monitoring:9091",
                 job=self.bot.config.db_name,
-                grouping_key={"shards": ",".join(str(s) for s in self.bot.shards.keys())},
+                grouping_key={"pod": self.bot.config.pod_id},
                 registry=registry,
                 handler=async_handler
             )
