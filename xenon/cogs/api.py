@@ -2,6 +2,9 @@ from discord.ext import commands as cmd, tasks
 from aiohttp import web
 import prometheus_client as prometheus
 import traceback
+import logging
+
+log = logging.getLogger(__name__)
 
 
 registry = prometheus.CollectorRegistry()
@@ -42,11 +45,6 @@ class Api(cmd.Cog):
 
     @tasks.loop(minutes=1)
     async def metric_task(self):
-        try:
-            raise ValueError
-        except:
-            traceback.print_exc()
-
         def async_handler(url, method, timeout, headers, data):
             async def handle():
                 async with self.bot.session.request(
@@ -56,10 +54,11 @@ class Api(cmd.Cog):
                     headers=headers
                 ) as resp:
                     if resp.status >= 400:
-                        raise IOError("error talking to pushgateway: {0} {1}".format(resp.status, await resp.text()))
+                        log.error("Error pushing metrics to gateway: %s %s" % (resp.status, await resp.text()))
 
             return lambda: self.bot.loop.create_task(handle())
 
+        log.info("Pushing metrics to gateway")
         try:
             prometheus.push_to_gateway(
                 gateway="prometheus-pushgateway.monitoring:9091",
@@ -67,8 +66,8 @@ class Api(cmd.Cog):
                 registry=registry,
                 handler=async_handler
             )
-        except Exception:
-            traceback.print_exc()
+        except Exception as e:
+            log.error("Error pushing metrics to gateway: %s %s" % (type(e), str(e)))
 
     @cmd.Cog.listener()
     async def on_connect(self):
