@@ -42,6 +42,7 @@ class Api(cmd.Cog):
 
     @tasks.loop(minutes=1)
     async def metric_task(self):
+        raise ValueError
         def async_handler(url, method, timeout, headers, data):
             async def handle():
                 async with self.bot.session.request(
