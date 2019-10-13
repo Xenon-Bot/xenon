@@ -80,6 +80,9 @@ spec:
             name: xenon-dev
         - secretRef:
             name: dbcred
+        ports:
+        - name: api
+          containerPort: 9090
         resources:
           requests:
             memory: 250Mi
