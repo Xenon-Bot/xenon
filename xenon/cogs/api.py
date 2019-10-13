@@ -1,11 +1,12 @@
-from discord.ext import commands as cmd
+from discord.ext import commands as cmd, tasks
 from aiohttp import web
 import prometheus_client as prometheus
-from prometheus_client.exposition import choose_encoder
+import traceback
 
 
-events = prometheus.Counter("events", "The count of events the bot processed", ["type"])
-latencies = prometheus.Gauge('latencies', "The shard latencies", ["shard"])
+registry = prometheus.CollectorRegistry()
+events = prometheus.Counter("events", "The count of events the bot processed", ["type"], registry=registry)
+latencies = prometheus.Gauge('latencies', "The shard latencies", ["shard"], registry=registry)
 
 
 class Api(cmd.Cog):
@@ -13,13 +14,14 @@ class Api(cmd.Cog):
         self.bot = bot
         self.app = web.Application()
         self.app.add_routes([
-            web.get("/health", self.liveness_probe),
-            web.get("/metrics", self.metrics)
+            web.get("/health", self.liveness_probe)
         ])
+        self.metric_task.start()
         self.runner = web.AppRunner(self.app)
         self.bot.loop.create_task(self.start_app())
 
     def cog_unload(self):
+        self.metric_task.cancel()
         self.bot.loop.create_task(self.runner.cleanup())
 
     async def start_app(self):
@@ -38,20 +40,36 @@ class Api(cmd.Cog):
         if msg.get("t"):
             events.labels(type=msg["t"]).inc()
 
-    async def metrics(self, request):
-        r = prometheus.REGISTRY
-        encoder, content_type = choose_encoder(request.headers.get('HTTP_ACCEPT'))
-        if request.query.get("name[]"):
-            r = r.restricted_registry(request.query['name[]'])
+    @tasks.loop(minutes=1)
+    async def metric_task(self):
+        def async_handler(url, method, timeout, headers, data):
+            async def handle():
+                async with self.bot.session.request(
+                    method=method,
+                    url=url,
+                    data=data,
+                    headers=headers
+                ) as resp:
+                    if resp.status >= 400:
+                        raise IOError("error talking to pushgateway: {0} {1}".format(resp.status, await resp.text()))
 
-        return web.Response(body=encoder(r), headers={"Content-type": content_type})
+            return lambda: self.bot.loop.create_task(handle())
+
+        try:
+            prometheus.push_to_gateway(
+                gateway="prometheus-pushgateway.monitoring:9091",
+                job=self.bot.config.db_name,
+                registry=registry,
+                handler=async_handler
+            )
+        except Exception:
+            traceback.print_exc()
 
     @cmd.Cog.listener()
     async def on_connect(self):
         # Might be called multiple time, but doesn't really matter
         for shard_id, shard in self.bot.shards.items():
             latencies.labels(shard=shard_id).set_function(lambda: shard.ws.latency)
-
 
 
 def setup(bot):
