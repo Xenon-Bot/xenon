@@ -58,7 +58,7 @@ class Api(cmd.Cog):
 
             return lambda: self.bot.loop.create_task(handle())
 
-        log.info("Pushing metrics to gateway")
+        log.debug("Pushing metrics to gateway")
         try:
             prometheus.push_to_gateway(
                 gateway="prometheus-pushgateway.monitoring:9091",
