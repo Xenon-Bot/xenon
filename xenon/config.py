@@ -45,7 +45,8 @@ class Config:
         "sharding",
         "botlist",
         "api",
-        "builder"
+        "builder",
+        "metrics"
     ]
 
 
