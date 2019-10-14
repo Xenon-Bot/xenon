@@ -180,6 +180,14 @@ class BackupLoader:
 
         return overwrites
 
+    def _translate_mentions(self, text):
+        formats = ["<#%s>", "<@&%s>"]
+        for key, value in self.id_translator.items():
+            for _format in formats:
+                text = text.replace(_format % str(key), _format % str(value))
+
+        return text
+
     async def run_tasks(self, coros, wait=True):
         async def executor(_coro):
             try:
@@ -304,7 +312,7 @@ class BackupLoader:
                     reason=self.reason
                 )
                 await created.edit(
-                    topic=tchannel["topic"],
+                    topic=self._translate_mentions(tchannel["topic"]),
                     nsfw=tchannel["nsfw"],
                 )
 

@@ -12,3 +12,8 @@ services:
     restart: unless-stopped
     expose:
      - "27017"
+  redis:
+    image: "redis:5.0.6"
+    restart: unless-stopped
+    expose:
+     - "6379"
