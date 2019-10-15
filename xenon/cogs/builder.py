@@ -136,7 +136,7 @@ class Builder(cmd.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @cmd.command(aliases=["builder", "bld", "bd"], hidden=True)
+    @cmd.command(aliases=["builder", "bld", "bd"])
     @cmd.guild_only()
     @cmd.has_permissions(administrator=True)
     @cmd.bot_has_permissions(administrator=True)
