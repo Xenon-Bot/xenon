@@ -57,8 +57,10 @@ class Metrics(cmd.Cog):
         # Might be called multiple time, but doesn't really matter
         for shard_id, shard in self.bot.shards.items():
             latencies.labels(shard=shard_id).set_function(lambda: shard.ws.latency)
-            guilds.labels(shard=shard_id).set_function(lambda: len(self.bot.guilds))
-            members.labels(shard=shard_id).set_function(lambda: sum([g.member_count for g in self.bot.guilds]))
+
+            shard_guilds = list(filter(lambda g: ((g.id >> 22) % self.bot.shard_count) == shard_id, self.bot.guilds))
+            guilds.labels(shard=shard_id).set_function(lambda: len(shard_guilds))
+            members.labels(shard=shard_id).set_function(lambda: sum([g.member_count for g in shard_guilds]))
 
 
 def setup(bot):
