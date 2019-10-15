@@ -154,17 +154,18 @@ class Builder(cmd.Cog):
         ```{c.prefix}build```
         """
         menu = BuildMenu(ctx)
+        reason = f"Built by {ctx.author}"
         options = await menu.run()
 
         roles = {"staff": [], "muted": [], "bot": []}
 
         if options["delete_old_channels"]:
             for channel in ctx.guild.channels:
-                await channel.delete()
+                await channel.delete(reason=reason)
 
         if options["delete_old_roles"]:
             for role in filter(lambda r: not r.managed and not r.is_default(), ctx.guild.roles):
-                await role.delete()
+                await role.delete(reason=reason)
 
         if options["staff_roles"]:
             staff_roles = [
@@ -198,7 +199,7 @@ class Builder(cmd.Cog):
             ]
 
             for kwargs in staff_roles:
-                roles["staff"].append(await ctx.guild.create_role(**kwargs))
+                roles["staff"].append(await ctx.guild.create_role(**kwargs, reason=reason))
 
         if options["bot_role"]:
             roles["bot"].append(await ctx.guild.create_role(
@@ -213,7 +214,8 @@ class Builder(cmd.Cog):
                     deafen_members=True,
                     move_members=True,
                     manage_nicknames=True
-                )
+                ),
+                reason=reason
             ))
 
         if options["muted_role"]:
@@ -224,7 +226,8 @@ class Builder(cmd.Cog):
                     send_messages=False,
                     add_reactions=False,
                     connect=False
-                )
+                ),
+                reason=reason
             ))
 
         if options["color_roles"]:
@@ -259,12 +262,12 @@ class Builder(cmd.Cog):
             ]
 
             for kwargs in color_roles:
-                await ctx.guild.create_role(**kwargs)
+                await ctx.guild.create_role(**kwargs, reason=reason)
 
         if options["game_specific_roles"]:
             game_roles = ["──── Games ────", "minecraft", "fortnite", "apex", "pubg", "roblox", "destiny", "rainbow 6"]
             for name in game_roles:
-                await ctx.guild.create_role(name=name)
+                await ctx.guild.create_role(name=name, reason=reason)
 
         if options["info_channels"]:
             info_category = await ctx.guild.create_category(
@@ -276,12 +279,13 @@ class Builder(cmd.Cog):
                     **{role: discord.PermissionOverwrite(
                         send_messages=True
                     ) for role in roles["staff"]}
-                }
+                },
+                reason=reason
             )
 
             channels = ["announcements", "faq", "rules"]
             for name in channels:
-                await info_category.create_text_channel(name=name)
+                await info_category.create_text_channel(name=name, reason=reason)
 
         if options["staff_channels"]:
             staff_category = await ctx.guild.create_category(
@@ -302,12 +306,13 @@ class Builder(cmd.Cog):
                         send_messages=True,
                         connect=True
                     ) for role in roles["bot"]}
-                }
+                },
+                reason=reason
             )
 
             text_channels = ["staff general", "staff commands"]
             for name in text_channels:
-                await staff_category.create_text_channel(name=name)
+                await staff_category.create_text_channel(name=name, reason=reason)
 
             await staff_category.create_voice_channel(name="Staff Voice")
 
@@ -318,7 +323,8 @@ class Builder(cmd.Cog):
                     read_messages=False,
                     send_messages=False,
                     connect=False
-                ) for role in roles["muted"]}
+                ) for role in roles["muted"]},
+                reason=reason
             )
 
             text_channels = ["general", "shitpost", "commands"]
@@ -334,7 +340,8 @@ class Builder(cmd.Cog):
                     read_messages=False,
                     send_messages=False,
                     connect=False
-                ) for role in roles["muted"]}
+                ) for role in roles["muted"]},
+                reason=reason
             )
 
             text_channels = ["python", "javascript", "java", "kotlin", "c", "go", "ruby"]
@@ -348,12 +355,13 @@ class Builder(cmd.Cog):
                     read_messages=False,
                     send_messages=False,
                     connect=False
-                ) for role in roles["muted"]}
+                ) for role in roles["muted"]},
+                reason=reason
             )
 
             text_channels = ["gaming general", "team finding"]
             for name in text_channels:
-                await game_category.create_text_channel(name=name)
+                await game_category.create_text_channel(name=name, reason=reason)
 
             voice_channels = [
                 {
@@ -388,7 +396,7 @@ class Builder(cmd.Cog):
                 }
             ]
             for kwargs in voice_channels:
-                await game_category.create_voice_channel(**kwargs)
+                await game_category.create_voice_channel(**kwargs, reason=reason)
 
         if options["afk_channel"]:
             afk_category = await ctx.guild.create_category(
@@ -397,7 +405,8 @@ class Builder(cmd.Cog):
                     read_messages=False,
                     send_messages=False,
                     connect=False
-                ) for role in roles["muted"]}
+                ) for role in roles["muted"]},
+                reason=reason
             )
 
             afk_channel = await afk_category.create_voice_channel(name="Afk")
@@ -422,14 +431,16 @@ class Builder(cmd.Cog):
                         send_messages=True,
                         connect=True
                     ) for role in roles["bot"]}
-                }
+                },
+                reason=reason
             )
 
             await log_category.create_text_channel(name="bot logs")
             member_logs = await log_category.create_text_channel(name="members")
             await ctx.guild.edit(
                 system_channel=member_logs,
-                system_channel_flags=discord.SystemChannelFlags(join_notifications=True)
+                system_channel_flags=discord.SystemChannelFlags(join_notifications=True),
+                reason=reason
             )
 
 
