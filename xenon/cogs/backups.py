@@ -108,7 +108,7 @@ class Backups(cmd.Cog):
 
         __Arguments__
 
-        **backup_id**: The id of the backup or the guild id to for latest automated backup
+        **backup_id**: The id of the backup or the guild id for latest automated backup
         **options**: A list of options (See examples)
 
 

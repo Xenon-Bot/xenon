@@ -146,7 +146,7 @@ class Builder(cmd.Cog):
         """
         Choose between different options and build your discord server in less than a minute
         Enable and disable options by clicking the associated number and change the page
-        by clicking the arrows. Click on the check to start the apply the build.
+        by clicking the arrows. Click on the check to start the build process.
 
 
         __Examples__
