@@ -21,7 +21,12 @@ def clean_content(content):
 
 
 def format_number(number):
-    return "{:,}".format(number)
+    suffix = ""
+    if number >= 100000:
+        suffix = "k"
+        number = number // 1000
+
+    return "{:,}{}".format(number, suffix)
 
 
 async def ask_question(ctx, question, converter=str):
