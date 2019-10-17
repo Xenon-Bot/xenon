@@ -13,7 +13,7 @@ def bot_has_managed_top_role():
         else:
             sended = await ctx.send(**ctx.em(
                 f"The role called **{ctx.bot.user.name}** is currently not at the top of the role hierarchy.\n\n"
-                "Continuing could cause bugs while loading the backup. Do you want to continue?", type="warning"))
+                "Continuing could cause bugs. Do you want to continue?", type="warning"))
 
             await sended.add_reaction("✅")
             await sended.add_reaction("❌")
@@ -31,7 +31,7 @@ def bot_has_managed_top_role():
 
                 await sended.delete()
                 raise cmd.CommandError(
-                    "Please make sure to **click the ✅ reaction** in order to load the backup.")
+                    "Please make sure to **click the ✅ reaction** in order to continue.")
 
             if str(reaction.emoji) != "✅":
                 try:
@@ -41,7 +41,7 @@ def bot_has_managed_top_role():
 
                 await sended.delete()
                 raise cmd.CommandError(
-                    "Please make sure to **click the ✅ reaction** in order to load the backup.")
+                    "Please make sure to **click the ✅ reaction** in order to continue.")
 
             await sended.delete()
             return True

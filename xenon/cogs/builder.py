@@ -146,7 +146,7 @@ class Builder(cmd.Cog):
         """
         Choose between different options and build your discord server in less than a minute
         Enable and disable options by clicking the associated number and change the page
-        by clicking the arrows. Click on the check to start the apply the build.
+        by clicking the arrows. Click on the check to start the build process.
 
 
         __Examples__
@@ -156,6 +156,28 @@ class Builder(cmd.Cog):
         menu = BuildMenu(ctx)
         reason = f"Built by {ctx.author}"
         options = await menu.run()
+
+        if options["delete_old_channels"] or options["delete_old_roles"]:
+            warning = await ctx.send(
+                **ctx.em("Are you sure you want to start the build process?\n"
+                         "Channels and roles might get deleted and reconstructed from the build options!",
+                         type="warning"))
+            await warning.add_reaction("✅")
+            await warning.add_reaction("❌")
+            try:
+                reaction, user = await self.bot.wait_for(
+                    "reaction_add",
+                    check=lambda r, u: r.message.id == warning.id and u.id == ctx.author.id,
+                    timeout=60)
+            except asyncio.TimeoutError:
+                await warning.delete()
+                raise cmd.CommandError(
+                    "Please make sure to **click the ✅ reaction** in order to continue.")
+
+            if str(reaction.emoji) != "✅":
+                ctx.command.reset_cooldown(ctx)
+                await warning.delete()
+                return
 
         roles = {"staff": [], "muted": [], "bot": []}
 
@@ -236,28 +258,84 @@ class Builder(cmd.Cog):
                     "name": "──── Colors ────"
                 },
                 {
-                    "name": "Green",
-                    "color": discord.Color.green()
+                    "name": "Black",
+                    "color": discord.Color(0)
                 },
                 {
                     "name": "Blue",
-                    "color": discord.Color.blue()
+                    "color": discord.Color(0x4363D8)
                 },
                 {
-                    "name": "Purple",
-                    "color": discord.Color.purple()
+                    "name": "Brown",
+                    "color": discord.Color(0x9A6324)
+                },
+                {
+                    "name": "Cyan",
+                    "color": discord.Color(0x42D4F4)
+                },
+                {
+                    "name": "Green",
+                    "color": discord.Color(0x3CB44B)
+                },
+                {
+                    "name": "Grey",
+                    "color": discord.Color(0xA9A994)
+                },
+                {
+                    "name": "Lavender",
+                    "color": discord.Color(0xE6BEFF)
+                },
+                {
+                    "name": "Lime",
+                    "color": discord.Color(0xBFE743)
                 },
                 {
                     "name": "Magenta",
-                    "color": discord.Color.magenta()
+                    "color": discord.Color(0xF032E6)
+                },
+                {
+                    "name": "Maroon",
+                    "color": discord.Color(0x800014)
+                },
+                {
+                    "name": "Mint",
+                    "color": discord.Color(0xAAFFC3)
+                },
+                {
+                    "name": "Navy",
+                    "color": discord.Color(0x000075)
+                },
+                {
+                    "name": "Olive",
+                    "color": discord.Color(0x808012)
                 },
                 {
                     "name": "Orange",
-                    "color": discord.Color.orange()
+                    "color": discord.Color(0xF58231)
+                },
+                {
+                    "name": "Pink",
+                    "color": discord.Color(0xF4BCBE)
+                },
+                {
+                    "name": "Purple",
+                    "color": discord.Color(0x911EB4)
                 },
                 {
                     "name": "Red",
-                    "color": discord.Color.red()
+                    "color": discord.Color(0xE62345)
+                },
+                {
+                    "name": "Teal",
+                    "color": discord.Color(0x469990)
+                },
+                {
+                    "name": "White",
+                    "color": discord.Color(0xFFFFFF)
+                },
+                {
+                    "name": "Yellow",
+                    "color": discord.Color(0xFFE119)
                 },
             ]
 
