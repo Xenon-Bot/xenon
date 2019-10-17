@@ -157,6 +157,28 @@ class Builder(cmd.Cog):
         reason = f"Built by {ctx.author}"
         options = await menu.run()
 
+        if options["delete_old_channels"] or options["delete_old_roles"]:
+            warning = await ctx.send(
+                **ctx.em("Are you sure you want to start the build process?\n"
+                         "Channels and roles might get deleted and reconstructed from the build options!",
+                         type="warning"))
+            await warning.add_reaction("✅")
+            await warning.add_reaction("❌")
+            try:
+                reaction, user = await self.bot.wait_for(
+                    "reaction_add",
+                    check=lambda r, u: r.message.id == warning.id and u.id == ctx.author.id,
+                    timeout=60)
+            except asyncio.TimeoutError:
+                await warning.delete()
+                raise cmd.CommandError(
+                    "Please make sure to **click the ✅ reaction** in order to continue.")
+
+            if str(reaction.emoji) != "✅":
+                ctx.command.reset_cooldown(ctx)
+                await warning.delete()
+                return
+
         roles = {"staff": [], "muted": [], "bot": []}
 
         if options["delete_old_channels"]:
