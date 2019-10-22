@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from utils import formatter, helpers
 
 
-class Basics(cmd.Cog):
+class Basics(cmd.Cog, name="\u200BOthers"):
     def __init__(self, bot):
         self.bot = bot
 

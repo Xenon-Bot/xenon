@@ -11,12 +11,12 @@ import asyncio
 from utils import checks, formatter, extended
 
 
-class Admin(cmd.Cog):
+class Admin(cmd.Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self.bot = bot
         self._last_result = None
 
-    @cmd.command(hidden=True)
+    @cmd.command()
     @checks.has_role_on_support_guild("Staff")
     @checks.has_role_on_support_guild("Staff")
     async def su(self, ctx, member: discord.Member, *, msg):
@@ -43,7 +43,7 @@ class Admin(cmd.Cog):
         message.content = msg
         await self.bot.process_commands(message)
 
-    @cmd.command(hidden=True)
+    @cmd.command()
     @cmd.is_owner()
     async def sudo(self, ctx, *, command):
         """
@@ -65,7 +65,7 @@ class Admin(cmd.Cog):
 
         await self.bot.invoke(new_ctx)
 
-    @cmd.command(aliases=["rl"], hidden=True)
+    @cmd.command(aliases=["rl"])
     @cmd.is_owner()
     async def reload(self, ctx, cog):
         """
@@ -98,13 +98,13 @@ class Admin(cmd.Cog):
             traceback.print_exc()
             raise cmd.CommandError(f"Error while reloading the cog named **{cog}**.")
 
-    @cmd.command(hidden=True)
+    @cmd.command()
     @checks.has_role_on_support_guild("Admin")
     async def restart(self, ctx):
         await ctx.send(**ctx.em("Reastarting ...", type="info"))
         await self.bot.close()
 
-    @cmd.command(name="exec", hidden=True)
+    @cmd.command(name="exec")
     @cmd.is_owner()
     async def _exec(self, ctx, *, body: str):
         """
@@ -169,7 +169,7 @@ class Admin(cmd.Cog):
                 self._last_result = ret
                 await ctx.send(f'```py\n{value}{ret}\n```')
 
-    @cmd.command(hidden=True)
+    @cmd.command()
     @cmd.is_owner()
     async def eval(self, ctx, *, expression: str):
         """
@@ -197,7 +197,7 @@ class Admin(cmd.Cog):
 
         await ctx.send(embed=embed)
 
-    @cmd.command(hidden=True)
+    @cmd.command()
     @cmd.is_owner()
     async def query(self, ctx, timeout: float = 0.5, *, expression: str):
         """

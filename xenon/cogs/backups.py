@@ -14,7 +14,7 @@ min_interval = 60 * 24
 max_backups = 15
 
 
-class Backups(cmd.Cog):
+class Backups(cmd.Cog, name="Security"):
     def __init__(self, bot):
         self.bot = bot
         self.to_backup = []
