@@ -105,6 +105,29 @@ class Basics(cmd.Cog, name="\u200BOthers"):
             type="info"
         ))
 
+    @cmd.Cog.listener()
+    async def on_guild_join(self, guild):
+        if len(guild.text_channels) > 0:
+            destination = guild.text_channels[0]
+
+        else:
+            destination = guild.owner
+
+        try:
+            await destination.send(**self.bot.em(
+                "__Thanks for adding Xenon to your server!__ 😃\n"
+                f"Use `{self.bot.config.prefix}help` to get a list of commands. If you need more information, "
+                "you can look at the [docs](https://docs.discord.club/xenon).\n"
+                "It's also recommended to join our [discord server](https://discord.club/discord) to get notified "
+                "about future updates.\n\n"
+                "If you decide to use Xenon, **you and all your members need to accept our "
+                "[Terms of Service](https://docs.discord.club/xenon/terms-of-service)**!",
+                type="info"
+            ))
+
+        except Exception:
+            pass
+
 
 def setup(bot):
     bot.add_cog(Basics(bot))
