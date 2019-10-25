@@ -8,7 +8,7 @@ from utils import checks, helpers, types
 from utils.backups import BackupInfo, BackupLoader
 
 
-class Templates(cmd.Cog):
+class Templates(cmd.Cog, name="Creating"):
     approval_options = None
     approval_webhook = None
     list_webhook = None

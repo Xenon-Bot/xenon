@@ -132,7 +132,7 @@ class BuildMenu:
         return embed
 
 
-class Builder(cmd.Cog):
+class Builder(cmd.Cog, name="Creating"):
     def __init__(self, bot):
         self.bot = bot
 

@@ -6,7 +6,7 @@ import pytz
 from utils import checks
 
 
-class Users(cmd.Cog):
+class Users(cmd.Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self.bot = bot
 
@@ -19,7 +19,7 @@ class Users(cmd.Cog):
             raise cmd.CommandError("Sorry, **you are blacklisted**.\n\n"
                                    f"**Reason**: {entry['blacklist']['reason']}")
 
-    @cmd.group(aliases=["bl"], hidden=True, invoke_without_command=True)
+    @cmd.group(aliases=["bl"], invoke_without_command=True)
     @checks.has_role_on_support_guild("Staff")
     async def blacklist(self, ctx):
         embed = ctx.em("", type="info", title="Blacklist")["embed"]

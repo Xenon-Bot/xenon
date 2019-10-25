@@ -67,8 +67,14 @@ class HelpCommand(cmd.HelpCommand):
         """
         if commands:
             # U+2002 Middle Dot
-            joined = '\u2002'.join(c.name for c in commands)
-            self.paginator.add_line('__**%s**__' % heading)
+            joined = '\n'.join("**{0}{1:{s}<{n}}** {2}".format(
+                self.clean_prefix,
+                c.qualified_name,
+                c.short_doc,
+                s='\u2002',
+                n=15
+            ) for c in commands)
+            self.paginator.add_line('__**%s**__\n' % heading)
             self.paginator.add_line('%s\n' % joined)
 
     def add_subcommand_formatting(self, command):
@@ -201,7 +207,7 @@ class HelpCommand(cmd.HelpCommand):
         await self.send_pages()
 
 
-class Cog(cmd.Cog):
+class Help(cmd.Cog, name="\u200BOthers"):
     def __init__(self, bot):
         self.bot = bot
         self._original_help_command = bot.help_command
@@ -213,4 +219,4 @@ class Cog(cmd.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Cog(bot))
+    bot.add_cog(Help(bot))
