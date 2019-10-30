@@ -9,6 +9,7 @@ registry = prometheus.CollectorRegistry()
 events = prometheus.Counter("bot_events", "The count of events the bot processed", ["type"], registry=registry)
 latencies = prometheus.Gauge('bot_latencies', "The shard latencies", ["shard"], registry=registry)
 guilds = prometheus.Gauge('bot_guilds', "Total guild count per shard", ["shard"], registry=registry)
+guilds_unavailable = prometheus.Gauge('bot_guilds_unavailable', "Total guilds that are unavailable", registry=registry)
 members = prometheus.Gauge('bot_members', "Total members count per shard", ["shard"], registry=registry)
 
 
@@ -58,9 +59,14 @@ class Metrics(cmd.Cog):
         for shard_id, shard in self.bot.shards.items():
             latencies.labels(shard=shard_id).set_function(lambda: shard.ws.latency)
 
-            shard_guilds = list(filter(lambda g: ((g.id >> 22) % self.bot.shard_count) == shard_id, self.bot.guilds))
-            guilds.labels(shard=shard_id).set_function(lambda: len(shard_guilds))
-            members.labels(shard=shard_id).set_function(lambda: sum([g.member_count for g in shard_guilds]))
+            def shard_guilds():
+                return list(filter(lambda g: ((g.id >> 22) % self.bot.shard_count) == shard_id, self.bot.guilds))
+
+            guilds.labels(shard=shard_id).set_function(lambda: len(shard_guilds()))
+            guilds_unavailable.labels(shard=shard_id).set_function(lambda: len([
+                g for g in shard_guilds() if g.unavailable
+            ]))
+            members.labels(shard=shard_id).set_function(lambda: sum([g.member_count for g in shard_guilds()]))
 
 
 def setup(bot):
