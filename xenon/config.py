@@ -1,6 +1,11 @@
 from os import environ as env
+import logging
+
+log = logging.getLogger(__name__)
+
 
 _hostname = env.get("HOSTNAME")
+log.info("Assigned hostname '%s'" % str(_hostname))
 _pod_id = 0
 if _hostname is not None:
     try:

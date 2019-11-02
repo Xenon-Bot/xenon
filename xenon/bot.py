@@ -10,7 +10,7 @@ import inspect
 from aioredis_lock import RedisLock
 import logging
 
-from utils import formatter, logger, helpers
+from utils import formatter, helpers
 from utils.extended import Context
 
 log = logging.getLogger(__name__)
@@ -42,7 +42,6 @@ class Xenon(cmd.AutoShardedBot):
             *args, **kwargs
         )
 
-        logger.setup()
         log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
 
         self.session = ClientSession(loop=self.loop)

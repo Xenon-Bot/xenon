@@ -1,9 +1,11 @@
 import asyncio
 
 from bot import Xenon
+from utils import logger
 
 
 async def prepare_bot(_loop):
+    logger.setup()
     return Xenon(loop=_loop)
 
 
