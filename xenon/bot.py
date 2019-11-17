@@ -7,8 +7,9 @@ import uuid
 import asyncio
 import traceback
 import inspect
-from aioredis_lock import RedisLock
+from aioredis_lock import RedisLock, LockTimeoutError
 import logging
+import sys
 
 from utils import formatter, helpers
 from utils.extended import Context
@@ -26,12 +27,6 @@ class Xenon(cmd.AutoShardedBot):
             command_prefix=self._prefix_callable,
             shard_count=self.config.shard_count,
             fetch_offline_members=False,
-            shard_ids=[
-                i for i in range(
-                    self.config.pod_id * self.config.shards_per_pod,
-                    (self.config.pod_id + 1) * self.config.shards_per_pod
-                )
-            ],
             owner_id=self.config.owner_id,
             disabled_events=[
                 "VOICE_STATE_UPDATE",
@@ -41,8 +36,6 @@ class Xenon(cmd.AutoShardedBot):
             ],
             *args, **kwargs
         )
-
-        log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
 
         self.session = ClientSession(loop=self.loop)
         db_connection = AsyncIOMotorClient(
@@ -163,6 +156,35 @@ class Xenon(cmd.AutoShardedBot):
         ):
             log.info("Shard ID %s has acquired the IDENTIFY lock." % shard_id)
             return await super().launch_shard(gateway, shard_id)
+
+    async def _lock_shards(self, lock):
+        try:
+            while not self.is_closed():
+                await asyncio.sleep(5)
+                if not await lock.is_owner():
+                    await self.close()
+                    sys.exit(0)
+
+                if not await lock.renew():
+                    await self.close()
+                    sys.exit(0)
+
+        except Exception:
+            await self.close()
+            sys.exit(0)
+
+    async def launch_shards(self):
+        log.info("Waiting to acquire the SHARD lock.")
+        while not self.is_closed():
+            for i in range(0, self.config.shard_count, self.config.shards_per_pod):
+                key = "%s_%s" % (self.config.identifier, str(i))
+                lock = RedisLock(self.redis, key=key)
+                if await lock.acquire(key=key, timeout=10, wait_timeout=0):
+                    self.shard_ids = range(i, i + self.config.shards_per_pod)
+                    log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
+                    self.loop.create_task(self._lock_shards(lock))
+                    await super().launch_shards()
+                    return
 
     @property
     def config(self):
