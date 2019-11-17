@@ -1,6 +1,11 @@
 from os import environ as env
+import logging
+
+log = logging.getLogger(__name__)
+
 
 _hostname = env.get("HOSTNAME")
+log.info("Assigned hostname '%s'" % str(_hostname))
 _pod_id = 0
 if _hostname is not None:
     try:
@@ -22,8 +27,9 @@ class Config:
     support_guild = 410488579140354049
     owner_id = 386861188891279362
 
+    identifier = "xenon"
+
     db_host = "localhost"
-    db_name = "xenon"
     db_user = None
     db_password = None
 
@@ -39,14 +45,13 @@ class Config:
         "help",
         "admin",
         "backups",
-        "templates",
+        # "templates",
         "users",
         "basics",
         "sharding",
         "botlist",
-        "api",
-        "builder",
-        "metrics"
+        # "api",
+        "builder"
     ]
 
 

@@ -10,7 +10,7 @@ import inspect
 from aioredis_lock import RedisLock
 import logging
 
-from utils import formatter, logger, helpers
+from utils import formatter, helpers
 from utils.extended import Context
 
 log = logging.getLogger(__name__)
@@ -42,7 +42,6 @@ class Xenon(cmd.AutoShardedBot):
             *args, **kwargs
         )
 
-        logger.setup()
         log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
 
         self.session = ClientSession(loop=self.loop)
@@ -51,7 +50,7 @@ class Xenon(cmd.AutoShardedBot):
             username=self.config.db_user,
             password=self.config.db_password
         )
-        self.db = getattr(db_connection, self.config.db_name)
+        self.db = getattr(db_connection, self.config.identifier)
         for ext in self.config.extensions:
             self.load_extension("cogs." + ext)
 
@@ -155,9 +154,10 @@ class Xenon(cmd.AutoShardedBot):
         return responses
 
     async def launch_shard(self, gateway, shard_id):
+        log.info("Waiting to acquire the IDENTIFY lock.")
         async with RedisLock(
                 self.redis,
-                key="identify",
+                key="%s_identify" % self.config.identifier,
                 timeout=200,  # More than the connect timeout
                 wait_timeout=None
         ):
