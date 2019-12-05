@@ -26,6 +26,7 @@ class Xenon(cmd.AutoShardedBot):
             command_prefix=self._prefix_callable,
             shard_count=self.config.shard_count,
             fetch_offline_members=False,
+            guild_subscriptions=False,
             shard_ids=[
                 i for i in range(
                     self.config.pod_id * self.config.shards_per_pod,
@@ -57,7 +58,7 @@ class Xenon(cmd.AutoShardedBot):
         log.info(f"Loaded {len(self.cogs)} cogs")
 
     async def on_ready(self):
-        log.info(f"Fetched {sum([g.member_count for g in self.guilds])} members on {len(self.guilds)} guilds")
+        log.info(f"Cached {len(self.users)} users from {len(self.guilds)} guilds")
 
     async def on_message(self, message):
         if message.author.bot:
