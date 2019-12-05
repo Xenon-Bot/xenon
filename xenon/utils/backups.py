@@ -95,7 +95,7 @@ class BackupSaver:
         if self.guild.large:
             await self.bot.request_offline_members(self.guild)
 
-        for member in sorted(self.guild.members, key=lambda m: len(m.roles), reverse=True)[:1000]:
+        async for member in self.guild.fetch_members(limit=1000):
             try:
                 self.data["members"].append({
                     "id": str(member.id),
@@ -385,15 +385,13 @@ class BackupLoader:
                 await member.add_roles(*roles)
 
         tasks = []
-        for member in self.guild.members:
+        for raw in self.data["members"]:
             try:
-                fits = list(filter(lambda m: m["id"] == str(member.id), self.data["members"]))
-                if len(fits) == 0:
-                    continue
+                member = await self.guild.fetch_member(raw["id"])
+            except discord.NotFound:
+                continue
 
-                tasks.append(edit_member(member, fits[0]))
-            except Exception:
-                pass
+            tasks.append(edit_member(member, raw))
 
         await self.run_tasks(tasks)
 

@@ -22,9 +22,9 @@ def clean_content(content):
 
 def format_number(number):
     suffix = ""
-    if number >= 100000:
+    if number >= 1000:
         suffix = "k"
-        number = number // 1000
+        number = round(number / 1000, 1)
 
     return "{:,}{}".format(number, suffix)
 
