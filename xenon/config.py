@@ -64,7 +64,7 @@ def __getattr__(name):
             return int(value)
 
         if isinstance(default, float):
-            return float(value) 
+            return float(value)
 
         if isinstance(default, bool):
             valid = ["y", "yes", "true"]
