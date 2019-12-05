@@ -410,7 +410,7 @@ class Backups(cmd.Cog, name="Security"):
 
         handler = BackupSaver(self.bot, self.bot.session, guild)
         data = await handler.save()
-        await self._save_backup(guild.owner.id, data, id=str(guild_id))
+        await self._save_backup(guild.owner_id, data, id=str(guild_id))
 
     async def interval_loop(self):
         await self.bot.wait_until_ready()
