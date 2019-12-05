@@ -45,12 +45,12 @@ class Config:
         "help",
         "admin",
         "backups",
-        # "templates",
+        "templates",
         "users",
         "basics",
         "sharding",
         "botlist",
-        # "api",
+        "api",
         "builder"
     ]
 
