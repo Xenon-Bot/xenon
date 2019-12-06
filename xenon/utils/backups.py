@@ -385,13 +385,17 @@ class BackupLoader:
                 await member.add_roles(*roles)
 
         tasks = []
-        for raw in self.data["members"]:
-            try:
-                member = await self.guild.fetch_member(raw["id"])
-            except discord.NotFound:
-                continue
+        async for member in self.guild.fetch_members():
+            fits = list(filter(lambda m: m["id"] == str(member.id), self.data["members"]))
+            if fits:
+                tasks.append(edit_member(member, fits[0]))
 
-            tasks.append(edit_member(member, raw))
+            else:
+                default_data = {
+                    "nick": None,
+                    "roles": []
+                }
+                tasks.append(edit_member(member, default_data))
 
         await self.run_tasks(tasks)
 
