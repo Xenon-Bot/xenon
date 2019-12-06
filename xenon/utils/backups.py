@@ -164,11 +164,12 @@ class BackupLoader:
         self.options = types.BooleanArgs([])
         self.semaphore = asyncio.Semaphore(10)
 
-    def _overwrites_from_json(self, json):
+    async def _overwrites_from_json(self, json):
         overwrites = {}
         for union_id, overwrite in json.items():
-            union = self.guild.get_member(int(union_id))
-            if union is None:
+            try:
+                union = await self.guild.fetch_member(int(union_id))
+            except discord.NotFound:
                 roles = list(
                     filter(lambda r: r.id == self.id_translator.get(union_id), self.guild.roles))
                 if len(roles) == 0:
@@ -218,8 +219,8 @@ class BackupLoader:
             if difference < 0:
                 i = 0
                 while difference < 0:
-                    role = existing_roles[i]
                     try:
+                        role = existing_roles[i]
                         await role.delete(reason=self.reason)
                     except Exception:
                         pass
@@ -231,7 +232,10 @@ class BackupLoader:
         if self.options.channels:
             log.debug(f"Deleting channels on {self.guild.id}")
             for channel in self.guild.channels:
-                await channel.delete(reason=self.reason)
+                try:
+                    await channel.delete(reason=self.reason)
+                except Exception:
+                    pass
 
     async def _load_settings(self):
         log.debug(f"Loading settings on {self.guild.id}")
@@ -294,7 +298,7 @@ class BackupLoader:
             try:
                 created = await self.guild.create_category_channel(
                     name=category["name"],
-                    overwrites=self._overwrites_from_json(category["overwrites"]),
+                    overwrites=await self._overwrites_from_json(category["overwrites"]),
                     reason=self.reason
                 )
                 self.id_translator[category["id"]] = created.id
@@ -307,7 +311,7 @@ class BackupLoader:
             try:
                 created = await self.guild.create_text_channel(
                     name=tchannel["name"],
-                    overwrites=self._overwrites_from_json(tchannel["overwrites"]),
+                    overwrites=await self._overwrites_from_json(tchannel["overwrites"]),
                     category=discord.Object(self.id_translator.get(tchannel["category"])),
                     reason=self.reason
                 )
@@ -326,7 +330,7 @@ class BackupLoader:
             try:
                 created = await self.guild.create_voice_channel(
                     name=vchannel["name"],
-                    overwrites=self._overwrites_from_json(vchannel["overwrites"]),
+                    overwrites=await self._overwrites_from_json(vchannel["overwrites"]),
                     category=discord.Object(self.id_translator.get(vchannel["category"])),
                     reason=self.reason
                 )
@@ -385,13 +389,17 @@ class BackupLoader:
                 await member.add_roles(*roles)
 
         tasks = []
-        for raw in self.data["members"]:
-            try:
-                member = await self.guild.fetch_member(raw["id"])
-            except discord.NotFound:
-                continue
+        default_data = {
+            "nick": None,
+            "roles": []
+        }
+        async for member in self.guild.fetch_members():
+            fits = list(filter(lambda m: m["id"] == str(member.id), self.data["members"]))
+            if fits:
+                tasks.append(edit_member(member, fits[0]))
 
-            tasks.append(edit_member(member, raw))
+            else:
+                tasks.append(edit_member(member, default_data))
 
         await self.run_tasks(tasks)
 

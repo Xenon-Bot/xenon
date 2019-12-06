@@ -1,6 +1,7 @@
 from discord.ext import commands as cmd
 import asyncio
 import logging
+import discord
 
 log = logging.getLogger(__name__)
 
@@ -58,8 +59,9 @@ def check_role_on_support_guild(role_name):
                 "The support guild is currently unavailable. Please try again later."
             )
 
-        member = support_guild.get_member(ctx.author.id)
-        if member is None:
+        try:
+            member = await support_guild.fetch_member(ctx.author.id)
+        except discord.NotFound:
             raise cmd.CommandError("You need to be on the support guild to use this command.")
 
         roles = filter(lambda r: r.name == role_name, member.roles)
