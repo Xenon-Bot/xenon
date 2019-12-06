@@ -164,11 +164,12 @@ class BackupLoader:
         self.options = types.BooleanArgs([])
         self.semaphore = asyncio.Semaphore(10)
 
-    def _overwrites_from_json(self, json):
+    async def _overwrites_from_json(self, json):
         overwrites = {}
         for union_id, overwrite in json.items():
-            union = self.guild.get_member(int(union_id))
-            if union is None:
+            try:
+                union = await self.guild.fetch_member(int(union_id))
+            except discord.NotFound:
                 roles = list(
                     filter(lambda r: r.id == self.id_translator.get(union_id), self.guild.roles))
                 if len(roles) == 0:
@@ -294,7 +295,7 @@ class BackupLoader:
             try:
                 created = await self.guild.create_category_channel(
                     name=category["name"],
-                    overwrites=self._overwrites_from_json(category["overwrites"]),
+                    overwrites=await self._overwrites_from_json(category["overwrites"]),
                     reason=self.reason
                 )
                 self.id_translator[category["id"]] = created.id
@@ -307,7 +308,7 @@ class BackupLoader:
             try:
                 created = await self.guild.create_text_channel(
                     name=tchannel["name"],
-                    overwrites=self._overwrites_from_json(tchannel["overwrites"]),
+                    overwrites=await self._overwrites_from_json(tchannel["overwrites"]),
                     category=discord.Object(self.id_translator.get(tchannel["category"])),
                     reason=self.reason
                 )
@@ -326,7 +327,7 @@ class BackupLoader:
             try:
                 created = await self.guild.create_voice_channel(
                     name=vchannel["name"],
-                    overwrites=self._overwrites_from_json(vchannel["overwrites"]),
+                    overwrites=await self._overwrites_from_json(vchannel["overwrites"]),
                     category=discord.Object(self.id_translator.get(vchannel["category"])),
                     reason=self.reason
                 )
