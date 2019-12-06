@@ -219,8 +219,8 @@ class BackupLoader:
             if difference < 0:
                 i = 0
                 while difference < 0:
-                    role = existing_roles[i]
                     try:
+                        role = existing_roles[i]
                         await role.delete(reason=self.reason)
                     except Exception:
                         pass
@@ -232,7 +232,10 @@ class BackupLoader:
         if self.options.channels:
             log.debug(f"Deleting channels on {self.guild.id}")
             for channel in self.guild.channels:
-                await channel.delete(reason=self.reason)
+                try:
+                    await channel.delete(reason=self.reason)
+                except Exception:
+                    pass
 
     async def _load_settings(self):
         log.debug(f"Loading settings on {self.guild.id}")
