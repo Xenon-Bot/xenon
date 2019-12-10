@@ -393,7 +393,7 @@ class BackupLoader:
             "nick": None,
             "roles": []
         }
-        async for member in self.guild.fetch_members():
+        async for member in self.guild.fetch_members(limit=self.guild.member_count):
             fits = list(filter(lambda m: m["id"] == str(member.id), self.data["members"]))
             if fits:
                 tasks.append(edit_member(member, fits[0]))
@@ -427,6 +427,7 @@ class BackupLoader:
         for option, coro in steps:
             if self.options.get(option):
                 try:
+                    print(option)
                     await coro()
                 except Exception:
                     traceback.print_exc()
