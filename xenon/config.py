@@ -20,7 +20,7 @@ class Config:
     shards_per_pod = 1
     pod_id = _pod_id
 
-    prefix = "x!"
+    prefix = "x;"
 
     dbl_token = None
 
