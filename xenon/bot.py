@@ -1,5 +1,6 @@
 from aiohttp import ClientSession
 from discord.ext import commands as cmd
+import discord
 from motor.motor_asyncio import AsyncIOMotorClient
 import aioredis
 import json
@@ -164,6 +165,17 @@ class Xenon(cmd.AutoShardedBot):
         ):
             log.info("Shard ID %s has acquired the IDENTIFY lock." % shard_id)
             return await super().launch_shard(gateway, shard_id)
+
+    @property
+    def invite(self):
+        invite = self.config.invite_url
+        if not invite:
+            invite = discord.utils.oauth_url(
+                client_id=self.user.id,
+                permissions=discord.Permissions(8)
+            )
+
+        return invite
 
     @property
     def config(self):
