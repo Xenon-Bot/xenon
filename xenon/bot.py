@@ -72,7 +72,6 @@ class Xenon(cmd.AutoShardedBot):
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=Context)
-
         await self.invoke(ctx)
 
     def _prefix_callable(self, bot, msg):
