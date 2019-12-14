@@ -64,13 +64,14 @@ class Xenon(cmd.AutoShardedBot):
         if message.author.bot:
             return
 
+        if message.content.startswith(self.config.prefix) and self.config.private_bot == True and self.config.owner_id != message.author.id:
+            await message.channel.send("Only my owner is allowed to use me!")
+            return
+
         await self.process_commands(message)
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=Context)
-
-        if self.config.private_bot == True and self.config.owner_id != message.author.id:
-            return
 
         await self.invoke(ctx)
 
