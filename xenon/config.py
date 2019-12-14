@@ -26,7 +26,7 @@ class Config:
 
     support_guild = 410488579140354049
     owner_id = 386861188891279362
-    forced_inviteurl = "https://discord.club/invite/xenon" # Set to False to autogenerate the invite link
+    invite_url = None  # Set to None to generate one automatically
 
     identifier = "xenon"
 

@@ -28,12 +28,6 @@ def format_number(number):
 
     return "{:,}{}".format(number, suffix)
 
-def get_selfinvite(clientid, forcedinviteurl):
-    if forcedinviteurl == False:
-        return "https://discordapp.com/oauth2/authorize?client_id="+str(clientid)+"&scope=bot&permissions=8"
-    else:
-        return forcedinviteurl
-
 
 async def ask_question(ctx, question, converter=str):
     question_msg = await ctx.send(**ctx.em(question, type="wait_for"))

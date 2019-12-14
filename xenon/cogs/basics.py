@@ -68,7 +68,7 @@ class Basics(cmd.Cog, name="\u200BOthers"):
     async def invite(self, ctx):
         """Invite Xenon"""
         await ctx.send(**ctx.em("**Invite Xenon**\n\n"
-                                "[Xenon]("+helpers.get_selfinvite(self.bot.user.id, self.bot.config.forced_inviteurl)+")\n"
+                                f"[Xenon]({ctx.bot.invite})\n"
                                 "[Xenon Pro](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot) Use `x!pro` to get more information.\n"
                                 "[Xenon Turbo](https://discordapp.com/api/oauth2/authorize?client_id=598534174894194719&permissions=8&scope=bot)",
                                 type="info"))
@@ -81,7 +81,7 @@ class Basics(cmd.Cog, name="\u200BOthers"):
         embed.description = "Server Backups, Templates and more"
         embed.title = "Xenon"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
-        embed.add_field(name="Invite", value="[Click Here]("+helpers.get_selfinvite(self.bot.user.id, self.bot.config.forced_inviteurl)+")")
+        embed.add_field(name="Invite", value=f"[Click Here]({ctx.bot.invite})")
         embed.add_field(name="Discord", value="[Click Here](https://discord.club/discord)")
         embed.add_field(name="Prefix", value=ctx.config.prefix)
         embed.add_field(name="Guilds", value=helpers.format_number(await self.bot.get_guild_count()))
