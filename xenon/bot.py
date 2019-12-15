@@ -65,7 +65,7 @@ class Xenon(cmd.AutoShardedBot):
             return
 
         if message.content.startswith(self.config.prefix) and self.config.private_bot == True and self.config.owner_id != message.author.id:
-            await message.channel.send("Only my owner is allowed to use me!")
+            await message.channel.send("This bot is **private**. You are **not** the **owner** so you can **not** use me.")
             return
 
         await self.process_commands(message)
