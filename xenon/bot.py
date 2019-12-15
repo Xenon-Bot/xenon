@@ -1,6 +1,5 @@
 from aiohttp import ClientSession
 from discord.ext import commands as cmd
-from motor.motor_asyncio import AsyncIOMotorClient
 import aioredis
 import json
 import uuid
@@ -10,8 +9,8 @@ import inspect
 from aioredis_lock import RedisLock
 import logging
 
-from utils import formatter, helpers
-from utils.extended import Context
+from utils import formatter, helpers, database
+from utils.context import Context
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +45,7 @@ class Xenon(cmd.AutoShardedBot):
         log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
 
         self.session = ClientSession(loop=self.loop)
-        db_connection = AsyncIOMotorClient(
+        db_connection = database.DatabaseClient(
             host=self.config.db_host,
             username=self.config.db_user,
             password=self.config.db_password

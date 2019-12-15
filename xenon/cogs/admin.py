@@ -8,7 +8,7 @@ import io
 from prettytable import PrettyTable
 import asyncio
 
-from utils import checks, formatter, extended
+from utils import checks, formatter, context
 
 
 class Admin(cmd.Cog, command_attrs=dict(hidden=True)):
@@ -57,7 +57,7 @@ class Admin(cmd.Cog, command_attrs=dict(hidden=True)):
         message = ctx.message
         message.content = command
 
-        new_ctx = await self.bot.get_context(message, cls=extended.Context)
+        new_ctx = await self.bot.get_context(message, cls=context.Context)
         new_ctx.command.reset_cooldown(new_ctx)
         if isinstance(new_ctx.command, cmd.Group):
             for command in new_ctx.command.all_commands.values():
