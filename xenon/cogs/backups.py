@@ -392,9 +392,9 @@ class Backups(cmd.Cog, name="Security"):
         }}, upsert=True)
 
         embed = ctx.em("Successfully updated the backup interval.\n"
-                       f"Use `{ctx.config.prefix}backup load {ctx.guild.id}` to load the latest automated backup.",
-                       type="success")[
-            "embed"]
+                       f"The guild owner can access the most recent "
+                       f"backup with `{ctx.config.prefix}backup load {ctx.guild.id}`.",
+                       type="success")["embed"]
         embed.add_field(name="Interval", value=str(timedelta(minutes=minutes)).split(".")[0])
         embed.add_field(
             name="Next Backup",

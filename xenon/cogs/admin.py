@@ -19,7 +19,7 @@ class Admin(cmd.Cog, command_attrs=dict(hidden=True)):
     @cmd.command()
     @checks.has_role_on_support_guild("Staff")
     @checks.has_role_on_support_guild("Staff")
-    async def su(self, ctx, member: discord.Member, *, msg):
+    async def su(self, ctx, member: discord.User, *, msg):
         """
         Execute a command in place of another user
 

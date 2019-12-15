@@ -427,7 +427,6 @@ class BackupLoader:
         for option, coro in steps:
             if self.options.get(option):
                 try:
-                    print(option)
                     await coro()
                 except Exception:
                     traceback.print_exc()
