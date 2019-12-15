@@ -64,14 +64,17 @@ class Xenon(cmd.AutoShardedBot):
         if message.author.bot:
             return
 
-        if message.content.startswith(self.config.prefix) and self.config.private_bot == True and self.config.owner_id != message.author.id:
-            await message.channel.send(**formatter.embed_message("This bot is **private**. You are **not** the **owner** so you can **not** use me.", type="error"))
-            return
-
         await self.process_commands(message)
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=Context)
+        if ctx.command and self.config.private_bot and self.config.owner_id != message.author.id:
+            await ctx.send(**ctx.em(
+                f"**Private mode is enabled**. This bot can only be used by {ctx.author.mention}.",
+                type="error"
+            ))
+            return
+
         await self.invoke(ctx)
 
     def _prefix_callable(self, bot, msg):
