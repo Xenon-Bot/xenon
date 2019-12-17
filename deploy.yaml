@@ -96,8 +96,8 @@ spec:
             port: api
         resources:
           requests:
-            memory: 2Gi
+            memory: 1Gi
           limits:
-            memory: 4Gi
+            memory: 2Gi
       imagePullSecrets:
       - name: regcred
