@@ -40,7 +40,7 @@ class Templates(cmd.Cog, name="Creating"):
     @cmd.cooldown(1, 30, cmd.BucketType.user)
     async def create(self, ctx, backup_id=None, name=None, *, description=None):
         """
-        Turn a private backup into a PUBLIC template.
+        Turn a private backup into a **PUBLIC** template.
 
 
         __Arguments__
@@ -149,7 +149,7 @@ class Templates(cmd.Cog, name="Creating"):
 
         try:
             user = await self.bot.fetch_user(template["creator"])
-            await user.send(**self.bot.em(f"Your **template `{template['_id']}` got approved**.", type="info"))
+            await user.send(**self.bot.em(f"Your **template `{template['_id']}` has been approved**.", type="info"))
         except:
             pass
 
@@ -183,7 +183,7 @@ class Templates(cmd.Cog, name="Creating"):
 
         try:
             user = await self.bot.fetch_user(template["creator"])
-            await user.send(**self.bot.em(f"Your **template `{template['_id']}` got featured**!", type="info"))
+            await user.send(**self.bot.em(f"Your **template `{template['_id']}` has been featured**!", type="info"))
         except:
             pass
 
@@ -414,7 +414,7 @@ class Templates(cmd.Cog, name="Creating"):
     async def create_list(self, args):
         emb = Embed(
             title="Template List",
-            description="For a detailed list look at the #template_list channel on the [support discord](https://discord.club/discord).\n​\n"
+            description="For a detailed list look at the #template_list channel in the [support discord](https://discord.club/discord).\n​\n"
                         "__**Templates:**__",
             color=0x36393e
         )

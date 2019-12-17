@@ -125,7 +125,7 @@ class BuildMenu:
         page_options = self.pages[self.page - 1]
         embed = self.ctx.em("", title="Server Builder")["embed"]
         embed.title = page_options["name"].title()
-        embed.set_footer(text="Enable / Disable options with the reactions and click ✅ when you are done")
+        embed.set_footer(text="Enable / Disable options with the reactions and click ✅ when you are done.")
         for i, (name, value) in enumerate(page_options["options"]):
             embed.description += f"{i + 1}\u20e3 **{name.replace('_', ' ').title()}** -> {'✅' if value else '❌'}\n"
 

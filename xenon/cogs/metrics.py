@@ -10,7 +10,7 @@ events = prometheus.Counter("bot_events", "The count of events the bot processed
 latencies = prometheus.Gauge('bot_latencies', "The shard latencies", ["shard"], registry=registry)
 guilds = prometheus.Gauge('bot_guilds', "Total guild count per shard", ["shard"], registry=registry)
 guilds_unavailable = prometheus.Gauge('bot_guilds_unavailable', "Total guilds that are unavailable", registry=registry)
-members = prometheus.Gauge('bot_members', "Total members count per shard", ["shard"], registry=registry)
+members = prometheus.Gauge('bot_members', "Total member count per shard", ["shard"], registry=registry)
 
 
 class Metrics(cmd.Cog):
