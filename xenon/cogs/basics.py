@@ -88,10 +88,10 @@ class Basics(cmd.Cog, name="\u200BOthers"):
 
         app_info = await ctx.bot.application_info()
         if app_info.team:
-            embed.set_footer(text=f"Owned by {app_info.team.owner}")
+            embed.set_footer(text=f"Self-hosted by by {app_info.team.owner}")
 
         else:
-            embed.set_footer(text=f"Owned by {app_info.owner}")
+            embed.set_footer(text=f"Self-hosted by {app_info.owner}")
 
         await ctx.send(embed=embed)
 
