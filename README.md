@@ -29,3 +29,4 @@ The database and the bot should start up.
 
 Download and run a [mongodb](https://www.mongodb.com/) server and make the port 27017 accessible by the python script.  
 Install all dependencies, edit `xenon/config.py` and change the token, run `xenon/launcher.py`.
+At least Python version 3.7 is required.
