@@ -45,7 +45,6 @@ class Config:
         "help",
         "admin",
         "backups",
-        "templates",
         "users",
         "basics",
         "sharding",
