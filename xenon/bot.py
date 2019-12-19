@@ -7,9 +7,10 @@ import asyncio
 import traceback
 import inspect
 from aioredis_lock import RedisLock
+from motor.motor_asyncio import AsyncIOMotorClient
 import logging
 
-from utils import formatter, helpers, database
+from utils import formatter, helpers
 from utils.context import Context
 
 log = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ class Xenon(cmd.AutoShardedBot):
         log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
 
         self.session = ClientSession(loop=self.loop)
-        db_connection = database.DatabaseClient(
+        db_connection = AsyncIOMotorClient(
             host=self.config.db_host,
             username=self.config.db_user,
             password=self.config.db_password
