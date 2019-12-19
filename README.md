@@ -16,7 +16,7 @@ Download and install [docker](https://www.docker.com/) on your operating system.
 
 Build and run it with docker-compose:
 
-1. Download / Clone the repository
+1. Download / Clone the repository (preferably the selfhost branch)
 2. Edit the `xenon.env` file and change the token
 3. You might wanna change some values in `xenon/config.py` e.g. the prefix (maybe disable the templates cog aswell)
 4. Create a `xenon/logs` directory for the log files
