@@ -49,7 +49,6 @@ class Config:
         "users",
         "basics",
         "sharding",
-        "botlist",
         "api",
         "builder"
     ]
