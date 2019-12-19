@@ -10,10 +10,6 @@ class Context(cmd.Context):
         return self.bot.db
 
     @property
-    def redis(self):
-        return self.bot.redis
-
-    @property
     def em(self):
         return self.bot.em
 

@@ -197,27 +197,6 @@ class Admin(cmd.Cog, command_attrs=dict(hidden=True)):
 
         await ctx.send(embed=embed)
 
-    @cmd.command()
-    @cmd.is_owner()
-    async def query(self, ctx, timeout: float = 0.5, *, expression: str):
-        """
-        Evaluate a single expression on all shards and return the results
-
-
-        __Arguments__
-
-        **expressions**: The expression
-        """
-        results = await self.bot.query(expression, timeout=timeout)
-        table = PrettyTable()
-        table.field_names = ["Shard-Id", "Result"]
-        for shards, result in sorted(results, key=lambda r: sum(r[0])):
-            table.add_row([", ".join([str(s) for s in shards]), result])
-
-        pages = formatter.paginate(str(table))
-        for page in pages:
-            await ctx.send(f"```diff\n{page}```")
-
 
 def setup(bot):
     bot.add_cog(Admin(bot))

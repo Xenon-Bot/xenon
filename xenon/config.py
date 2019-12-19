@@ -35,8 +35,6 @@ class Config:
     db_user = None
     db_password = None
 
-    redis_host = "localhost"
-
     template_approval_channel = 633228946875482112
     template_list = None
     template_approval = None
