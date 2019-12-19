@@ -68,9 +68,7 @@ class Basics(cmd.Cog, name="\u200BOthers"):
     async def invite(self, ctx):
         """Invite Xenon"""
         await ctx.send(**ctx.em("**Invite Xenon**\n\n"
-                                f"[Xenon]({ctx.bot.invite})\n"
-                                "[Xenon Pro](https://discordapp.com/api/oauth2/authorize?client_id=524652984425250847&permissions=8&scope=bot) Use `x!pro` to get more information.\n"
-                                "[Xenon Turbo](https://discordapp.com/api/oauth2/authorize?client_id=598534174894194719&permissions=8&scope=bot)",
+                                f"[Xenon]({ctx.bot.invite})\n",
                                 type="info"))
 
     @cmd.command(aliases=["i", "stats", "status", "about"])
@@ -90,24 +88,12 @@ class Basics(cmd.Cog, name="\u200BOthers"):
 
         app_info = await ctx.bot.application_info()
         if app_info.team:
-            embed.set_footer(text=f"Owned by {app_info.team.owner}")
+            embed.set_footer(text=f"Self-hosted by by {app_info.team.owner}")
 
         else:
-            embed.set_footer(text=f"Owned by {app_info.owner}")
+            embed.set_footer(text=f"Self-hosted by {app_info.owner}")
 
         await ctx.send(embed=embed)
-
-    @cmd.command(aliases=["pro", "turbo"])
-    async def tiers(self, ctx):
-        """Shows information about Xenon Pro & Turbo"""
-        await ctx.send(**ctx.em(
-            "**Xenon Pro** and **Xenon Turbo** are the **paid versions** of Xenon. "
-            "They extend the existing features of Xenon and add new ones.\n"
-            "You can buy them [here](https://www.patreon.com/merlinfuchs) "
-            "and find **more information** and a **detailed list of perks** "
-            "[here](https://docs.discord.club/xenon/tiers).",
-            type="info"
-        ))
 
     @cmd.Cog.listener()
     async def on_guild_join(self, guild):
