@@ -185,6 +185,8 @@ class Xenon(cmd.AutoShardedBot):
                 self.loop.create_task(self._keep_shard_lock(lock))
                 return await super().launch_shards()
 
+            await asyncio.sleep(3)
+
     async def launch_shard(self, gateway, shard_id):
         log.info("Waiting to acquire the IDENTIFY lock.")
         async with RedisLock(
