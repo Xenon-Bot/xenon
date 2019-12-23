@@ -27,7 +27,7 @@ class Admin(cmd.Cog, command_attrs=dict(hidden=True)):
         __Arguments__
 
         **member**: The user (must be a member of this guild)
-        **msg**: The message. Doesn't need to be command
+        **msg**: The message, doesn't need to be a command
         """
         if member.id == ctx.bot.owner_id:
             raise cmd.CommandError("How about ... **no**?")
@@ -47,7 +47,7 @@ class Admin(cmd.Cog, command_attrs=dict(hidden=True)):
     @cmd.is_owner()
     async def sudo(self, ctx, *, command):
         """
-        Execute a command and bypasses cooldown
+        Execute a command and bypass cooldown
 
 
         __Arguments__
@@ -74,7 +74,7 @@ class Admin(cmd.Cog, command_attrs=dict(hidden=True)):
 
         __Arguments__
 
-        **cog**: The name of the cod
+        **cog**: The name of the cog
         """
         if cog.lower() == "all":
             failed = 0
@@ -101,7 +101,7 @@ class Admin(cmd.Cog, command_attrs=dict(hidden=True)):
     @cmd.command()
     @checks.has_role_on_support_guild("Admin")
     async def restart(self, ctx):
-        await ctx.send(**ctx.em("Reastarting ...", type="info"))
+        await ctx.send(**ctx.em("Restarting ...", type="info"))
         await self.bot.close()
 
     @cmd.command(name="exec")

@@ -67,8 +67,8 @@ class Backups(cmd.Cog, name="Security"):
         """
         backup_count = await ctx.db.backups.count_documents({"creator": ctx.author.id})
         if backup_count >= max_backups:
-            raise cmd.CommandError("You already **exceeded the maximum count** of backups.\n\n"
-                                   f"Upgrade to Pro (`x!pro`) to be able to create more than **{max_backups}** "
+            raise cmd.CommandError("You have **exceeded the maximum count** of backups.\n\n"
+                                   f"Upgrade to Pro (`x!pro`) to be able to create more than **{max_backups}**. "
                                    f"backups **or delete one of your old backups** (`x!backup list` "
                                    f"& `x!backup delete <id>`).")
 
@@ -87,7 +87,7 @@ class Backups(cmd.Cog, name="Security"):
 
             else:
                 embed = ctx.em(
-                    f"Created backup of **{ctx.guild.name}** with the Backup id `{id}`\n", type="info")["embed"]
+                    f"Created backup of **{ctx.guild.name}** with the backup id `{id}`\n", type="info")["embed"]
                 embed.add_field(name="Usage",
                                 value=f"```{ctx.prefix}backup load {id}```\n```{ctx.prefix}backup info {id}```")
                 await ctx.author.send(embed=embed)
@@ -108,7 +108,7 @@ class Backups(cmd.Cog, name="Security"):
 
         __Arguments__
 
-        **backup_id**: The id of the backup or the guild id for the latest automated backup
+        **backup_id**: The id of the backup or the guild id of the latest automated backup
         **options**: A list of options (See examples)
 
 
@@ -139,7 +139,7 @@ class Backups(cmd.Cog, name="Security"):
         except TimeoutError:
             await warning.delete()
             raise cmd.CommandError(
-                "Please make sure to **click the ✅ reaction** in order to load the backup.")
+                "Please make sure to **click the ✅ reaction** to load the backup.")
 
         if str(reaction.emoji) != "✅":
             ctx.command.reset_cooldown(ctx)
@@ -201,7 +201,7 @@ class Backups(cmd.Cog, name="Security"):
         except TimeoutError:
             await warning.delete()
             raise cmd.CommandError(
-                "Please make sure to **click the ✅ reaction** in order to delete all your backups.")
+                "Please make sure to **click the ✅ reaction** to delete all of your backups.")
 
         if str(reaction.emoji) != "✅":
             ctx.command.reset_cooldown(ctx)
