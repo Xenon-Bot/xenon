@@ -4,21 +4,10 @@ import logging
 log = logging.getLogger(__name__)
 
 
-_hostname = env.get("HOSTNAME")
-log.info("Assigned hostname '%s'" % str(_hostname))
-_pod_id = 0
-if _hostname is not None:
-    try:
-        _pod_id = int(_hostname.split("-")[-1])
-    except ValueError:
-        pass  # Probably using docker
-
-
 class Config:
     token = None
     shard_count = 1
     shards_per_pod = 1
-    pod_id = _pod_id
 
     prefix = "x!"
 

@@ -6,9 +6,10 @@ import uuid
 import asyncio
 import traceback
 import inspect
-from aioredis_lock import RedisLock
+from aioredis_lock import RedisLock, LockTimeoutError
 from motor.motor_asyncio import AsyncIOMotorClient
 import logging
+import discord
 
 from utils import formatter, helpers
 from utils.context import Context
@@ -27,12 +28,7 @@ class Xenon(cmd.AutoShardedBot):
             shard_count=self.config.shard_count,
             fetch_offline_members=False,
             guild_subscriptions=False,
-            shard_ids=[
-                i for i in range(
-                    self.config.pod_id * self.config.shards_per_pod,
-                    (self.config.pod_id + 1) * self.config.shards_per_pod
-                )
-            ],
+            shard_ids=[],
             owner_id=self.config.owner_id,
             disabled_events=[
                 "VOICE_STATE_UPDATE",
@@ -153,6 +149,38 @@ class Xenon(cmd.AutoShardedBot):
             pass
 
         return responses
+
+    async def _keep_shard_lock(self, lock):
+        while not self.is_closed():
+            await asyncio.sleep(1)
+            if not await lock.is_owner():
+                log.info("Lost the shard lock (lost ownership). Restarting ...")
+                await self.close()
+                exit(0)
+
+            if not await lock.renew():
+                log.info("Lost the shard lock (unable to renew). Restarting ...")
+                await self.close()
+                exit(0)
+
+    async def launch_shards(self):
+        while not self.is_closed():
+            for i in range(0, self.config.shard_count, self.config.shards_per_pod):
+                lock = RedisLock(
+                    self.redis,
+                    key="%s_%d" % (self.config.identifier, i),
+                    timeout=10,
+                    wait_timeout=0
+                )
+                try:
+                    await lock.__aenter__()
+                except LockTimeoutError:
+                    continue
+
+                log.info("Acquired the shard lock %d" % i)
+                self.shard_ids = list(range(i, i + self.config.shards_per_pod))
+                self.loop.create_task(self._keep_shard_lock(lock))
+                return await super().launch_shards()
 
     async def launch_shard(self, gateway, shard_id):
         log.info("Waiting to acquire the IDENTIFY lock.")
