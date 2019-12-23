@@ -1,0 +1,10 @@
+image: docker
+
+branches:
+  - master
+  - dev
+
+deploy:
+  - docker login reg.merlin.gg -u $REG_USER -p $REG_PASSWD
+  - docker build -t reg.merlin.gg/xenon:$ABSTRUSE_BRANCH .
+  - docker push reg.merlin.gg/xenon:$ABSTRUSE_BRANCH

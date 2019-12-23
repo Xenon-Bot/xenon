@@ -46,7 +46,7 @@ class Metrics(cmd.Cog):
             prometheus.push_to_gateway(
                 gateway="prometheus-pushgateway.monitoring:9091",
                 job=self.bot.config.identifier,
-                grouping_key={"pod": self.bot.config.pod_id},
+                grouping_key={"pod": self.bot.shard_ids[0]},
                 registry=registry,
                 handler=async_handler
             )

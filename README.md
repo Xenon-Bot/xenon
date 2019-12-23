@@ -16,7 +16,7 @@ Download and install [docker](https://www.docker.com/) on your operating system.
 
 Build and run it with docker-compose:
 
-1. Download / Clone the repository
+1. Download / Clone the repository (preferably the selfhost branch)
 2. Edit the `xenon.env` file and change the token
 3. You might wanna change some values in `xenon/config.py` e.g. the prefix (maybe disable the templates cog aswell)
 4. Create a `xenon/logs` directory for the log files
@@ -29,3 +29,4 @@ The database and the bot should start up.
 
 Download and run a [mongodb](https://www.mongodb.com/) server and make the port 27017 accessible by the python script.  
 Install all dependencies, edit `xenon/config.py` and change the token, run `xenon/launcher.py`.
+At least Python version 3.7 is required.

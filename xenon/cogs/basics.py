@@ -90,7 +90,11 @@ class Basics(cmd.Cog, name="\u200BOthers"):
         embed.add_field(name="Users", value=helpers.format_number(await self.bot.get_user_count()))
 
         app_info = await ctx.bot.application_info()
-        embed.set_footer(text=f"Owned by {app_info.owner}")
+        if app_info.team:
+            embed.set_footer(text=f"Owned by {app_info.team.owner}")
+
+        else:
+            embed.set_footer(text=f"Owned by {app_info.owner}")
 
         await ctx.send(embed=embed)
 
