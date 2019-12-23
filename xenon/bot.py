@@ -154,16 +154,17 @@ class Xenon(cmd.AutoShardedBot):
         while not self.is_closed():
             await asyncio.sleep(1)
             if not await lock.is_owner():
-                log.info("Lost the shard lock (lost ownership). Restarting ...")
+                log.info("Lost the SHARD lock (lost ownership). Restarting ...")
                 await self.close()
                 exit(0)
 
             if not await lock.renew():
-                log.info("Lost the shard lock (unable to renew). Restarting ...")
+                log.info("Lost the SHARD lock (unable to renew). Restarting ...")
                 await self.close()
                 exit(0)
 
     async def launch_shards(self):
+        log.info("Waiting to acquire a SHARD lock.")
         while not self.is_closed():
             for i in range(0, self.config.shard_count, self.config.shards_per_pod):
                 lock = RedisLock(
@@ -177,7 +178,7 @@ class Xenon(cmd.AutoShardedBot):
                 except LockTimeoutError:
                     continue
 
-                log.info("Acquired the shard lock %d" % i)
+                log.info("Acquired the SHARD lock %d" % i)
                 self.shard_ids = list(range(i, i + self.config.shards_per_pod))
                 self.loop.create_task(self._keep_shard_lock(lock))
                 return await super().launch_shards()
