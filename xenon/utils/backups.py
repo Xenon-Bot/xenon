@@ -277,7 +277,11 @@ class BackupLoader:
                     }
 
                     if len(existing_roles) == 0:
-                        new_role = await self.guild.create_role(**kwargs)
+                        try:
+                            new_role = await asyncio.wait_for(self.guild.create_role(**kwargs), 10)
+                        except asyncio.TimeoutError:
+                            # Probably hit the 24h rate limit. Just skip roles
+                            break
                     else:
                         new_role = existing_roles.pop(0)
                         await new_role.edit(**kwargs)
