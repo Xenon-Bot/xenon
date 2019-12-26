@@ -315,10 +315,13 @@ class BackupLoader:
                     category=discord.Object(self.id_translator.get(tchannel["category"])),
                     reason=self.reason
                 )
-                await created.edit(
-                    topic=self._translate_mentions(tchannel["topic"]),
-                    nsfw=tchannel["nsfw"],
-                )
+                try:
+                    await created.edit(
+                        topic=self._translate_mentions(tchannel["topic"]),
+                        nsfw=tchannel["nsfw"],
+                    )
+                except Exception:
+                    pass
 
                 self.id_translator[tchannel["id"]] = created.id
             except Exception:
