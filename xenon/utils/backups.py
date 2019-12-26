@@ -182,6 +182,9 @@ class BackupLoader:
         return overwrites
 
     def _translate_mentions(self, text):
+        if not text:
+            return text
+
         formats = ["<#%s>", "<@&%s>"]
         for key, value in self.id_translator.items():
             for _format in formats:
@@ -315,12 +318,12 @@ class BackupLoader:
                     category=discord.Object(self.id_translator.get(tchannel["category"])),
                     reason=self.reason
                 )
+
+                self.id_translator[tchannel["id"]] = created.id
                 await created.edit(
                     topic=self._translate_mentions(tchannel["topic"]),
                     nsfw=tchannel["nsfw"],
                 )
-
-                self.id_translator[tchannel["id"]] = created.id
             except Exception:
                 pass
 
