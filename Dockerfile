@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY xenon/ .
 
-CMD [ "python", "launcher.py" ]
+CMD [ "python", "-m", "cProfile", "-o", "profile.txt", "launcher.py" ]
