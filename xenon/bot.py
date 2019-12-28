@@ -170,12 +170,12 @@ class Xenon(cmd.AutoShardedBot):
         while not self.is_closed():
             for i in range(0, self.config.shard_count, self.config.shards_per_pod):
                 options = dict(
-                    key="%s_%d" % (self.config.identifier, i),
                     timeout=10,
                     wait_timeout=0
                 )
                 lock = RedisLock(
                     self.redis,
+                    key="%s_%d" % (self.config.identifier, i),
                     **options
                 )
                 if await lock.acquire(**options):
