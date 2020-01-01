@@ -154,7 +154,7 @@ class Xenon(cmd.AutoShardedBot):
 
     async def _keep_shard_lock(self, lock):
         while not self.is_closed():
-            await asyncio.sleep(1)
+            await asyncio.sleep(3)
             if not await lock.is_owner():
                 log.info("Lost the SHARD lock (lost ownership). Restarting ...")
                 await self.close()
@@ -184,7 +184,9 @@ class Xenon(cmd.AutoShardedBot):
                     self.loop.create_task(self._keep_shard_lock(lock))
                     return await super().launch_shards()
 
-            await asyncio.sleep(3)
+                await asyncio.sleep(0)  # Suspend
+
+            await asyncio.sleep(5)
 
     async def launch_shard(self, gateway, shard_id):
         log.info("Waiting to acquire the IDENTIFY lock.")
