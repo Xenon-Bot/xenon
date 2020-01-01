@@ -158,11 +158,13 @@ class Xenon(cmd.AutoShardedBot):
             if not await lock.is_owner():
                 log.info("Lost the SHARD lock (lost ownership). Restarting ...")
                 await self.close()
+                self.loop.stop()
                 exit(0)
 
             if not await lock.renew():
                 log.info("Lost the SHARD lock (unable to renew). Restarting ...")
                 await self.close()
+                self.loop.stop()
                 exit(0)
 
     async def launch_shards(self):
