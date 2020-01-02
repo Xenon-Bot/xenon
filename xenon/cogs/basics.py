@@ -46,7 +46,7 @@ class Basics(cmd.Cog, name="\u200BOthers"):
         ))
 
     @cmd.command()
-    @cmd.cooldown(1, 10, cmd.BucketType.user)
+    @cmd.cooldown(1, 10, cmd.BucketType.channel)
     async def shards(self, ctx):
         """Get a list of shards"""
         table = PrettyTable()
