@@ -33,9 +33,8 @@ class Botlist(cmd.Cog):
         await self.bot.wait_until_ready()
         while not self.bot.is_closed():
             try:
-                guilds = await self.bot.get_guild_count()
                 await self.bot.change_presence(activity=discord.Activity(
-                    name=f"{helpers.format_number(guilds)} Guilds | {self.bot.config.prefix}help",
+                    name=f"xenon.bot | {self.bot.config.prefix}help",
                     type=discord.ActivityType.watching
                 ), afk=False)
 
