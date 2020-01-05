@@ -4,5 +4,4 @@ prettytable
 pytz>=2017.3
 git+https://github.com/Magic-Bots/discord.py.git
 aioredis==1.2.0
-aioredis-lock>=0.0.3
 prometheus_client==0.7.1

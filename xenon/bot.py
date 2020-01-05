@@ -1,20 +1,18 @@
 from aiohttp import ClientSession
 from discord.ext import commands as cmd
-import discord
-from motor.motor_asyncio import AsyncIOMotorClient
 import aioredis
 import json
 import uuid
 import asyncio
 import traceback
 import inspect
-from aioredis_lock import RedisLock, LockTimeoutError
 from motor.motor_asyncio import AsyncIOMotorClient
 import logging
 import discord
 
 from utils import formatter, helpers
 from utils.context import Context
+from utils.lock import RedisLock
 
 log = logging.getLogger(__name__)
 
@@ -154,7 +152,7 @@ class Xenon(cmd.AutoShardedBot):
 
     async def _keep_shard_lock(self, lock):
         while not self.is_closed():
-            await asyncio.sleep(3)
+            await asyncio.sleep(5)
             if not await lock.is_owner():
                 log.info("Lost the SHARD lock (lost ownership). Restarting ...")
                 await self.close()
@@ -171,16 +169,13 @@ class Xenon(cmd.AutoShardedBot):
         log.info("Waiting to acquire a SHARD lock.")
         while not self.is_closed():
             for i in range(0, self.config.shard_count, self.config.shards_per_pod):
-                options = dict(
-                    timeout=10,
-                    wait_timeout=0
-                )
                 lock = RedisLock(
                     self.redis,
                     key="%s_%d" % (self.config.identifier, i),
-                    **options
+                    timeout=10,
+                    wait_timeout=0
                 )
-                if await lock.acquire(**options):
+                if await lock.acquire():
                     log.info("Acquired the SHARD lock %d" % i)
                     self.shard_ids = list(range(i, i + self.config.shards_per_pod))
                     self.loop.create_task(self._keep_shard_lock(lock))
