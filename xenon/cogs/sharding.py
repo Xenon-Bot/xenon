@@ -11,8 +11,17 @@ class Sharding(cmd.Cog):
 
     async def update_database(self):
         latencies = self.bot.latencies
-        shards = {id: {"latency": latency, "guilds": 0, "users": 0, "seen": datetime.utcnow()}
-                  for id, latency in latencies}
+        if len(self.bot.shard_ids) == 0:
+            return
+
+        cluster_id = self.bot.shard_ids[0] % self.bot.config.shards_per_pod
+        shards = {id: {
+            "latency": latency,
+            "guilds": 0,
+            "users": 0,
+            "seen": datetime.utcnow(),
+            "cluster": cluster_id
+        } for id, latency in latencies}
         for guild in self.bot.guilds:
             try:
                 shards[guild.shard_id]["guilds"] += 1
