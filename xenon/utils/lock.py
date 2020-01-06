@@ -62,12 +62,12 @@ class RedisLock:
     _release_script = None
     _renew_script = None
 
-    def __init__(self, redis: Redis, key: str, timeout: int = 30, wait_timeout: int = 30):
+    def __init__(self, redis: Redis, key: str, timeout: int = 30, wait_timeout: int = 30, *, token: str = None):
         self.redis = redis
         self.key = key
         self.timeout = timeout
         self.wait_timeout = wait_timeout  # Can be None to wait forever
-        self._token = str(uuid.uuid4())
+        self._token = token or str(uuid.uuid4())
 
     async def acquire_script(self) -> str:
         if self._acquire_script is None:
