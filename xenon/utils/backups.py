@@ -35,6 +35,8 @@ class BackupSaver:
             except Exception:
                 pass
 
+            await asyncio.sleep(0)
+
         for tchannel in self.guild.text_channels:
             try:
                 self.data["text_channels"].append({
@@ -58,6 +60,8 @@ class BackupSaver:
             except Exception:
                 pass
 
+            await asyncio.sleep(0)
+
         for vchannel in self.guild.voice_channels:
             try:
                 self.data["voice_channels"].append({
@@ -71,6 +75,8 @@ class BackupSaver:
                 })
             except Exception:
                 pass
+
+            await asyncio.sleep(0)
 
     async def _save_roles(self):
         for role in self.guild.roles:
@@ -91,6 +97,8 @@ class BackupSaver:
             except Exception:
                 pass
 
+            await asyncio.sleep(0)
+
     async def _save_members(self):
         if self.guild.large:
             await self.bot.request_offline_members(self.guild)
@@ -107,6 +115,8 @@ class BackupSaver:
             except Exception:
                 pass
 
+            await asyncio.sleep(0)
+
     async def _save_bans(self):
         for reason, user in await self.guild.bans():
             try:
@@ -116,6 +126,8 @@ class BackupSaver:
                 })
             except Exception:
                 pass
+
+            await asyncio.sleep(0)
 
     async def save(self):
         self.data = {
