@@ -1,4 +1,4 @@
-from discord.ext import commands as cmd
+from discord.ext import commands as cmd, tasks
 from discord import Embed, TextChannel
 import string
 import random
@@ -18,7 +18,7 @@ class Backups(cmd.Cog, name="Security"):
     def __init__(self, bot):
         self.bot = bot
         self.to_backup = []
-        self.interval_task = bot.loop.create_task(self.interval_loop())
+        self.interval_task.start()
 
     def cog_unload(self):
         self.interval_task.cancel()
@@ -412,26 +412,27 @@ class Backups(cmd.Cog, name="Security"):
         data = await handler.save()
         await self._save_backup(guild.owner_id, data, id=str(guild_id))
 
-    async def interval_loop(self):
+    @tasks.loop(minutes=1, reconnect=True)
+    async def interval_task(self):
+        try:
+            to_backup = self.bot.db.intervals.find({"next": {
+                "$lt": datetime.utcnow()
+            }})
+            async for interval in to_backup:
+                async def run_interval():
+                    await self.run_backup(interval["_id"])
+                    next = datetime.utcnow() + timedelta(minutes=interval["interval"])
+                    await self.bot.db.intervals.update_one({"_id": interval["_id"]}, {"$set": {"next": next}})
+
+                self.bot.loop.create_task(run_interval())
+                await sleep(0)
+
+        except:
+            traceback.print_exc()
+
+    @interval_task.before_loop
+    async def before_interval(self):
         await self.bot.wait_until_ready()
-        while not self.bot.is_closed():
-            try:
-                to_backup = self.bot.db.intervals.find({"next": {
-                    "$lt": datetime.utcnow()
-                }})
-                async for interval in to_backup:
-                    try:
-                        await self.run_backup(interval["_id"])
-
-                        next = datetime.utcnow() + timedelta(minutes=interval["interval"])
-                        await self.bot.db.intervals.update_one({"_id": interval["_id"]}, {"$set": {"next": next}})
-                    except:
-                        pass
-
-            except:
-                traceback.print_exc()
-
-            await sleep(60)
 
 
 def setup(bot):
