@@ -39,9 +39,12 @@ async def ask_question(ctx, question, converter=str):
         )
 
     except asyncio.TimeoutError:
-        raise cmd.CommandError("**Canceled template creation**, because you didn't respond.")
+        raise cmd.CommandError("**Canceled process**, because you didn't respond.")
 
     else:
+        if msg.content.lower() == "cancel":
+            raise cmd.CommandError("**Canceled process**.")
+
         try:
             return converter(msg.content)
         except ValueError:
