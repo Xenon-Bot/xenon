@@ -34,7 +34,7 @@ class Botlist(cmd.Cog):
         while not self.bot.is_closed():
             try:
                 await self.bot.change_presence(activity=discord.Activity(
-                    name=f"xenon.bot | {self.bot.config.prefix}help",
+                    name=f"{self.bot.config.prefix}help",
                     type=discord.ActivityType.watching
                 ), afk=False)
 
