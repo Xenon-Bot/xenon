@@ -152,7 +152,7 @@ class Xenon(cmd.AutoShardedBot):
 
     async def _keep_shard_lock(self, lock):
         while not self.is_closed():
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
             if not await lock.is_owner():
                 log.info("Lost the SHARD lock (lost ownership). Restarting ...")
                 await self.close()
