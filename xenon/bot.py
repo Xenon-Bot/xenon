@@ -168,6 +168,7 @@ class Xenon(cmd.AutoShardedBot):
     async def launch_shards(self):
         log.info("Waiting to acquire a SHARD lock.")
         while not self.is_closed():
+            tried = []
             for i in range(0, self.config.shard_count, self.config.shards_per_pod):
                 lock = RedisLock(
                     self.redis,
@@ -181,9 +182,14 @@ class Xenon(cmd.AutoShardedBot):
                     self.loop.create_task(self._keep_shard_lock(lock))
                     return await super().launch_shards()
 
+                else:
+                    tried.append(i)
+
                 await asyncio.sleep(0)  # Suspend
 
-            await asyncio.sleep(5)
+            log.info("Tried SHARD Locks (%s) with no success." % ", ".join([str(j) for j in tried]))
+
+            await asyncio.sleep(10)
 
     async def launch_shard(self, gateway, shard_id):
         log.info("Waiting to acquire the IDENTIFY lock.")
