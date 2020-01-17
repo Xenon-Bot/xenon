@@ -26,6 +26,9 @@ class HelpCommand(cmd.HelpCommand):
             emb.set_footer(text=self.get_ending_note())
             await destination.send(embed=emb)
 
+    def command_not_found(self, string):
+        return 'There is no command with that name.'
+
     def get_opening_note(self):
         """Returns help command's opening note. This is mainly useful to override for i18n purposes.
 
