@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 class Config:
     token = None
     shard_count = 1
-    shards_per_pod = 1
+    per_cluster = 1
 
     prefix = "x!"
 

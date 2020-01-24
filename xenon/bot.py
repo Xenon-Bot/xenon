@@ -91,8 +91,8 @@ class Xenon(cmd.AutoShardedBot):
         return sum([shard["users"] for shard in shards])
 
     async def _shards_reader(self):
-        eval_channel, = await self.redis.subscribe("shards")
-        async for msg in eval_channel.iter(decoder=json.loads):
+        channel, = await self.redis.subscribe("shards")
+        async for msg in channel.iter(decoder=json.loads):
             try:
                 _type, author, data = msg["t"], msg["a"], msg["d"]
                 if _type == "b":
@@ -110,7 +110,7 @@ class Xenon(cmd.AutoShardedBot):
 
                     await self.redis.publish_json("shards", {
                         "t": "r",
-                        "a": self.shard_ids,
+                        "a": self.cluster_id,
                         "d": {"n": data["n"], "r": result}
                     })
 
@@ -169,7 +169,7 @@ class Xenon(cmd.AutoShardedBot):
         log.info("Waiting to acquire a SHARD lock.")
         while not self.is_closed():
             tried = []
-            for i in range(0, self.config.shard_count, self.config.shards_per_pod):
+            for i in range(0, self.config.shard_count, self.config.per_cluster):
                 lock = RedisLock(
                     self.redis,
                     key="%s_%d" % (self.config.identifier, i),
@@ -178,7 +178,7 @@ class Xenon(cmd.AutoShardedBot):
                 )
                 if await lock.acquire():
                     log.info("Acquired the SHARD lock %d" % i)
-                    self.shard_ids = list(range(i, i + self.config.shards_per_pod))
+                    self.shard_ids = list(range(i, i + self.config.per_cluster))
                     self.loop.create_task(self._keep_shard_lock(lock))
                     return await super().launch_shards()
 
@@ -212,6 +212,10 @@ class Xenon(cmd.AutoShardedBot):
             )
 
         return invite
+
+    @property
+    def cluster_id(self):
+        return self.shard_ids[0]
 
     @property
     def config(self):

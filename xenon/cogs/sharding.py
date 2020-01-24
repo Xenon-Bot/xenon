@@ -14,7 +14,7 @@ class Sharding(cmd.Cog):
         if len(self.bot.shard_ids) == 0:
             return
 
-        cluster_id = self.bot.shard_ids[0] % self.bot.config.shards_per_pod
+        cluster_id = self.bot.shard_ids[0] % self.bot.config.per_cluster
         shards = {id: {
             "latency": latency,
             "guilds": 0,

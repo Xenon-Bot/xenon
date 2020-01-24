@@ -41,7 +41,7 @@ class Basics(cmd.Cog, name="\u200BOthers"):
         shard_id = (guild_id >> 22) % self.bot.shard_count
         await ctx.send(**ctx.em(
             f"The guild with the id **{guild_id}** is on **shard {shard_id}** "
-            f"(cluster {round(shard_id / ctx.config.shards_per_pod)}).",
+            f"(cluster {round(shard_id / ctx.config.per_cluster)}).",
             type="info"
         ))
 
