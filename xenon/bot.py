@@ -9,6 +9,7 @@ import inspect
 from motor.motor_asyncio import AsyncIOMotorClient
 import logging
 import discord
+from datetime import datetime
 
 from utils import formatter, helpers
 from utils.context import Context
@@ -151,19 +152,23 @@ class Xenon(cmd.AutoShardedBot):
         return responses
 
     async def _keep_shard_lock(self, lock):
+        last_renew = datetime.utcnow()
         while not self.is_closed():
             await asyncio.sleep(2)
+            difference = datetime.utcnow() - last_renew
             if not await lock.is_owner():
-                log.info("Lost the SHARD lock (lost ownership). Restarting ...")
+                log.info("Lost the SHARD lock (lost ownership, %ds). Restarting ..." % difference.seconds)
                 await self.close()
                 self.loop.stop()
                 exit(0)
 
             if not await lock.renew():
-                log.info("Lost the SHARD lock (unable to renew). Restarting ...")
+                log.info("Lost the SHARD lock (unable to renew, %ds). Restarting ..." % difference.seconds)
                 await self.close()
                 self.loop.stop()
                 exit(0)
+
+            last_renew = datetime.utcnow()
 
     async def launch_shards(self):
         log.info("Waiting to acquire a SHARD lock.")
