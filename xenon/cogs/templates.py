@@ -1,6 +1,6 @@
 from discord.ext import commands as cmd
 import pymongo
-from discord import Embed, Webhook, AsyncWebhookAdapter
+from discord import Embed
 import discord
 from asyncio import TimeoutError
 
@@ -10,18 +10,9 @@ from utils.backups import BackupInfo, BackupLoader
 
 class Templates(cmd.Cog, name="Creating"):
     approval_options = None
-    approval_webhook = None
-    list_webhook = None
-    featured_webhook = None
 
     def __init__(self, bot):
         self.bot = bot
-        self.approval_webhook = Webhook.from_url(self.bot.config.template_approval,
-                                                 adapter=AsyncWebhookAdapter(self.bot.session))
-        self.list_webhook = Webhook.from_url(self.bot.config.template_list,
-                                             adapter=AsyncWebhookAdapter(self.bot.session))
-        self.featured_webhook = Webhook.from_url(self.bot.config.template_featured,
-                                                 adapter=AsyncWebhookAdapter(self.bot.session))
         self.approval_options = {
             "✅": self._approve,
             "⭐": self._feature,
@@ -116,13 +107,19 @@ class Templates(cmd.Cog, name="Creating"):
             "description": description,
             "template": backup["backup"]
         }
+
+        try:
+            channel = await self.bot.fetch_channel(ctx.config.template_approval)
+            await channel.send(embed=self._template_info(template))
+        except Exception as e:
+            raise cmd.CommandError("Failed to access the template approval channel: **%s**" % str(e))
+
         await ctx.db.templates.insert_one(template)
         await ctx.send(**ctx.em("Successfully **created template**.\n"
                                 f"The template **will not be available** until a moderator approves it.\n"
                                 f"Please join the [support server](https://discord.club/discord) and enable direct "
                                 f"messages to get updates about your template.",
                                 type="success"))
-        await self.approval_webhook.send(embed=self._template_info(template))
 
     @template.command(hidden=True)
     @checks.has_role_on_support_guild("Staff")
@@ -145,7 +142,11 @@ class Templates(cmd.Cog, name="Creating"):
 
     async def _approve(self, template, *args):
         await self.bot.db.templates.update_one({"_id": template["_id"]}, {"$set": {"approved": True}})
-        await self.list_webhook.send(embed=self._template_info(template))
+        try:
+            channel = await self.bot.fetch_channel(self.bot.config.template_list)
+            await channel.send(embed=self._template_info(template))
+        except Exception as e:
+            raise cmd.CommandError("Failed to access the template list channel: **%s**" % str(e))
 
         try:
             user = await self.bot.fetch_user(template["creator"])
@@ -179,7 +180,11 @@ class Templates(cmd.Cog, name="Creating"):
     async def _feature(self, template, *args, state=True):
         await self.bot.db.templates.update_one({"_id": template["_id"]},
                                                {"$set": {"featured": state, "approved": True}})
-        await self.featured_webhook.send(embed=self._template_info(template))
+        try:
+            channel = await self.bot.fetch_channel(self.bot.config.template_featured)
+            await channel.send(embed=self._template_info(template))
+        except Exception as e:
+            raise cmd.CommandError("Failed to access the template featured channel: **%s**" % str(e))
 
         try:
             user = await self.bot.fetch_user(template["creator"])
@@ -209,7 +214,8 @@ class Templates(cmd.Cog, name="Creating"):
     async def _delete(self, template, user, channel):
         try:
             question = await channel.send(
-                **self.bot.em(f"Why do you want to delete/deny the template `{template['_id']}`?", type="wait_for"))
+                **self.bot.em(f"Why do you want to delete/deny the template `{template['_id']}`?", type="wait_for")
+            )
             creator = await self.bot.fetch_user(template["creator"])
             reason = ""
 
@@ -223,7 +229,7 @@ class Templates(cmd.Cog, name="Creating"):
                 await msg.delete()
 
             except TimeoutError:
-                await question.delete()
+                pass
 
             finally:
                 await question.delete()
@@ -436,13 +442,16 @@ class Templates(cmd.Cog, name="Creating"):
         if not isinstance(msg.channel, discord.TextChannel):
             return
 
-        if msg.channel.id == self.bot.config.template_approval_channel and msg.author.discriminator == "0000":
+        if len(msg.embeds) == 0 or not msg.embeds[0].title:
+            return
+
+        if msg.channel.id == self.bot.config.template_approval and msg.author.bot:
             for emoji in self.approval_options.keys():
                 await msg.add_reaction(emoji)
 
     @cmd.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        if payload.channel_id != self.bot.config.template_approval_channel:
+        if payload.channel_id != self.bot.config.template_approval:
             return
 
         channel = self.bot.get_channel(payload.channel_id)
