@@ -31,7 +31,10 @@ def block_check(loop):
                 break
             except asyncio.TimeoutError:
                 blocked_for += 1
-                log.warning("Event loop blocked for longer than %d seconds" % blocked_for)
+                log.warning("Event loop blocked for longer than %d seconds (%s)" % (
+                    blocked_for,
+                    str(asyncio.current_task(loop))
+                ))
 
 
 class Xenon(cmd.AutoShardedBot):
@@ -172,6 +175,7 @@ class Xenon(cmd.AutoShardedBot):
         while not self.is_closed():
             await asyncio.sleep(2)
             difference = datetime.utcnow() - last_renew
+            time.sleep(10)
             if not await lock.is_owner():
                 log.info("Lost the SHARD lock (lost ownership, %ds). Restarting ..." % difference.seconds)
                 await self.close()
