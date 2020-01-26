@@ -1,7 +1,7 @@
 from aiohttp import ClientSession
 from asyncio import get_event_loop
 
-# Using aiohttp because it's install anyways
+# Using aiohttp because it's installed anyways
 
 
 async def check():

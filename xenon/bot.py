@@ -40,8 +40,6 @@ class Xenon(cmd.AutoShardedBot):
             *args, **kwargs
         )
 
-        log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
-
         self.session = ClientSession(loop=self.loop)
         db_connection = AsyncIOMotorClient(
             host=self.config.db_host,
@@ -121,6 +119,8 @@ class Xenon(cmd.AutoShardedBot):
             except Exception:
                 traceback.print_exc()
 
+        self.loop.create_task(self._shards_reader())  # Restart
+
     async def broadcast(self, data):
         return await self.redis.publish_json("shards", {
             "t": "b",
@@ -185,6 +185,7 @@ class Xenon(cmd.AutoShardedBot):
                     log.info("Acquired the SHARD lock %d" % i)
                     self.shard_ids = list(range(i, i + self.config.per_cluster))
                     self.loop.create_task(self._keep_shard_lock(lock))
+                    log.info("Running shards: " + ", ".join([str(shard_id) for shard_id in self.shard_ids]))
                     return await super().launch_shards()
 
                 else:
