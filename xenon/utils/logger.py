@@ -12,7 +12,7 @@ def setup():
     logger.addHandler(fh)
 
     ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s'))
+    ch.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(name)s > %(message)s'))
     logger.addHandler(ch)
 
     logging.getLogger("aiohttp.access").parent = None  # Disable access log
