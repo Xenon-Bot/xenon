@@ -31,10 +31,12 @@ def block_check(loop):
                 break
             except asyncio.TimeoutError:
                 blocked_for += 1
+                task = asyncio.current_task(loop)
                 log.warning("Event loop blocked for longer than %d seconds (%s)" % (
                     blocked_for,
-                    str(asyncio.current_task(loop))
+                    str(task)
                 ))
+                task.print_stack()
 
 
 class Xenon(cmd.AutoShardedBot):
