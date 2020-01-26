@@ -10,12 +10,28 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import logging
 import discord
 from datetime import datetime
+import time
+import threading
 
 from utils import formatter, helpers
 from utils.context import Context
 from utils.lock import RedisLock
 
 log = logging.getLogger(__name__)
+
+
+def block_check(loop):
+    while True:
+        time.sleep(1)
+        future = asyncio.run_coroutine_threadsafe(asyncio.sleep(0), loop)
+        blocked_for = 0
+        while True:
+            try:
+                future.result(1)
+                break
+            except asyncio.TimeoutError:
+                blocked_for += 1
+                log.warning("Event loop blocked for longer than %d seconds" % blocked_for)
 
 
 class Xenon(cmd.AutoShardedBot):
@@ -232,6 +248,9 @@ class Xenon(cmd.AutoShardedBot):
         return formatter.embed_message
 
     async def start(self, *args, **kwargs):
+        t = threading.Thread(target=block_check, args=(self.loop,))
+        t.setDaemon(True)
+        t.start()
         self.redis = aioredis.Redis(await aioredis.create_pool("redis://" + self.config.redis_host))
         # self.loop.create_task(self._shards_reader())
 
