@@ -22,25 +22,24 @@ log = logging.getLogger(__name__)
 
 def block_check(loop):
     while True:
-        time.sleep(1)
-        future = asyncio.run_coroutine_threadsafe(asyncio.sleep(0), loop)
-        blocked_for = 0
-        while True:
-            try:
-                future.result(1)
-                break
-            except asyncio.TimeoutError:
-                blocked_for += 1
-                task = asyncio.current_task(loop)
-                log.warning("Event loop blocked for longer than %d seconds (%s)" % (
-                    blocked_for,
-                    str(task)
-                ))
-                class LogWriter:
-                    def write(self, content):
-                        log.warning(content)
-
-                task.print_stack(file=LogWriter())
+        try:
+            time.sleep(1)
+            future = asyncio.run_coroutine_threadsafe(asyncio.sleep(0), loop)
+            blocked_for = 0
+            while True:
+                try:
+                    future.result(1)
+                    break
+                except asyncio.TimeoutError:
+                    blocked_for += 1
+                    task = asyncio.current_task(loop)
+                    log.warning("Event loop blocked for longer than %d seconds (%s)\n%s" % (
+                        blocked_for,
+                        str(task),
+                        "\n".join([str(f) for f in task.get_stack()] if task is not None else [])
+                    ))
+        except Exception:
+            pass
 
 
 class Xenon(cmd.AutoShardedBot):
@@ -181,7 +180,6 @@ class Xenon(cmd.AutoShardedBot):
         while not self.is_closed():
             await asyncio.sleep(2)
             difference = datetime.utcnow() - last_renew
-            time.sleep(10)
             if not await lock.is_owner():
                 log.info("Lost the SHARD lock (lost ownership, %ds). Restarting ..." % difference.seconds)
                 await self.close()
