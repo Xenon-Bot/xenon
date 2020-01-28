@@ -6,5 +6,5 @@ branches:
 
 deploy:
   - docker login reg.merlin.gg -u $REG_USER -p $REG_PASSWD
-  - docker build -t reg.merlin.gg/xenon:$ABSTRUSE_BRANCH .
+  - docker build -t reg.merlin.gg/xenon:$ABSTRUSE_BRANCH . --no-cache
   - docker push reg.merlin.gg/xenon:$ABSTRUSE_BRANCH
