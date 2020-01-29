@@ -4,8 +4,6 @@ import asyncio
 import traceback
 import logging
 
-from utils import helpers
-
 log = logging.getLogger(__name__)
 
 
@@ -44,7 +42,8 @@ class Botlist(cmd.Cog):
             except:
                 traceback.print_exc()
 
-            await asyncio.sleep(10 * 60)
+            finally:
+                await asyncio.sleep(10 * 60)
 
 
 def setup(bot):
