@@ -12,12 +12,14 @@ import discord
 from datetime import datetime
 import time
 import threading
+import io
 
 from utils import formatter, helpers
 from utils.context import Context
 from utils.lock import RedisLock
 
 log = logging.getLogger(__name__)
+last_commands = []
 
 
 def block_check(loop):
@@ -33,10 +35,14 @@ def block_check(loop):
                 except asyncio.TimeoutError:
                     blocked_for += 1
                     task = asyncio.current_task(loop)
-                    log.warning("Event loop blocked for longer than %d seconds (%s)\n%s" % (
+                    buffer = io.StringIO()
+                    task.print_stack(file=buffer)
+                    buffer.seek(0)
+                    log.warning("Event loop blocked for longer than %d seconds (%s)\n%s\n%s" % (
                         blocked_for,
                         str(task),
-                        "\n".join([str(f) for f in task.get_stack()] if task is not None else [])
+                        str(last_commands),
+                        buffer.read()
                     ))
         except Exception:
             pass
@@ -78,6 +84,11 @@ class Xenon(cmd.AutoShardedBot):
 
     async def on_ready(self):
         log.info(f"Cached {len(self.users)} users from {len(self.guilds)} guilds")
+
+    async def on_command(self, ctx):
+        last_commands.append(ctx.command.qualified_name)
+        if len(last_commands) > 10:
+            last_commands.pop(0)
 
     async def on_message(self, message):
         if message.author.bot:
