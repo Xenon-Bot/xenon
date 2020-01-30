@@ -86,7 +86,7 @@ class Xenon(cmd.AutoShardedBot):
         log.info(f"Cached {len(self.users)} users from {len(self.guilds)} guilds")
 
     async def on_command(self, ctx):
-        last_commands.append(ctx.command.qualified_name)
+        last_commands.append(ctx.message.content)
         if len(last_commands) > 10:
             last_commands.pop(0)
 
