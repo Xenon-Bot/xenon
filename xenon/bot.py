@@ -61,6 +61,7 @@ class Xenon(cmd.AutoShardedBot):
             guild_subscriptions=False,
             shard_ids=[],
             owner_id=self.config.owner_id,
+            max_messages=10**4,
             disabled_events=[
                 "VOICE_STATE_UPDATE",
                 "PRESENCE_UPDATE",
