@@ -190,15 +190,20 @@ class Xenon(cmd.AutoShardedBot):
         last_renew = datetime.utcnow()
         while not self.is_closed():
             await asyncio.sleep(2)
-            difference = datetime.utcnow() - last_renew
+            difference_last = datetime.utcnow() - last_renew
+            before_renew = datetime.utcnow()
             if not await lock.is_owner():
-                log.info("Lost the SHARD lock (lost ownership, %ds). Restarting ..." % difference.seconds)
+                difference_renew = datetime.utcnow() - before_renew
+                log.info("Lost the SHARD lock (lost ownership, %ds, %ds). Restarting ..." %
+                         (difference_last.seconds, difference_renew.seconds))
                 await self.close()
                 self.loop.stop()
                 exit(0)
 
             if not await lock.renew():
-                log.info("Lost the SHARD lock (unable to renew, %ds). Restarting ..." % difference.seconds)
+                difference_renew = datetime.utcnow() - before_renew
+                log.info("Lost the SHARD lock (unable to renew, %ds %ds). Restarting ..." %
+                         (difference_last.seconds, difference_renew.seconds))
                 await self.close()
                 self.loop.stop()
                 exit(0)
