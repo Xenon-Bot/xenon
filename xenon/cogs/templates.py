@@ -267,6 +267,9 @@ class Templates(cmd.Cog, name="Creating"):
     async def load(self, ctx, template_name, *options):
         """
         Load a template
+        You can find templates in the #template-list and #featured-templates channels on the support discord.
+        The template name is always the first line of the message (e.g. "starter"), you don't need the backup id!
+        You can also use `{c.prefix}backup search <search-term>` to find templates.
 
 
         __Arguments__
