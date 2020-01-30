@@ -231,18 +231,18 @@ class BackupLoader:
                 self.guild.roles
             ))
             difference = len(self.data["roles"]) - len(existing_roles)
-            if difference < 0:
-                i = 0
-                while difference < 0:
+            for role in existing_roles:
+                if difference < 0:
                     try:
-                        role = existing_roles[i]
                         await role.delete(reason=self.reason)
                     except Exception:
                         pass
+
                     else:
                         difference += 1
-                    finally:
-                        i += 1
+
+                else:
+                    break
 
         if self.options.channels:
             log.debug(f"Deleting channels on {self.guild.id}")
