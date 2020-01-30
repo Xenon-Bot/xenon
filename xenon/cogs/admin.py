@@ -1,4 +1,5 @@
 from discord.ext import commands as cmd
+from discord.http import Route
 import discord
 import traceback
 import inspect
@@ -7,6 +8,7 @@ import textwrap
 import io
 from prettytable import PrettyTable
 import asyncio
+from datetime import timedelta
 
 from utils import checks, formatter, context
 
@@ -217,6 +219,26 @@ class Admin(cmd.Cog, command_attrs=dict(hidden=True)):
         pages = formatter.paginate(str(table))
         for page in pages:
             await ctx.send(f"```diff\n{page}```")
+
+    @cmd.command()
+    @checks.has_role_on_support_guild("Staff")
+    @checks.has_role_on_support_guild("Staff")
+    async def gateway(self, ctx):
+        """
+        Get the Discord Gateway
+        """
+        data = await ctx.bot.http.request(Route('GET', '/gateway/bot'))
+        identifies = data["session_start_limit"]
+        embed = ctx.em("", type="info", title="Bot Gateway")["embed"]
+        embed.add_field(name="Url", value=data["url"])
+        embed.add_field(name="Shards", value=data["shards"])
+        embed.add_field(name="Total Identifies", value=identifies["total"])
+        embed.add_field(name="Remaining Identifies", value=identifies["remaining"])
+        embed.add_field(
+            name="Reset After",
+            value=str(timedelta(milliseconds=identifies["reset_after"])).split(".")[0]
+        )
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
