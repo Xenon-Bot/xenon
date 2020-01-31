@@ -4,7 +4,7 @@ import string
 import random
 import traceback
 import pymongo
-from asyncio import TimeoutError, sleep
+from asyncio import TimeoutError, sleep, Semaphore
 from datetime import datetime, timedelta
 
 from utils import checks, helpers, types
@@ -412,23 +412,28 @@ class Backups(cmd.Cog, name="Security"):
         data = await handler.save()
         await self._save_backup(guild.owner_id, data, id=str(guild_id))
 
-    @tasks.loop(minutes=1, reconnect=True)
+    @tasks.loop(minutes=10, reconnect=True)
     async def interval_task(self):
         try:
             to_backup = self.bot.db.intervals.find({"next": {
                 "$lt": datetime.utcnow()
             }})
+            semaphore = Semaphore(10)
             async for interval in to_backup:
                 async def run_interval():
-                    await self.run_backup(interval["_id"])
-                    next = datetime.utcnow() + timedelta(minutes=interval["interval"])
-                    await self.bot.db.intervals.update_one({"_id": interval["_id"]}, {"$set": {"next": next}})
+                    try:
+                        next = datetime.utcnow() + timedelta(minutes=interval["interval"])
+                        await self.bot.db.intervals.update_one({"_id": interval["_id"]}, {"$set": {"next": next}})
+                        await self.run_backup(interval["_id"])
+                    finally:
+                        semaphore.release()
 
+                await semaphore.acquire()
                 self.bot.loop.create_task(run_interval())
                 await sleep(0)
 
-        except:
-            traceback.print_exc()
+        except Exception:
+            pass
 
     @interval_task.before_loop
     async def before_interval(self):

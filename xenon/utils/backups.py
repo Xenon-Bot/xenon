@@ -174,7 +174,7 @@ class BackupLoader:
         self.bot = bot
         self.id_translator = {}
         self.options = types.BooleanArgs([])
-        self.semaphore = asyncio.Semaphore(10)
+        self.semaphore = asyncio.Semaphore(2)
 
     async def _overwrites_from_json(self, json):
         overwrites = {}
