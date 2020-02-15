@@ -1,5 +1,8 @@
 # Xenon
 
+> :warning: **This version of the bot is no longer under active development**: You can find the newest version of the bot and more information at Magic-Bots/xenon-worker  
+  
+  
 [![Codefresh build status]( https://g.codefresh.io/api/badges/pipeline/merlintor/Xenon%2Fdeploy?type=cf-1)]( https://g.codefresh.io/public/accounts/merlintor/pipelines/5d4d4cc311b8859327cf24e0)
 [![Discord Server]( https://discordapp.com/api/guilds/410488579140354049/embed.png)]( https://discord.club/discord)
 
